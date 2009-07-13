@@ -91,3 +91,7 @@ if [ "$IS_ALERT5MINIFW" = 1 ]; then
     grep ^/etc/init.d/minifirewall /etc/rc2.d/S99alert5 > /dev/null || echo 'IS_ALERT5MINIFW FAILED!'
 fi
 
+if [ "$IS_NRPEPERMS" = 1 ]; then
+    ls -ld /etc/nagios | grep drwxr-x--- > /dev/null || echo 'IS_NRPEPERMS FAILED!'
+fi
+

@@ -95,3 +95,42 @@ if [ "$IS_NRPEPERMS" = 1 ]; then
     ls -ld /etc/nagios | grep drwxr-x--- > /dev/null || echo 'IS_NRPEPERMS FAILED!'
 fi
 
+if [ "$IS_MINIFWPERMS" = 1 ]; then
+    ls -l /etc/firewall.rc | grep -- -rw------- > /dev/null || echo 'IS_MINIFWPERMS FAILED!'
+fi
+
+if [ "$IS_NRPEDISKS" = 1 ]; then
+    NRPEDISKS=$(grep command.check_disk /etc/nagios/nrpe.cfg | grep ^command.check_disk[0-9] | sed -e "s/^command.check_disk\([0-9]\+\).*/\1/" | sort -n | tail -1)
+    DFDISKS=$(df -Pl | egrep -v "(^Filesystem|/lib/init/rw|/dev/shm|udev)" | wc -l)
+    [ "$NRPEDISKS" = "$DFDISKS" ] || echo 'IS_NRPEDISKS FAILED!'
+fi
+
+# Verification du check_mailq dans nrpe.cfg (celui-ci doit avoir l'option "-M postfix" si le MTA est Postfix)
+
+if [ "$IS_NRPEPOSTFIX" = 1 ]; then
+    dpkg -l postfix | grep ^ii >/dev/null && ( grep "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg > /dev/null || echo 'IS_NRPEPOSTFIX FAILED!' )
+fi
+
+if [ "$IS_GRSECPROCS" = 1 ]; then
+    uname -a | grep grsec >/dev/null && ( grep ^command.check_total_procs..sudo /etc/nagios/nrpe.cfg >/dev/null && grep -A1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep "^user root" >/dev/null || echo 'IS_GRSECPROCS FAILED!' )
+fi
+
+if [ "$IS_UMASKSUDOERS" = 1 ]; then
+    grep ^Defaults.*umask=0077 /etc/sudoers >/dev/null || echo 'IS_UMASKSUDOERS FAILED!'
+fi
+
+if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
+    for i in $(grep ^User_Alias.*ADMIN /etc/sudoers | cut -d= -f2 | tr -d " " | tr "," "\n"); do
+        grep "^trap.*sudo.*evomaintenance.sh" /home/$i/.*profile >/dev/null || echo 'IS_EVOMAINTENANCEUSERS FAILED!'
+    done
+fi
+
+if [ "$IS_APACHEMUNIN" = 1 ]; then
+    test -e /etc/apache2/apache2.conf && ( grep "^env.url.*/server-status-[0-9]{4}" /etc/munin/plugin-conf.d/munin-node >/dev/null && grep "/server-status-[0-9]{4}" /etc/apache2/apache2.conf || echo 'IS_APACHEMUNIN FAILED!' )
+fi
+
+# Verification mytop + Munin si MySQL
+if [ "$IS_MYSQLUTILS" = 1 ]; then
+    dpkg -l mysql-server | grep ^ii >/dev/null && ( grep mysqladmin /root/.my.cnf >/dev/null && dpkg -l mytop | grep ^ii >/dev/null && grep debian-sys-maint /root/.mytop >/dev/null || echo 'IS_MYSQLUTILS FAILED!' )
+fi
+

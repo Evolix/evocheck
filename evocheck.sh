@@ -126,7 +126,7 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
 fi
 
 if [ "$IS_APACHEMUNIN" = 1 ]; then
-    test -e /etc/apache2/apache2.conf && ( grep "^env.url.*/server-status-[0-9]{4}" /etc/munin/plugin-conf.d/munin-node >/dev/null && grep "/server-status-[0-9]{4}" /etc/apache2/apache2.conf || echo 'IS_APACHEMUNIN FAILED!' )
+    test -e /etc/apache2/apache2.conf && ( egrep "^env.url.*/server-status-[0-9]{4}" /etc/munin/plugin-conf.d/munin-node >/dev/null && egrep "/server-status-[0-9]{4}" /etc/apache2/apache2.conf >/dev/null || echo 'IS_APACHEMUNIN FAILED!' )
 fi
 
 # Verification mytop + Munin si MySQL

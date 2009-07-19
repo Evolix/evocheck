@@ -124,7 +124,7 @@ if [ "$IS_UMASKSUDOERS" = 1 ]; then
 fi
 
 if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
-    for i in $(grep ^User_Alias.*ADMIN /etc/sudoers | cut -d= -f2 | tr -d " " | tr "," "\n"); do
+    for i in $(grep "^User_Alias ADMIN" /etc/sudoers | cut -d= -f2 | tr -d " " | tr "," "\n"); do
         grep "^trap.*sudo.*evomaintenance.sh" /home/$i/.*profile >/dev/null || echo 'IS_EVOMAINTENANCEUSERS FAILED!'
     done
 fi

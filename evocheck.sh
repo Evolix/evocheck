@@ -5,6 +5,10 @@
 # version 0.2
 # Copyright 2009 Gregory Colpart <reg@evolix.fr>, Evolix <info@evolix.fr>
 
+# Disable LANG
+LANG=C
+
+# Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
 
 if [ "$IS_TMP_1777" = 1 ]; then

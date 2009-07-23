@@ -1,7 +1,7 @@
 Release:
 ~~~~~~~~
 
-master> tar --exclude .git -czf ../evocheck_<VERSION>.orig.tar.gz .
+master> git archive --format=tar master | gzip > ../evocheck_<VERSION>.orig.tar.gz
 master> pristine-tar commit ../evocheck_<VERSION>.orig.tar.gz master
 
 Debian release:

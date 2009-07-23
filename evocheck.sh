@@ -2,7 +2,7 @@
 
 # EvoCheck script
 
-# version 0.2
+# version 0.3
 # Copyright 2009 Gregory Colpart <reg@evolix.fr>, Evolix <info@evolix.fr>
 
 # Disable LANG

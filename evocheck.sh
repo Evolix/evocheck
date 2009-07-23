@@ -2,7 +2,7 @@
 
 # EvoCheck script
 
-# version 0.3
+# version 0.3.1
 # Copyright 2009 Gregory Colpart <reg@evolix.fr>, Evolix <info@evolix.fr>
 
 # Disable LANG
@@ -130,7 +130,7 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
 fi
 
 if [ "$IS_APACHEMUNIN" = 1 ]; then
-    test -e /etc/apache2/apache2.conf && ( egrep "^env.url.*/server-status-[0-9]{4}" /etc/munin/plugin-conf.d/munin-node >/dev/null && egrep "/server-status-[0-9]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf >/dev/null || echo 'IS_APACHEMUNIN FAILED!' )
+    test -e /etc/apache2/apache2.conf && ( egrep "^env.url.*/server-status-[0-9]{4}" /etc/munin/plugin-conf.d/munin-node >/dev/null && egrep "/server-status-[0-9]{4}" /etc/apache2/apache2.conf >/dev/null || egrep "/server-status-[0-9]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf >/dev/null 2>/dev/null || echo 'IS_APACHEMUNIN FAILED!' )
 fi
 
 # Verification mytop + Munin si MySQL

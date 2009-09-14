@@ -2,11 +2,12 @@
 
 # EvoCheck script
 
-# version 0.3.1
+# version 0.3.2-beta
 # Copyright 2009 Gregory Colpart <reg@evolix.fr>, Evolix <info@evolix.fr>
 
-# Disable LANG
-LANG=C
+# Disable LANG*
+export LANG=C
+export LANGUAGE=C
 
 # Default configuration values
 IS_TMP_1777=1

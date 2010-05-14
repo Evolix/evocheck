@@ -167,6 +167,7 @@ fi
 
 # Verification mytop + Munin si MySQL
 if [ "$IS_MYSQLUTILS" = 1 ]; then
-    dpkg -l mysql-server | grep ^ii >/dev/null && ( grep mysqladmin /root/.my.cnf >/dev/null && dpkg -l mytop 2> /dev/null | grep ^ii >/dev/null && grep debian-sys-maint /root/.mytop >/dev/null || echo 'IS_MYSQLUTILS FAILED!' )
+    dpkg -l mysql-server 2>/dev/null | grep ^ii >/dev/null && ( grep mysqladmin /root/.my.cnf >/dev/null && dpkg -l mytop 2> /dev/null | grep ^ii >/dev/null && grep debian-sys-maint /root/.mytop >/dev/null || echo 'IS_MYSQLUTILS FAILED!' )
 fi
 
+# Vedd

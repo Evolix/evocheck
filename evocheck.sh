@@ -39,6 +39,7 @@ IS_UMASKSUDOERS=1
 IS_EVOMAINTENANCEUSERS=1
 IS_APACHEMUNIN=1
 IS_MYSQLUTILS=1
+IS_RAIDSOFT=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -170,4 +171,7 @@ if [ "$IS_MYSQLUTILS" = 1 ]; then
     dpkg -l mysql-server 2>/dev/null | grep ^ii >/dev/null && ( grep mysqladmin /root/.my.cnf >/dev/null && dpkg -l mytop 2> /dev/null | grep ^ii >/dev/null && grep debian-sys-maint /root/.mytop >/dev/null || echo 'IS_MYSQLUTILS FAILED!' )
 fi
 
-# Vedd
+# Verification si le demon mdadm lancé au démarrage (surveillance du raid logiciel)
+if [ "$IS_RAIDSOFT" = 1 ]; then
+	(test ! -e /proc/mdstat || grep "^AUTOSTART=true" /etc/default/mdadm 1>/dev/null) || echo 'IS_RAIDSOFT FAILED!'
+fi

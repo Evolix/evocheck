@@ -49,6 +49,11 @@ IS_SQUID=1
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
 
+# Functions
+function is_pack_web {
+	test -e /usr/share/scripts/web-add.sh
+}
+
 if [ "$IS_TMP_1777" = 1 ]; then
     ls -ld /tmp | grep drwxrwxrwt > /dev/null || echo 'IS_TMP_1777 FAILED!'
 fi
@@ -215,9 +220,9 @@ fi
 # Verification de l'activation de Squid dans le cas d'un pack mail
 if [ "$IS_SQUID" = 1 ]; then
 	f=/etc/firewall.rc
-	( dpkg -l squid 2>/dev/null |grep ^ii >/dev/null \
+	is_pack_web && ( dpkg -l squid 2>/dev/null |grep ^ii >/dev/null \
 	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $f >/dev/null \
 	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $f >/dev/null \
 	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.1 -j ACCEPT" $f >/dev/null \
-	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port `grep http_port /etc/squid/squid.conf |cut -f 2 -d " "`" $f >/dev/null ) || echo 'IS_SQUID FAILED!'
+	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port `grep http_port /etc/squid/squid.conf |cut -f 2 -d " "`" $f >/dev/null || echo 'IS_SQUID FAILED!' )
 fi

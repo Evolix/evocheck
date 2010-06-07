@@ -42,6 +42,7 @@ IS_MYSQLUTILS=1
 IS_RAIDSOFT=1
 IS_AWSTATSLOGFORMAT=1
 IS_MUNINLOGROTATE=1
+IS_EVOMAINTENANCECONF=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -186,4 +187,20 @@ fi
 # Verification de la présence de la config logrotate pour Munin
 if [ "$IS_MUNINLOGROTATE" = 1 ]; then
 	( test -e /etc/logrotate.d/munin-node && test -e /etc/logrotate.d/munin ) || echo 'IS_MUNINLOGROTATE FAILED!'
+fi
+
+# Verification de la configuration d'evomaintenance
+if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
+	f=/etc/evomaintenance.cf
+	 ( grep "^HOSTNAME=`hostname`$" $f >/dev/null \
+	&& grep "^export PGPASSWORD" $f |grep -v "your-passwd" >/dev/null \
+	&& grep "^EVOMAINTMAIL" $f |grep -v "evomaintenance-your-host@example.com" >/dev/null \
+	&& grep "^PGDB" $f |grep -v "your-db" >/dev/null \
+	&& grep "^PGTABLE" $f |grep -v "your-table" >/dev/null \
+	&& grep "^PGHOST" $f |grep -v "your-pg-host" >/dev/null \
+	&& grep "^FROM" $f |grep -v "jdoe@example.com" >/dev/null \
+	&& grep "^FULLFROM" $f |grep -v "John Doe <jdoe@example.com>" > /dev/null \
+	&& grep "^URGENCYFROM" $f |grep -v "mama.doe@example.com" >/dev/null \
+	&& grep "^URGENCYTEL" $f |grep -v "06.00.00.00.00" >/dev/null \
+	&& grep "^REALM" $f |grep -v "example.com" >/dev/null ) || echo 'IS_EVOMAINTENANCECONF FAILED!'
 fi

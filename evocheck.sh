@@ -44,6 +44,7 @@ IS_AWSTATSLOGFORMAT=1
 IS_MUNINLOGROTATE=1
 IS_EVOMAINTENANCECONF=1
 IS_METCHE=1
+IS_SQUID=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -209,4 +210,14 @@ fi
 # Verification de la présence de metche
 if [ "$IS_METCHE" = 1 ]; then
 	dpkg -l metche 2>/dev/null |grep ^ii >/dev/null || echo 'IS_METCHE FAILED!'
+fi
+
+# Verification de l'activation de Squid dans le cas d'un pack mail
+if [ "$IS_SQUID" = 1 ]; then
+	f=/etc/firewall.rc
+	( dpkg -l squid 2>/dev/null |grep ^ii >/dev/null \
+	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $f >/dev/null \
+	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $f >/dev/null \
+	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.1 -j ACCEPT" $f >/dev/null \
+	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port `grep http_port /etc/squid/squid.conf |cut -f 2 -d " "`" $f >/dev/null ) || echo 'IS_SQUID FAILED!'
 fi

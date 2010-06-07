@@ -43,6 +43,7 @@ IS_RAIDSOFT=1
 IS_AWSTATSLOGFORMAT=1
 IS_MUNINLOGROTATE=1
 IS_EVOMAINTENANCECONF=1
+IS_METCHE=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -203,4 +204,9 @@ if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
 	&& grep "^URGENCYFROM" $f |grep -v "mama.doe@example.com" >/dev/null \
 	&& grep "^URGENCYTEL" $f |grep -v "06.00.00.00.00" >/dev/null \
 	&& grep "^REALM" $f |grep -v "example.com" >/dev/null ) || echo 'IS_EVOMAINTENANCECONF FAILED!'
+fi
+
+# Verification de la présence de metche
+if [ "$IS_METCHE" = 1 ]; then
+	dpkg -l metche 2>/dev/null |grep ^ii >/dev/null || echo 'IS_METCHE FAILED!'
 fi

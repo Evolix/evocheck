@@ -7,7 +7,7 @@
 - [DONE] Si pack web, vérifier la présence de Squid et son activation
 - Si pack web, verifier regles log2mail pour squid
 - Si pack web, vérifier la présence de mod_security et sa configuration
-- Si pack web, vérifier que mod-deflate est configuré correctement
+- [DONE] Si pack web, vérifier que mod-deflate est configuré correctement
 - Si bind, vérifier qu'il est chrooté
 - Si version >= lenny (+ pack mail ??) verifier la presence de volatile
 - Si pack Samba + backports, vérifier le fichier preferences

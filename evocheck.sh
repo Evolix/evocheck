@@ -45,6 +45,7 @@ IS_MUNINLOGROTATE=1
 IS_EVOMAINTENANCECONF=1
 IS_METCHE=1
 IS_SQUID=1
+IS_MODDEFLATE=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -225,4 +226,10 @@ if [ "$IS_SQUID" = 1 ]; then
 	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $f >/dev/null \
 	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.1 -j ACCEPT" $f >/dev/null \
 	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port `grep http_port /etc/squid/squid.conf |cut -f 2 -d " "`" $f >/dev/null || echo 'IS_SQUID FAILED!' )
+fi
+
+# Verification de la conf et de l'activation de mod-deflate
+if [ "$IS_MODDEFLATE" = 1 ]; then
+	f=/etc/apache2/mods-enabled/deflate.conf
+	test -e $f && grep "AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript$" $f >/dev/null || echo 'IS_MODDEFLATE FAILED!'
 fi

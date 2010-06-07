@@ -40,6 +40,8 @@ IS_EVOMAINTENANCEUSERS=1
 IS_APACHEMUNIN=1
 IS_MYSQLUTILS=1
 IS_RAIDSOFT=1
+IS_AWSTATSLOGFORMAT=1
+IS_MUNINLOGROTATE=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -174,4 +176,14 @@ fi
 # Verification si le demon mdadm lancé au démarrage (surveillance du raid logiciel)
 if [ "$IS_RAIDSOFT" = 1 ]; then
 	(test ! -e /proc/mdstat || grep "^AUTOSTART=true" /etc/default/mdadm 1>/dev/null) || echo 'IS_RAIDSOFT FAILED!'
+fi
+
+# Verification du LogFormat de AWStats
+if [ "$IS_AWSTATSLOGFORMAT" = 1 ]; then
+	dpkg -l apache2.2-common 2>/dev/null |grep ^ii >/dev/null && ( grep -E '^LogFormat=1' /etc/awstats/awstats.conf.local >/dev/null || echo 'IS_AWSTATSLOGFORMAT FAILED!' )
+fi
+
+# Verification de la présence de la config logrotate pour Munin
+if [ "$IS_MUNINLOGROTATE" = 1 ]; then
+	( test -e /etc/logrotate.d/munin-node && test -e /etc/logrotate.d/munin ) || echo 'IS_MUNINLOGROTATE FAILED!'
 fi

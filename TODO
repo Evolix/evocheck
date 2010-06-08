@@ -8,7 +8,7 @@
 - [DONE] Si pack web, verifier regles log2mail pour squid
 - Si pack web, vérifier la présence de mod_security et sa configuration
 - [DONE] Si pack web, vérifier que mod-deflate est configuré correctement
-- Si bind, vérifier qu'il est chrooté
+- [DONE] Si bind, vérifier qu'il est chrooté
 - Si version >= lenny (+ pack mail ??) verifier la presence de volatile
 - Si pack Samba + backports, vérifier le fichier preferences
 - Si raid soft, verifier que mdadm est bien configuré

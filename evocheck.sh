@@ -49,6 +49,7 @@ IS_MODDEFLATE=1
 IS_LOG2MAILAPACHE=1
 IS_LOG2MAILMYSQL=1
 IS_LOG2MAILSQUID=1
+IS_BINDCHROOT=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -254,3 +255,7 @@ if [ "$IS_LOG2MAILSQUID" = 1 ]; then
 	is_pack_web && ( is_installed log2mail && grep "^file = /var/log/squid/access.log" /etc/log2mail/config/default 2>/dev/null >/dev/null || echo 'IS_LOG2MAILSQUID FAILED!' )
 fi
 
+# Verification si bind est chroote
+if [ "$IS_BINDCHROOT" = 1 ]; then
+	is_installed bind && ( grep -E '^OPTIONS=".*-t"' /etc/default/bind9 >/dev/null && grep -E '^OPTIONS=".*-u"' /etc/default/bind9 >/dev/null || echo 'IS_BINDCHROOT FAILED!' )
+fi

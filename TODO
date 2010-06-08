@@ -3,9 +3,9 @@
 - [DONE] Vérifier la présence des logrotate.d/munin*
 - [DONE] Vérifier si evomaintenance.cf est bien configuré
 - [DONE] Vérifier si metche est bien présent
-- Si pack web, vérifier la conf de log2mail pour Apache et MySQL
+- [DONE] Si pack web, vérifier la conf de log2mail pour Apache et MySQL
 - [DONE] Si pack web, vérifier la présence de Squid et son activation
-- Si pack web, verifier regles log2mail pour squid
+- [DONE] Si pack web, verifier regles log2mail pour squid
 - Si pack web, vérifier la présence de mod_security et sa configuration
 - [DONE] Si pack web, vérifier que mod-deflate est configuré correctement
 - Si bind, vérifier qu'il est chrooté

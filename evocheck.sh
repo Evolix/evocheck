@@ -46,6 +46,9 @@ IS_EVOMAINTENANCECONF=1
 IS_METCHE=1
 IS_SQUID=1
 IS_MODDEFLATE=1
+IS_LOG2MAILAPACHE=1
+IS_LOG2MAILMYSQL=1
+IS_LOG2MAILSQUID=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -233,3 +236,15 @@ if [ "$IS_MODDEFLATE" = 1 ]; then
 	f=/etc/apache2/mods-enabled/deflate.conf
 	test -e $f && grep "AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript$" $f >/dev/null || echo 'IS_MODDEFLATE FAILED!'
 fi
+
+# Verification de la conf log2mail
+if [ "$IS_LOG2MAILAPACHE" = 1 ]; then
+	is_pack_web && ( dpkg -l log2mail 2>/dev/null |grep ^ii >/dev/null && grep "^file = /var/log/apache2/error.log" /etc/log2mail/config/default 2>/dev/null >/dev/null || echo 'IS_LOG2MAILAPACHE FAILED!' )
+fi
+if [ "$IS_LOG2MAILMYSQL" = 1 ]; then
+	is_pack_web && ( dpkg -l log2mail 2>/dev/null |grep ^ii >/dev/null && grep "^file = /var/log/syslog" /etc/log2mail/config/default 2>/dev/null >/dev/null || echo 'IS_LOG2MAILMYSQL FAILED!' )
+fi
+if [ "$IS_LOG2MAILSQUID" = 1 ]; then
+	is_pack_web && ( dpkg -l log2mail 2>/dev/null |grep ^ii >/dev/null && grep "^file = /var/log/squid/access.log" /etc/log2mail/config/default 2>/dev/null >/dev/null || echo 'IS_LOG2MAILSQUID FAILED!' )
+fi
+

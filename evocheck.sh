@@ -81,7 +81,7 @@ if [ "$IS_USRSHARESCRIPTS" = 1 ]; then
 fi
 
 if [ "$IS_SERVEURBASE" = 1 ]; then
-    dpkg -l serveur-base | grep ^ii > /dev/null || echo 'IS_SERVEURBASE FAILED!'
+    is_installed server-base || echo 'IS_SERVEURBASE FAILED!'
 fi
 
 if [ "$IS_LOGROTATECONF" = 1 ]; then

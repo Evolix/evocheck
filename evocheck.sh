@@ -58,6 +58,12 @@ function is_pack_web {
 	test -e /usr/share/scripts/web-add.sh
 }
 
+function is_installed {
+	for pkg in $*; do
+		dpkg -l $pkg 2>/dev/null |grep ^ii >/dev/null || return 1
+	done
+}
+
 if [ "$IS_TMP_1777" = 1 ]; then
     ls -ld /tmp | grep drwxrwxrwt > /dev/null || echo 'IS_TMP_1777 FAILED!'
 fi
@@ -159,7 +165,7 @@ fi
 # Verification du check_mailq dans nrpe.cfg (celui-ci doit avoir l'option "-M postfix" si le MTA est Postfix)
 
 if [ "$IS_NRPEPOSTFIX" = 1 ]; then
-    dpkg -l postfix | grep ^ii >/dev/null && ( grep "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg > /dev/null || echo 'IS_NRPEPOSTFIX FAILED!' )
+    is_installed postfix && ( grep "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg > /dev/null || echo 'IS_NRPEPOSTFIX FAILED!' )
 fi
 
 if [ "$IS_GRSECPROCS" = 1 ]; then
@@ -182,7 +188,7 @@ fi
 
 # Verification mytop + Munin si MySQL
 if [ "$IS_MYSQLUTILS" = 1 ]; then
-    dpkg -l mysql-server 2>/dev/null | grep ^ii >/dev/null && ( grep mysqladmin /root/.my.cnf >/dev/null && dpkg -l mytop 2> /dev/null | grep ^ii >/dev/null && grep debian-sys-maint /root/.mytop >/dev/null || echo 'IS_MYSQLUTILS FAILED!' )
+    is_installed mysql-server && ( grep mysqladmin /root/.my.cnf >/dev/null && is_installed mytop && grep debian-sys-maint /root/.mytop >/dev/null || echo 'IS_MYSQLUTILS FAILED!' )
 fi
 
 # Verification si le demon mdadm lancé au démarrage (surveillance du raid logiciel)
@@ -192,7 +198,7 @@ fi
 
 # Verification du LogFormat de AWStats
 if [ "$IS_AWSTATSLOGFORMAT" = 1 ]; then
-	dpkg -l apache2.2-common 2>/dev/null |grep ^ii >/dev/null && ( grep -E '^LogFormat=1' /etc/awstats/awstats.conf.local >/dev/null || echo 'IS_AWSTATSLOGFORMAT FAILED!' )
+	is_installed apache2.2-common && ( grep -E '^LogFormat=1' /etc/awstats/awstats.conf.local >/dev/null || echo 'IS_AWSTATSLOGFORMAT FAILED!' )
 fi
 
 # Verification de la présence de la config logrotate pour Munin
@@ -218,13 +224,13 @@ fi
 
 # Verification de la présence de metche
 if [ "$IS_METCHE" = 1 ]; then
-	dpkg -l metche 2>/dev/null |grep ^ii >/dev/null || echo 'IS_METCHE FAILED!'
+	is_installed metche || echo 'IS_METCHE FAILED!'
 fi
 
 # Verification de l'activation de Squid dans le cas d'un pack mail
 if [ "$IS_SQUID" = 1 ]; then
 	f=/etc/firewall.rc
-	is_pack_web && ( dpkg -l squid 2>/dev/null |grep ^ii >/dev/null \
+	is_pack_web && ( is_installed squid \
 	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $f >/dev/null \
 	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $f >/dev/null \
 	&& grep -E "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.1 -j ACCEPT" $f >/dev/null \
@@ -239,12 +245,12 @@ fi
 
 # Verification de la conf log2mail
 if [ "$IS_LOG2MAILAPACHE" = 1 ]; then
-	is_pack_web && ( dpkg -l log2mail 2>/dev/null |grep ^ii >/dev/null && grep "^file = /var/log/apache2/error.log" /etc/log2mail/config/default 2>/dev/null >/dev/null || echo 'IS_LOG2MAILAPACHE FAILED!' )
+	is_pack_web && ( is_installed log2mail && grep "^file = /var/log/apache2/error.log" /etc/log2mail/config/default 2>/dev/null >/dev/null || echo 'IS_LOG2MAILAPACHE FAILED!' )
 fi
 if [ "$IS_LOG2MAILMYSQL" = 1 ]; then
-	is_pack_web && ( dpkg -l log2mail 2>/dev/null |grep ^ii >/dev/null && grep "^file = /var/log/syslog" /etc/log2mail/config/default 2>/dev/null >/dev/null || echo 'IS_LOG2MAILMYSQL FAILED!' )
+	is_pack_web && ( is_installed log2mail && grep "^file = /var/log/syslog" /etc/log2mail/config/default 2>/dev/null >/dev/null || echo 'IS_LOG2MAILMYSQL FAILED!' )
 fi
 if [ "$IS_LOG2MAILSQUID" = 1 ]; then
-	is_pack_web && ( dpkg -l log2mail 2>/dev/null |grep ^ii >/dev/null && grep "^file = /var/log/squid/access.log" /etc/log2mail/config/default 2>/dev/null >/dev/null || echo 'IS_LOG2MAILSQUID FAILED!' )
+	is_pack_web && ( is_installed log2mail && grep "^file = /var/log/squid/access.log" /etc/log2mail/config/default 2>/dev/null >/dev/null || echo 'IS_LOG2MAILSQUID FAILED!' )
 fi
 

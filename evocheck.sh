@@ -197,9 +197,12 @@ if [ "$IS_MYSQLUTILS" = 1 ]; then
     is_installed mysql-server && ( grep mysqladmin /root/.my.cnf >/dev/null && is_installed mytop && grep debian-sys-maint /root/.mytop >/dev/null || echo 'IS_MYSQLUTILS FAILED!' )
 fi
 
-# Verification si le demon mdadm lancé au démarrage (surveillance du raid logiciel)
+# Verification de la configuration du raid soft (mdadm)
 if [ "$IS_RAIDSOFT" = 1 ]; then
-	(test ! -e /proc/mdstat || grep "^AUTOSTART=true" /etc/default/mdadm 1>/dev/null) || echo 'IS_RAIDSOFT FAILED!'
+	test -e /proc/mdstat && \
+	 ( grep "^AUTOCHECK=true" /etc/default/mdadm >/dev/null \
+	&& grep "^START_DAEMON=true" /etc/default/mdadm >/dev/null \
+	&& grep -E "^MAILADDR (root|alert3@evolix.fr)" /etc/mdadm/mdadm.conf || echo 'IS_RAIDSOFT FAILED!')
 fi
 
 # Verification du LogFormat de AWStats

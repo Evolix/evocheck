@@ -50,6 +50,7 @@ IS_LOG2MAILAPACHE=1
 IS_LOG2MAILMYSQL=1
 IS_LOG2MAILSQUID=1
 IS_BINDCHROOT=1
+IS_REPVOLATILE=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -57,6 +58,10 @@ test -f /etc/evocheck.cf && . /etc/evocheck.cf
 # Functions
 function is_pack_web {
 	test -e /usr/share/scripts/web-add.sh
+}
+
+function is_pack_samba {
+	test -e /usr/share/scripts/add.pl
 }
 
 function is_installed {
@@ -258,4 +263,9 @@ fi
 # Verification si bind est chroote
 if [ "$IS_BINDCHROOT" = 1 ]; then
 	is_installed bind && ( grep -E '^OPTIONS=".*-t"' /etc/default/bind9 >/dev/null && grep -E '^OPTIONS=".*-u"' /etc/default/bind9 >/dev/null || echo 'IS_BINDCHROOT FAILED!' )
+fi
+
+# Verification de la présence du depot volatile
+if [ "$IS_REPVOLATILE" = 1 ]; then
+	test `cat /etc/debian_version |cut -d "." -f 1` -ge 5 && (grep -E "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list >/dev/null || echo 'IS_REPVOLATILE FAILED!')
 fi

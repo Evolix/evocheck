@@ -52,6 +52,7 @@ IS_LOG2MAILSQUID=1
 IS_BINDCHROOT=1
 IS_REPVOLATILE=1
 IS_AUTOIF=1
+IS_TOOMUCHDEBIANSYSMAINT=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -281,3 +282,7 @@ if [ "$IS_AUTOIF" = 1 ]; then
 	done
 fi
 
+# Verification du nombre de debian-sys-maint
+if [ "$IS_TOOMUCHDEBIANSYSMAINT" = 1 ]; then
+	is_installed mysql-server && (test `echo "SELECT user FROM mysql.user WHERE user='debian-sys-maint';" |mysql --skip-column-names |wc -l` -eq 1 || echo 'IS_TOOMUCHDEBIANSYSMAINT FAILED!')
+fi

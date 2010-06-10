@@ -13,6 +13,6 @@
 - Si pack Samba + backports, vérifier le fichier preferences
 - [DONE] Si raid soft, verifier que mdadm est bien configuré
 - [DONE] Verifier qu'il y a bien des "auto <if>" et non "allow-hotplug <if>" dans /e/n/i
-- Verifier qu'il n'y a pas deux debian-sys-maint dans mysql.user !
+- [DONE] Verifier qu'il n'y a pas deux debian-sys-maint dans mysql.user ! (et qu'il y en a au moins un)
 - Verifier que apachectl est OK
 - Vérifier sur que les backups sont en place

@@ -51,6 +51,7 @@ IS_LOG2MAILMYSQL=1
 IS_LOG2MAILSQUID=1
 IS_BINDCHROOT=1
 IS_REPVOLATILE=1
+IS_AUTOIF=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -272,3 +273,11 @@ fi
 if [ "$IS_REPVOLATILE" = 1 ]; then
 	test `cat /etc/debian_version |cut -d "." -f 1` -ge 5 && (grep -E "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list >/dev/null || echo 'IS_REPVOLATILE FAILED!')
 fi
+
+# Verification interface en auto
+if [ "$IS_AUTOIF" = 1 ]; then
+	for interface in `/sbin/ifconfig -s |tail -n +2 |grep -v "^lo" |cut -d " " -f 1 |tr "\n" " "`; do
+		grep "^auto $interface" /etc/network/interfaces >/dev/null || (echo 'IS_AUTOIF FAILED!' && break)
+	done
+fi
+

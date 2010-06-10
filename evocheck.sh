@@ -286,3 +286,8 @@ fi
 if [ "$IS_TOOMUCHDEBIANSYSMAINT" = 1 ]; then
 	is_installed mysql-server && (test `echo "SELECT user FROM mysql.user WHERE user='debian-sys-maint';" |mysql --skip-column-names |wc -l` -eq 1 || echo 'IS_TOOMUCHDEBIANSYSMAINT FAILED!')
 fi
+
+# Verification de la mise en place d'evobackup
+if [ "$IS_EVOBACKUP" = 1 ]; then
+	ls /etc/cron* |grep zz_backup >/dev/null || echo 'IS_EVOBACKUP FAILED!'
+fi

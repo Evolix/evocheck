@@ -55,6 +55,7 @@ IS_AUTOIF=1
 IS_TOOMUCHDEBIANSYSMAINT=1
 IS_USERLOGROTATE=1
 IS_MODSECURITY=1
+IS_APACHECTL=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -302,4 +303,9 @@ fi
 # Verification de la présence de mod_security
 if [ "$IS_MODSECURITY" = 1 ]; then
 	is_pack_web && (is_installed libapache2-mod-security2 && test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY')
+fi
+
+# Verification de la syntaxe de la conf d'Apache
+if [ "$IS_APACHECTL" =1 ]; then
+	is_installed apache2.2-common && (/usr/sbin/apache2ctl configtest 2>&1 |grep "^Syntax OK$" || echo 'IS_APACHECTL FAILED!')
 fi

@@ -14,5 +14,5 @@
 - [DONE] Si raid soft, verifier que mdadm est bien configuré
 - [DONE] Verifier qu'il y a bien des "auto <if>" et non "allow-hotplug <if>" dans /e/n/i
 - [DONE] Verifier qu'il n'y a pas deux debian-sys-maint dans mysql.user ! (et qu'il y en a au moins un)
-- Verifier que apachectl est OK
+- [DONE] Verifier que apachectl est OK
 - [DONE] Vérifier sur que les backups sont en place

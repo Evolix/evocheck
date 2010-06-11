@@ -54,6 +54,7 @@ IS_REPVOLATILE=1
 IS_AUTOIF=1
 IS_TOOMUCHDEBIANSYSMAINT=1
 IS_USERLOGROTATE=1
+IS_MODSECURITY=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -294,6 +295,11 @@ if [ "$IS_EVOBACKUP" = 1 ]; then
 fi
 
 # Verification de la presence du userlogrotate
-if [ "$IS_USERLOGROTATE" = 1 ];then
-	test -x /etc/cron.weekly/userlogrotate || echo 'IS_USERLOGROTATE'
+if [ "$IS_USERLOGROTATE" = 1 ]; then
+	is_pack_web && (test -x /etc/cron.weekly/userlogrotate || echo 'IS_USERLOGROTATE')
+fi
+
+# Verification de la présence de mod_security
+if [ "$IS_MODSECURITY" = 1 ]; then
+	is_pack_web && (is_installed libapache2-mod-security2 && test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY')
 fi

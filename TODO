@@ -6,7 +6,7 @@
 - [DONE] Si pack web, vérifier la conf de log2mail pour Apache et MySQL
 - [DONE] Si pack web, vérifier la présence de Squid et son activation
 - [DONE] Si pack web, verifier regles log2mail pour squid
-- Si pack web, vérifier la présence de mod_security et sa configuration
+- [DONE] Si pack web, vérifier la présence de mod_security et sa configuration
 - [DONE] Si pack web, vérifier que mod-deflate est configuré correctement
 - [DONE] Si bind, vérifier qu'il est chrooté
 - [DONE] Si version >= lenny --(+ pack mail ??)-- verifier la presence de volatile

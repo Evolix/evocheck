@@ -1,5 +1,5 @@
 - [DONE] Si Apache, vérifier que LogFormat=1 dans awstats.conf.local
-- Si Pack Web, vérifier que userlogrotate.sh est présent !
+- [DONE] Si Pack Web, vérifier que userlogrotate.sh est présent !
 - [DONE] Vérifier la présence des logrotate.d/munin*
 - [DONE] Vérifier si evomaintenance.cf est bien configuré
 - [DONE] Vérifier si metche est bien présent

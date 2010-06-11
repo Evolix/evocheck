@@ -53,6 +53,7 @@ IS_BINDCHROOT=1
 IS_REPVOLATILE=1
 IS_AUTOIF=1
 IS_TOOMUCHDEBIANSYSMAINT=1
+IS_USERLOGROTATE=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -290,4 +291,9 @@ fi
 # Verification de la mise en place d'evobackup
 if [ "$IS_EVOBACKUP" = 1 ]; then
 	ls /etc/cron* |grep zz_backup >/dev/null || echo 'IS_EVOBACKUP FAILED!'
+fi
+
+# Verification de la presence du userlogrotate
+if [ "$IS_USERLOGROTATE" = 1 ];then
+	test -x /etc/cron.weekly/userlogrotate || echo 'IS_USERLOGROTATE'
 fi

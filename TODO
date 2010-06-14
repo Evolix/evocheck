@@ -10,7 +10,7 @@
 - [DONE] Si pack web, vérifier que mod-deflate est configuré correctement
 - [DONE] Si bind, vérifier qu'il est chrooté
 - [DONE] Si version >= lenny --(+ pack mail ??)-- verifier la presence de volatile
-- Si pack Samba + backports, vérifier le fichier preferences
+- [DONE] Si pack Samba + backports, vérifier le fichier preferences
 - [DONE] Si raid soft, verifier que mdadm est bien configuré
 - [DONE] Verifier qu'il y a bien des "auto <if>" et non "allow-hotplug <if>" dans /e/n/i
 - [DONE] Verifier qu'il n'y a pas deux debian-sys-maint dans mysql.user ! (et qu'il y en a au moins un)

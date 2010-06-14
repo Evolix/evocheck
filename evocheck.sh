@@ -56,6 +56,7 @@ IS_TOOMUCHDEBIANSYSMAINT=1
 IS_USERLOGROTATE=1
 IS_MODSECURITY=1
 IS_APACHECTL=1
+IS_SAMBAPINPRIORITY=1
 
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
@@ -308,4 +309,9 @@ fi
 # Verification de la syntaxe de la conf d'Apache
 if [ "$IS_APACHECTL" =1 ]; then
 	is_installed apache2.2-common && (/usr/sbin/apache2ctl configtest 2>&1 |grep "^Syntax OK$" || echo 'IS_APACHECTL FAILED!')
+fi
+
+# Verification de la priorité du package samba si les backports sont utilisés
+if [ "$IS_SAMBAPINPRIORITY" = 1 ]; then
+	is_pack_samba && grep -rE "^[^#].*backport" /etc/apt/sources.list{,.d} >/dev/null && ( priority=`grep -E -A2 "^Package:.*samba" /etc/apt/preferences |grep -A1 "^Pin: release a=lenny-backports" |grep "^Pin-Priority:" |cut -f2 -d" "` && test $priority -gt 500 || echo 'IS_SAMBAPINPRIORITY FAILED!' )
 fi

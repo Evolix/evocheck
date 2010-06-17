@@ -16,3 +16,4 @@
 - [DONE] Verifier qu'il n'y a pas deux debian-sys-maint dans mysql.user ! (et qu'il y en a au moins un)
 - [DONE] Verifier que apachectl est OK
 - [DONE] Vérifier sur que les backups sont en place
+- Verifier que qu'il n'y ai pas d'alias /php*admin dans la configuration d'Apache

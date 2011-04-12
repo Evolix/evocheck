@@ -153,11 +153,11 @@ if [ "$IS_TMOUTPROFILE" = 1 ]; then
 fi
 
 if [ "$IS_ALERT5BOOT" = 1 ]; then
-    grep ^date /etc/rc2.d/S99alert5 > /dev/null || echo 'IS_ALERT5BOOT FAILED!'
+    grep ^date /etc/rc2.d/S*alert5 > /dev/null || echo 'IS_ALERT5BOOT FAILED!'
 fi
 
 if [ "$IS_ALERT5MINIFW" = 1 ]; then
-    grep ^/etc/init.d/minifirewall /etc/rc2.d/S99alert5 > /dev/null || echo 'IS_ALERT5MINIFW FAILED!'
+    grep ^/etc/init.d/minifirewall /etc/rc2.d/S*alert5 > /dev/null || echo 'IS_ALERT5MINIFW FAILED!'
 fi
 
 if [ "$IS_NRPEPERMS" = 1 ]; then

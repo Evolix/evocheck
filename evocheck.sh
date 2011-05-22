@@ -205,10 +205,10 @@ fi
 
 # Verification de la configuration du raid soft (mdadm)
 if [ "$IS_RAIDSOFT" = 1 ]; then
-	test -e /proc/mdstat && \
+	test -e /proc/mdstat && grep -q md /proc/mdstat && \
 	 ( grep -q "^AUTOCHECK=true" /etc/default/mdadm \
 	&& grep -q "^START_DAEMON=true" /etc/default/mdadm \
-	&& grep -qE "^MAILADDR (root|alert3@evolix.fr)" /etc/mdadm/mdadm.conf || echo 'IS_RAIDSOFT FAILED!')
+	&& grep -qv "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf || echo 'IS_RAIDSOFT FAILED!')
 fi
 
 # Verification du LogFormat de AWStats

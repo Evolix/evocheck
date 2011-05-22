@@ -274,7 +274,8 @@ fi
 
 # Verification de la présence du depot volatile
 if [ "$IS_REPVOLATILE" = 1 ]; then
-	test `cat /etc/debian_version |cut -d "." -f 1` -ge 5 && (grep -qE "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list || echo 'IS_REPVOLATILE FAILED!')
+	test `cat /etc/debian_version |cut -d "." -f 1` -eq 5 && (grep -qE "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list || echo 'IS_REPVOLATILE FAILED!')
+	test `cat /etc/debian_version |cut -d "." -f 1` -eq 6 && (grep -qE "^deb.*squeeze-updates" /etc/apt/sources.list || echo 'IS_REPVOLATILE FAILED!')
 fi
 
 # Verification interface en auto

@@ -292,7 +292,7 @@ if [ "$IS_TOOMUCHDEBIANSYSMAINT" = 1 ]; then
 fi
 
 # Verification de la mise en place d'evobackup
-if [ "$IS_EVOBACKUP" = 1 ]; then
+if [ "$IS_EVOBACKUP" = 1 ]; then
 	ls /etc/cron* |grep -q "zz.backup$" || echo 'IS_EVOBACKUP FAILED!'
 fi
 

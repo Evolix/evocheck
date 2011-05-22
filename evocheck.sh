@@ -101,7 +101,7 @@ if [ "$IS_LOGROTATECONF" = 1 ]; then
 fi
 
 if [ "$IS_SYSLOGCONF" = 1 ]; then
-    grep -q "^# Syslog for Pack Evolix serveur$" /etc/*syslog.conf || echo 'IS_SYSLOGCONF FAILED!'
+    grep -q "^# Syslog for Pack Evolix serveur" /etc/*syslog.conf || echo 'IS_SYSLOGCONF FAILED!'
 fi
 
 if [ "$IS_DEBIANSECURITY" = 1 ]; then

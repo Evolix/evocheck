@@ -307,8 +307,8 @@ if [ "$IS_MODSECURITY" = 1 ]; then
 fi
 
 # Verification de la syntaxe de la conf d'Apache
-if [ "$IS_APACHECTL" =1 ]; then
-	is_installed apache2.2-common && (/usr/sbin/apache2ctl configtest 2>&1 |grep "^Syntax OK$" || echo 'IS_APACHECTL FAILED!')
+if [ "$IS_APACHECTL" = 1 ]; then
+	is_installed apache2.2-common && (/usr/sbin/apache2ctl configtest 2>&1 |grep -q "^Syntax OK$" || echo 'IS_APACHECTL FAILED!')
 fi
 
 # Verification de la priorité du package samba si les backports sont utilisés

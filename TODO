@@ -17,3 +17,11 @@
 - [DONE] Verifier que apachectl est OK
 - [DONE] Vérifier sur que les backups sont en place
 - Verifier que qu'il n'y ai pas d'alias /php*admin dans la configuration d'Apache
+- Verifier default_transport et relay_transport dans le main.cf
+- si pack Samba, verifier que les logs sont bien de la forme *.log et le logrotate.d correspondant
+- Vérifier dans le cas d'instances MySQL :
+  /root/.my.cnf OK, Munin OK, backups OK
+- Vérifier les droits des scripts executés en cron (pas de 777)
+- Vérifier les droits des fichiers, genre find -perm 777 -type f
+- loglevel de slapd.conf = 0
+- Si Bind, vérifier sa conf : version = bingo, bind.log, etc.

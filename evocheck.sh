@@ -302,7 +302,7 @@ fi
 
 # Verification de la présence de mod_security
 if [ "$IS_MODSECURITY" = 1 ]; then
-	is_pack_web && (is_installed libapache2-mod-security2 && test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!')
+	is_pack_web && (is_installed libapache-mod-security && test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!')
 fi
 
 # Verification de la syntaxe de la conf d'Apache

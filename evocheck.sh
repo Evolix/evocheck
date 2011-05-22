@@ -224,9 +224,7 @@ fi
 # Verification de la configuration d'evomaintenance
 if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
 	f=/etc/evomaintenance.cf
-	 ( grep -q "^HOSTNAME=`hostname`$" $f \
-	&& grep "^export PGPASSWORD" $f |grep -qv "your-passwd" \
-	&& grep "^EVOMAINTMAIL" $f |grep -qv "evomaintenance-your-host@example.com" \
+	 ( grep "^export PGPASSWORD" $f |grep -qv "your-passwd" \
 	&& grep "^PGDB" $f |grep -qv "your-db" \
 	&& grep "^PGTABLE" $f |grep -qv "your-table" \
 	&& grep "^PGHOST" $f |grep -qv "your-pg-host" \

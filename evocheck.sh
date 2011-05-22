@@ -93,7 +93,7 @@ if [ "$IS_USRSHARESCRIPTS" = 1 ]; then
 fi
 
 if [ "$IS_SERVEURBASE" = 1 ]; then
-    is_installed server-base || echo 'IS_SERVEURBASE FAILED!'
+    is_installed serveur-base || echo 'IS_SERVEURBASE FAILED!'
 fi
 
 if [ "$IS_LOGROTATECONF" = 1 ]; then

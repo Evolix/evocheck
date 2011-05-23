@@ -43,7 +43,7 @@ IS_RAIDSOFT=1
 IS_AWSTATSLOGFORMAT=1
 IS_MUNINLOGROTATE=1
 IS_EVOMAINTENANCECONF=1
-IS_METCHE=1
+#IS_METCHE=1
 IS_SQUID=1
 IS_MODDEFLATE=1
 IS_LOG2MAILAPACHE=1
@@ -236,9 +236,9 @@ if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
 fi
 
 # Verification de la présence de metche
-if [ "$IS_METCHE" = 1 ]; then
-	is_installed metche || echo 'IS_METCHE FAILED!'
-fi
+#if [ "$IS_METCHE" = 1 ]; then
+#	is_installed metche || echo 'IS_METCHE FAILED!'
+#fi
 
 # Verification de l'activation de Squid dans le cas d'un pack mail
 if [ "$IS_SQUID" = 1 ]; then

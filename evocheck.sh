@@ -243,11 +243,11 @@ fi
 # Verification de l'activation de Squid dans le cas d'un pack mail
 if [ "$IS_SQUID" = 1 ]; then
 	f=/etc/firewall.rc
-	is_pack_web && ( is_installed squid \
+	is_pack_web && ( is_installed squid || is_installed squid3 \
 	&& grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $f \
 	&& grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $f \
 	&& grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.1 -j ACCEPT" $f \
-	&& grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port `grep http_port /etc/squid/squid.conf |cut -f 2 -d " "`" $f || echo 'IS_SQUID FAILED!' )
+	&& grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* `grep http_port /etc/squid*/squid.conf |cut -f 2 -d " "`" $f || echo 'IS_SQUID FAILED!' )
 fi
 
 # Verification de la conf et de l'activation de mod-deflate
@@ -264,7 +264,7 @@ if [ "$IS_LOG2MAILMYSQL" = 1 ]; then
 	is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/syslog" /etc/log2mail/config/default 2>/dev/null || echo 'IS_LOG2MAILMYSQL FAILED!' )
 fi
 if [ "$IS_LOG2MAILSQUID" = 1 ]; then
-	is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/squid/access.log" /etc/log2mail/config/default 2>/dev/null || echo 'IS_LOG2MAILSQUID FAILED!' )
+	is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/squid.*/access.log" /etc/log2mail/config/default 2>/dev/null || echo 'IS_LOG2MAILSQUID FAILED!' )
 fi
 
 # Verification si bind est chroote

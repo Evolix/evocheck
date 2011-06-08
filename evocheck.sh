@@ -195,7 +195,7 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
 fi
 
 if [ "$IS_APACHEMUNIN" = 1 ]; then
-    test -e /etc/apache2/apache2.conf && ( egrep -q "^env.url.*/server-status-[0-9]{4}" /etc/munin/plugin-conf.d/munin-node && egrep -q "/server-status-[0-9]{4}" /etc/apache2/apache2.conf || egrep -q "/server-status-[0-9]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf 2>/dev/null || echo 'IS_APACHEMUNIN FAILED!' )
+    test -e /etc/apache2/apache2.conf && ( egrep -q "^env.url.*/server-status-[[:alnum:]]{4}" /etc/munin/plugin-conf.d/munin-node && egrep -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf || egrep -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf 2>/dev/null || echo 'IS_APACHEMUNIN FAILED!' )
 fi
 
 # Verification mytop + Munin si MySQL
@@ -253,7 +253,9 @@ fi
 # Verification de la conf et de l'activation de mod-deflate
 if [ "$IS_MODDEFLATE" = 1 ]; then
 	f=/etc/apache2/mods-enabled/deflate.conf
-	test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript$" $f || echo 'IS_MODDEFLATE FAILED!'
+	test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
+        && grep -q "AddOutputFilterByType DEFLATE text/css" $f\
+        && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f || echo 'IS_MODDEFLATE FAILED!'
 fi
 
 # Verification de la conf log2mail

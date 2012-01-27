@@ -313,7 +313,7 @@ if [ -e /etc/debian_version ]; then
     
     # Verification si le système doit redémarrer suite màj kernel.
     if [ "$IS_KERNELUPTODATE" = 1 ]; then
-        if (( $(date -d $(ls --full-time -lcrt /boot | tail -n1 | tr -s " " | cut -d " " -f 6) +%s) > $(date -d $(who -b | tr -s " " | cut -d " " -f 4) +%s) )); then
+        if (( $(date -d $(ls --full-time -lcrt /boot | tail -n1 | tr -s " " | cut -d " " -f 6) +%s) > $(date -d $(LANG=en_US.UTF8 LANGUAGE=C who -b | tr -s " " | cut -d " " -f 4) +%s) )); then
             echo 'IS_KERNELUPTODATE FAILED!'
         fi
     fi

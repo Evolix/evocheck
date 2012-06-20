@@ -247,9 +247,9 @@ if [ -e /etc/debian_version ]; then
     # Verification de la conf et de l'activation de mod-deflate
     if [ "$IS_MODDEFLATE" = 1 ]; then
         f=/etc/apache2/mods-enabled/deflate.conf
-        is_installed apache2.2 && (test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
+        is_installed apache2.2 && ((test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
         && grep -q "AddOutputFilterByType DEFLATE text/css" $f\
-        && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f) || echo 'IS_MODDEFLATE FAILED!'
+        && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f) || echo 'IS_MODDEFLATE FAILED!')
     fi
     
     # Verification de la conf log2mail

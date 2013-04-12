@@ -107,6 +107,37 @@ is_installed(){
 
 if [ -e /etc/debian_version ]; then
 
+     # Proper to Squeeze or Wheezy version.
+    if [ $(lsb_release -c -s) = "squeeze" ]; then
+        if [ "$IS_DPKGWARNING" = 1 ] && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ); then
+            egrep -i "(Pre-Invoke ..echo Are you sure to have rw on|Post-Invoke ..echo Dont forget to mount -o remount)" \
+                /etc/apt/apt.conf | wc -l | grep -q ^2$ || \
+                echo 'IS_DPKGWARNING FAILED!'
+        fi
+
+        if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
+            egrep -q "env_reset,.*umask=0077" /etc/sudoers || \
+                echo 'IS_CUSTOMSUDOERS FAILED!'
+        fi
+
+        if [ "$IS_UMASKSUDOERS" = 1 ]; then
+            grep -q ^Defaults.*umask=0077 /etc/sudoers || echo 'IS_UMASKSUDOERS FAILED!'
+        fi
+    fi
+
+    if [ $(lsb_release -c -s) = "wheezy" ]; then
+        if [ "$IS_DPKGWARNING" = 1 ] && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ); then
+            test -e /etc/apt/apt.conf.d/80evolinux || \
+                echo 'IS_DPKGWARNING FAILED!'
+        fi
+
+        if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
+            egrep -q "Defaults.*umask=0077" /etc/sudoers.d/evolinux || \
+                echo 'IS_CUSTOMSUDOERS FAILED!'
+        fi
+    fi
+
+    # Compatible Squeeze & Wheezy.
     if [ "$IS_VARTMPFS" = 1 ]; then
         df /var/tmp | grep -q tmpfs || echo 'IS_VARTMPFS FAILED!'
     fi
@@ -143,16 +174,8 @@ if [ -e /etc/debian_version ]; then
         egrep "(which=both|confirm=1)" /etc/apt/listchanges.conf | wc -l | grep -q ^2$ || echo 'IS_LISTCHANGESCONF FAILED!'
     fi
     
-    if [ "$IS_DPKGWARNING" = 1 ] && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ); then
-        egrep -i "(Pre-Invoke ..echo Are you sure to have rw on|Post-Invoke ..echo Dont forget to mount -o remount)" /etc/apt/apt.conf | wc -l | grep -q ^2$ || echo 'IS_DPKGWARNING FAILED!'
-    fi
-    
     if [ "$IS_CUSTOMCRONTAB" = 1 ]; then
         egrep "^(17 \*|25 6|47 6|52 6)" /etc/crontab | wc -l | grep -q ^4$ && echo 'IS_CUSTOMCRONTAB FAILED!'
-    fi
-    
-    if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
-        egrep -q "env_reset,.*umask=0077" /etc/sudoers || echo 'IS_CUSTOMSUDOERS FAILED!'
     fi
     
     if [ "$IS_SSHALLOWUSERS" = 1 ]; then
@@ -196,10 +219,6 @@ if [ -e /etc/debian_version ]; then
     
     if [ "$IS_GRSECPROCS" = 1 ]; then
         uname -a | grep -q grsec && ( grep -q ^command.check_total_procs..sudo /etc/nagios/nrpe.cfg && grep -A1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep -q "^user root" || echo 'IS_GRSECPROCS FAILED!' )
-    fi
-    
-    if [ "$IS_UMASKSUDOERS" = 1 ]; then
-        grep -q ^Defaults.*umask=0077 /etc/sudoers || echo 'IS_UMASKSUDOERS FAILED!'
     fi
     
     if [ "$IS_APACHEMUNIN" = 1 ]; then

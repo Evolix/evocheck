@@ -123,6 +123,11 @@ if [ -e /etc/debian_version ]; then
         if [ "$IS_UMASKSUDOERS" = 1 ]; then
             grep -q ^Defaults.*umask=0077 /etc/sudoers || echo 'IS_UMASKSUDOERS FAILED!'
         fi
+
+        # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
+        if [ "$IS_NRPEPOSTFIX" = 1 ]; then
+            is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPOSTFIX FAILED!' )
+        fi
     fi
 
     if [ $(lsb_release -c -s) = "wheezy" ]; then
@@ -134,6 +139,11 @@ if [ -e /etc/debian_version ]; then
         if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
             egrep -q "Defaults.*umask=0077" /etc/sudoers.d/evolinux || \
                 echo 'IS_CUSTOMSUDOERS FAILED!'
+        fi
+        
+        # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
+        if [ "$IS_NRPEPOSTFIX" = 1 ]; then
+            is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.d/evolix.cfg || echo 'IS_NRPEPOSTFIX FAILED!' )
         fi
     fi
 
@@ -210,11 +220,6 @@ if [ -e /etc/debian_version ]; then
         NRPEDISKS=$(grep command.check_disk /etc/nagios/nrpe.cfg | grep ^command.check_disk[0-9] | sed -e "s/^command.check_disk\([0-9]\+\).*/\1/" | sort -n | tail -1)
         DFDISKS=$(df -Pl | egrep -v "(^Filesystem|/lib/init/rw|/dev/shm|udev|rpc_pipefs)" | wc -l)
         [ "$NRPEDISKS" = "$DFDISKS" ] || echo 'IS_NRPEDISKS FAILED!'
-    fi
-    
-    # Verification du check_mailq dans nrpe.cfg (celui-ci doit avoir l'option "-M postfix" si le MTA est Postfix)
-    if [ "$IS_NRPEPOSTFIX" = 1 ]; then
-        is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPOSTFIX FAILED!' )
     fi
     
     if [ "$IS_GRSECPROCS" = 1 ]; then

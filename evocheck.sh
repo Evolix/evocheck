@@ -300,7 +300,7 @@ if [ -e /etc/debian_version ]; then
     
     # Verification interface en auto
     if [ "$IS_AUTOIF" = 1 ]; then
-        for interface in `/sbin/ifconfig -s |tail -n +2 |grep -v "^lo" |cut -d " " -f 1 |tr "\n" " "`; do
+        for interface in `/sbin/ifconfig -s |tail -n +2 |egrep -v "^(lo|vnet)" |cut -d " " -f 1 |tr "\n" " "`; do
                     grep -q "^auto $interface" /etc/network/interfaces || (echo 'IS_AUTOIF FAILED!' && break)
             done
     fi

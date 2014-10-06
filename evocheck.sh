@@ -115,19 +115,10 @@ if [ -e /etc/debian_version ]; then
                 echo 'IS_DPKGWARNING FAILED!'
         fi
 
-        if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
-            egrep -q "env_reset,.*umask=0077" /etc/sudoers || \
-                echo 'IS_CUSTOMSUDOERS FAILED!'
-        fi
-
         if [ "$IS_UMASKSUDOERS" = 1 ]; then
             grep -q ^Defaults.*umask=0077 /etc/sudoers || echo 'IS_UMASKSUDOERS FAILED!'
         fi
 
-        # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
-        if [ "$IS_NRPEPOSTFIX" = 1 ]; then
-            is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPOSTFIX FAILED!' )
-        fi
     fi
 
     if [ $(lsb_release -c -s) = "wheezy" ]; then
@@ -136,18 +127,18 @@ if [ -e /etc/debian_version ]; then
                 echo 'IS_DPKGWARNING FAILED!'
         fi
 
-        if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
-            egrep -q "Defaults.*umask=0077" /etc/sudoers.d/evolinux || \
-                echo 'IS_CUSTOMSUDOERS FAILED!'
-        fi
-        
-        # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
-        if [ "$IS_NRPEPOSTFIX" = 1 ]; then
-            is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.d/evolix.cfg || echo 'IS_NRPEPOSTFIX FAILED!' )
-        fi
     fi
 
     # Compatible Squeeze & Wheezy.
+    if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
+        egrep -qr "env_reset,.*umask=0077" /etc/sudoers* || echo 'IS_CUSTOMSUDOERS FAILED!'
+    fi
+
+    # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
+    if [ "$IS_NRPEPOSTFIX" = 1 ]; then
+        is_installed postfix && ( grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* || echo 'IS_NRPEPOSTFIX FAILED!' )
+    fi
+
     if [ "$IS_VARTMPFS" = 1 ]; then
         df /var/tmp | grep -q tmpfs || echo 'IS_VARTMPFS FAILED!'
     fi

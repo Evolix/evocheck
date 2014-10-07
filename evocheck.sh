@@ -58,6 +58,7 @@ IS_TOOMUCHDEBIANSYSMAINT=1
 IS_USERLOGROTATE=1
 IS_MODSECURITY=1
 IS_APACHECTL=1
+IS_APACHESYMLINK=1
 IS_SAMBAPINPRIORITY=1
 IS_KERNELUPTODATE=1
 
@@ -335,6 +336,12 @@ if [ -e /etc/debian_version ]; then
     # Verification de la syntaxe de la conf d'Apache
     if [ "$IS_APACHECTL" = 1 ]; then
         is_installed apache2.2-common && (/usr/sbin/apache2ctl configtest 2>&1 |grep -q "^Syntax OK$" || echo 'IS_APACHECTL FAILED!')
+    fi
+
+    # Check if there is regular files in Apache sites-enabled.
+    if [ "IS_APACHESYMLINK" = 1 ]; then
+        is_installed apache2.2-common && \
+            (stat -c %F /etc/apache2/sites-enabled/* | grep -q regular && echo 'IS_APACHESYMLINK FAILED!')
     fi
     
     # Verification de la priorité du package samba si les backports sont utilisés

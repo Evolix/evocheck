@@ -54,6 +54,7 @@ IS_LOG2MAILSQUID=1
 IS_BINDCHROOT=1
 IS_REPVOLATILE=1
 IS_AUTOIF=1
+IS_INTERFACESGW=1
 IS_TOOMUCHDEBIANSYSMAINT=1
 IS_USERLOGROTATE=1
 IS_MODSECURITY=1
@@ -313,6 +314,11 @@ if [ -e /etc/debian_version ]; then
             done
     fi
     
+    # Verification interface en auto
+    if [ "$IS_INTERFACESGW" = 1 ]; then
+        number=$(grep -Ec [^#]gateway /etc/network/interfaces)
+        test $number -gt 1 && echo 'IS_INTERFACESGW FAILED!'
+    fi
     # Verification du nombre de debian-sys-maint
     if [ "$IS_TOOMUCHDEBIANSYSMAINT" = 1 ]; then
         is_installed mysql-server && (test `echo "SELECT user FROM mysql.user WHERE user='debian-sys-maint';" |mysql --skip-column-names |wc -l` -eq 1 || echo 'IS_TOOMUCHDEBIANSYSMAINT FAILED!')

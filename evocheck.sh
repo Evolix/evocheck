@@ -31,6 +31,7 @@ IS_SSHALLOWUSERS=1
 IS_TMOUTPROFILE=1
 IS_ALERT5BOOT=1
 IS_ALERT5MINIFW=1
+IS_MINIFW=1
 IS_NRPEPERMS=1
 IS_MINIFWPERMS=1
 IS_NRPEDISKS=0
@@ -208,6 +209,10 @@ if [ -e /etc/debian_version ]; then
     
     if [ "$IS_ALERT5MINIFW" = 1 ]; then
         grep -q ^/etc/init.d/minifirewall /etc/rc2.d/S*alert5 || echo 'IS_ALERT5MINIFW FAILED!'
+    fi
+
+    if [ "$IS_ALERT5MINIFW" = 1 ] && [ "$IS_MINIFW" = 1 ]; then
+        /sbin/iptables -L | grep -q -E "^ACCEPT\s*all\s*--\s*monitoring\.evolix\.net\s*anywhere\s*$" || echo 'IS_MINIFW FAILED!'
     fi
     
     if [ "$IS_NRPEPERMS" = 1 ]; then

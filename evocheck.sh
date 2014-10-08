@@ -140,19 +140,7 @@ if [ -e /etc/debian_version ]; then
             test -e /etc/apt/apt.conf.d/80evolinux || \
                 echo 'IS_DPKGWARNING FAILED!'
         fi
-
-        if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
-            egrep -qs "Defaults.*umask=0077" /etc/sudoers /etc/sudoers.d/evolinux || \
-                echo 'IS_CUSTOMSUDOERS FAILED!'
-        fi
-        
-        # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
-        if [ "$IS_NRPEPOSTFIX" = 1 ]; then
-            is_installed postfix && \
-                (grep -qs "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg /etc/nagios/nrpe.d/evolix.cfg || \
-                    echo 'IS_NRPEPOSTFIX FAILED!')
-        fi
-
+    
         # Check if mod-security config file is present.
         if [ "$IS_MODSECURITY" = 1 ]; then
            is_installed libapache2-modsecurity && \

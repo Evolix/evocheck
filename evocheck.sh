@@ -131,7 +131,7 @@ if [ -e /etc/debian_version ]; then
         # Check if mod-security config file is present.
         if [ "$IS_MODSECURITY" = 1 ]; then
            is_installed libapache-mod-security && \
-                test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!'
+                (test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!')
         fi
     fi
 
@@ -144,7 +144,7 @@ if [ -e /etc/debian_version ]; then
         # Check if mod-security config file is present.
         if [ "$IS_MODSECURITY" = 1 ]; then
            is_installed libapache2-modsecurity && \
-                test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!'
+                (test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!')
         fi
     fi
 

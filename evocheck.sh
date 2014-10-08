@@ -133,7 +133,7 @@ if [ -e /etc/debian_version ]; then
            is_installed libapache-mod-security && \
                 test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!'
         fi
-fi
+    fi
 
     if [ $(lsb_release -c -s) = "wheezy" ]; then
         if [ "$IS_DPKGWARNING" = 1 ] && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ); then

@@ -227,7 +227,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_ALERT5MINIFW" = 1 ] && [ "$IS_MINIFW" = 1 ]; then
-        /sbin/iptables -L | grep -q -E "^ACCEPT\s*all\s*--\s*monitoring\.evolix\.net\s*anywhere\s*$" || echo 'IS_MINIFW FAILED!'
+        /sbin/iptables -L -n | grep -q -E "^ACCEPT\s*all\s*--\s*31\.170\.8\.4\s*0\.0\.0\.0/0\s*$" || echo 'IS_MINIFW FAILED!'
     fi
     
     if [ "$IS_NRPEPERMS" = 1 ]; then

@@ -150,7 +150,7 @@ if [ -e /etc/debian_version ]; then
 
     # Compatible Squeeze & Wheezy.
     if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
-        egrep -qr "env_reset,.*umask=0077" /etc/sudoers* || echo 'IS_CUSTOMSUDOERS FAILED!'
+        egrep -qr "umask=0077" /etc/sudoers* || echo 'IS_CUSTOMSUDOERS FAILED!'
     fi
 
     # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)

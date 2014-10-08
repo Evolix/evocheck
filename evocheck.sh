@@ -355,7 +355,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     # Check if there is regular files in Apache sites-enabled.
-    if [ "IS_APACHESYMLINK" = 1 ]; then
+    if [ "$IS_APACHESYMLINK" = 1 ]; then
         is_installed apache2.2-common && \
             (stat -c %F /etc/apache2/sites-enabled/* | grep -q regular && echo 'IS_APACHESYMLINK FAILED!')
     fi

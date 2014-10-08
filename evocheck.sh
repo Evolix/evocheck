@@ -332,10 +332,6 @@ if [ -e /etc/debian_version ]; then
         number=$(grep -Ec [^#]gateway /etc/network/interfaces)
         test $number -gt 1 && echo 'IS_INTERFACESGW FAILED!'
     fi
-    # Verification du nombre de debian-sys-maint
-    if [ "$IS_TOOMUCHDEBIANSYSMAINT" = 1 ]; then
-        is_installed mysql-server && (test `echo "SELECT user FROM mysql.user WHERE user='debian-sys-maint';" |mysql --skip-column-names |wc -l` -eq 1 || echo 'IS_TOOMUCHDEBIANSYSMAINT FAILED!')
-    fi
 
     # Verification de la mise en place d'evobackup
     if [ "$IS_EVOBACKUP" = 1 ]; then

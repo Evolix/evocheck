@@ -184,7 +184,8 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_APTICRON" = 1 ]; then
         status="OK"
-        test -e /etc/cron.d/apticron || status="fail"
+        test -e /etc/cron.d/apticron && status="fail"
+        test -e /etc/cron.daily/apticron || status="fail"
         test "$status" = "fail" || test -e /usr/bin/apt-get.bak || status="fail"
         test "$status" = "fail" || /usr/bin/apt-get.bak -qq update || status="fail"
         test "$status" = "fail" && echo 'IS_APTICRON FAILED!'

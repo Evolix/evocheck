@@ -123,7 +123,17 @@ if [ -e /etc/debian_version ]; then
             grep -q ^Defaults.*umask=0077 /etc/sudoers || echo 'IS_UMASKSUDOERS FAILED!'
         fi
 
-    fi
+        # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
+        if [ "$IS_NRPEPOSTFIX" = 1 ]; then
+            is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPOSTFIX FAILED!' )
+        fi
+
+        # Check if mod-security config file is present.
+        if [ "$IS_MODSECURITY" = 1 ]; then
+           is_installed libapache-mod-security && \
+                test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!'
+        fi
+fi
 
     if [ $(lsb_release -c -s) = "wheezy" ]; then
         if [ "$IS_DPKGWARNING" = 1 ] && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ); then
@@ -141,6 +151,12 @@ if [ -e /etc/debian_version ]; then
             is_installed postfix && \
                 (grep -qs "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg /etc/nagios/nrpe.d/evolix.cfg || \
                     echo 'IS_NRPEPOSTFIX FAILED!')
+        fi
+
+        # Check if mod-security config file is present.
+        if [ "$IS_MODSECURITY" = 1 ]; then
+           is_installed libapache2-modsecurity && \
+                test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!'
         fi
     fi
 
@@ -343,10 +359,6 @@ if [ -e /etc/debian_version ]; then
         is_pack_web && (test -x /etc/cron.weekly/userlogrotate || echo 'IS_USERLOGROTATE FAILED!')
     fi
     
-    # Verification de la présence de mod_security
-    if [ "$IS_MODSECURITY" = 1 ]; then
-        is_pack_web && (is_installed libapache-mod-security && test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!')
-    fi
     
     # Verification de la syntaxe de la conf d'Apache
     if [ "$IS_APACHECTL" = 1 ]; then

@@ -137,8 +137,8 @@ if [ -e /etc/debian_version ]; then
 
     if [ $(lsb_release -c -s) = "wheezy" ]; then
         if [ "$IS_DPKGWARNING" = 1 ] && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ); then
-            test -e /etc/apt/apt.conf.d/80evolinux || \
-                echo 'IS_DPKGWARNING FAILED!'
+            test -e /etc/apt/apt.conf && echo 'IS_DPKGWARNING FAILED!'
+            test -e /etc/apt/apt.conf.d/80evolinux || echo 'IS_DPKGWARNING FAILED!'
         fi
     
         # Check if mod-security config file is present.

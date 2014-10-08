@@ -320,14 +320,14 @@ if [ -e /etc/debian_version ]; then
             test `cat /etc/debian_version |cut -d "." -f 1` -eq 6 && (grep -qE "^deb.*squeeze-updates" /etc/apt/sources.list || echo 'IS_REPVOLATILE FAILED!')
     fi
     
-    # Verification interface en auto
+    # Verify if all if are in auto
     if [ "$IS_AUTOIF" = 1 ]; then
         for interface in `/sbin/ifconfig -s |tail -n +2 |egrep -v "^(lo|vnet)" |cut -d " " -f 1 |tr "\n" " "`; do
                     grep -q "^auto $interface" /etc/network/interfaces || (echo 'IS_AUTOIF FAILED!' && break)
             done
     fi
     
-    # Verification interface en auto
+    # Network conf verification
     if [ "$IS_INTERFACESGW" = 1 ]; then
         number=$(grep -Ec [^#]gateway /etc/network/interfaces)
         test $number -gt 1 && echo 'IS_INTERFACESGW FAILED!'

@@ -159,7 +159,8 @@ if [ -e /etc/debian_version ]; then
     fi
     
     if [ "$IS_APTITUDEONLY" = 1 ]; then
-        test -e /usr/bin/apt-get && echo 'IS_APTITUDEONLY FAILED!'
+        is_debianversion squeeze && test -e /usr/bin/apt-get && echo 'IS_APTITUDEONLY FAILED!'
+        is_debianversion wheezy && test -e /usr/bin/apt-get && echo 'IS_APTITUDEONLY FAILED!'
     fi
 
     if [ "$IS_APTICRON" = 1 ]; then
@@ -167,7 +168,7 @@ if [ -e /etc/debian_version ]; then
         test -e /etc/cron.d/apticron || status="fail"
         test -e /etc/cron.daily/apticron && status="fail"
         test "$status" = "fail" || test -e /usr/bin/apt-get.bak || status="fail"
-        test "$status" = "fail" && echo 'IS_APTICRON FAILED!'
+        ( is_debianversion squeeze || is_debianversion wheezy ) && test "$status" = "fail" && echo 'IS_APTICRON FAILED!'
     fi
     
     if [ "$IS_USRRO" = 1 ]; then

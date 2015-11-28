@@ -1,10 +1,8 @@
 #!/bin/bash
 
-# EvoCheck script
-
-# version 0.3.3-beta
-# Copyright 2011 Gregory Colpart <reg@evolix.fr>, Evolix <info@evolix.fr>
-# Last revision : 29 Juin 2011
+# EvoCheck
+# Script to verify compliance of a Debian/OpenBSD server
+# powered by Evolix
 
 # Disable LANG*
 export LANG=C
@@ -86,23 +84,21 @@ test -f /etc/evocheck.cf && . /etc/evocheck.cf
 
 # Functions
 is_pack_web(){
-
     test -e /usr/share/scripts/web-add.sh
-
 }
 
 is_pack_samba(){
-
     test -e /usr/share/scripts/add.pl
-
 }
 
 is_installed(){
-
     for pkg in $*; do
             dpkg -l $pkg 2>/dev/null |grep -q ^ii || return 1
     done
+}
 
+is_debianversion(){
+    [ $(lsb_release -c -s) = $1 ] && return 0;
 }
 
 #-----------------------------------------------------------
@@ -111,51 +107,35 @@ is_installed(){
 
 if [ -e /etc/debian_version ]; then
 
-     # Proper to Squeeze or Wheezy version.
-    if [ $(lsb_release -c -s) = "squeeze" ]; then
-        if [ "$IS_DPKGWARNING" = 1 ] && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ); then
+    if [ "$IS_DPKGWARNING" = 1 ]; then
+        is_debianversion squeeze && ( ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && \
             egrep -i "(Pre-Invoke ..echo Are you sure to have rw on|Post-Invoke ..echo Dont forget to mount -o remount)" \
-                /etc/apt/apt.conf | wc -l | grep -q ^2$ || \
-                echo 'IS_DPKGWARNING FAILED!'
-        fi
-
-        if [ "$IS_UMASKSUDOERS" = 1 ]; then
-            grep -q ^Defaults.*umask=0077 /etc/sudoers || echo 'IS_UMASKSUDOERS FAILED!'
-        fi
-
-        # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
-        if [ "$IS_NRPEPOSTFIX" = 1 ]; then
-            is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPOSTFIX FAILED!' )
-        fi
-
-        # Check if mod-security config file is present.
-        if [ "$IS_MODSECURITY" = 1 ]; then
-           is_installed libapache-mod-security && \
-                (test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!')
-        fi
-    fi
-
-    if [ $(lsb_release -c -s) = "wheezy" ]; then
-        if [ "$IS_DPKGWARNING" = 1 ] && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ); then
+            /etc/apt/apt.conf | wc -l | grep -q ^2$ || echo 'IS_DPKGWARNING FAILED!' )
+        is_debianversion wheezy && ( ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && \
             test -e /etc/apt/apt.conf && echo 'IS_DPKGWARNING FAILED!'
-            test -e /etc/apt/apt.conf.d/80evolinux || echo 'IS_DPKGWARNING FAILED!'
-        fi
-    
-        # Check if mod-security config file is present.
-        if [ "$IS_MODSECURITY" = 1 ]; then
-           is_installed libapache2-modsecurity && \
-                (test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!')
-        fi
+            test -e /etc/apt/apt.conf.d/80evolinux || echo 'IS_DPKGWARNING FAILED!' )
     fi
 
-    # Compatible Squeeze & Wheezy.
-    if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
-        egrep -qr "umask=0077" /etc/sudoers* || echo 'IS_CUSTOMSUDOERS FAILED!'
+    if [ "$IS_UMASKSUDOERS" = 1 ]; then
+        is_debianversion squeeze && ( grep -q ^Defaults.*umask=0077 /etc/sudoers || echo 'IS_UMASKSUDOERS FAILED!' )
     fi
 
     # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
     if [ "$IS_NRPEPOSTFIX" = 1 ]; then
-        is_installed postfix && ( grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* || echo 'IS_NRPEPOSTFIX FAILED!' )
+        is_debianversion squeeze && is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPOSTFIX FAILED!' )
+        is_debianversion squeeze || ( is_installed postfix && ( grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* || echo 'IS_NRPEPOSTFIX FAILED!' ) )
+    fi
+
+    # Check if mod-security config file is present
+    if [ "$IS_MODSECURITY" = 1 ]; then
+        is_debianversion squeeze && is_installed libapache-mod-security && \
+            (test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!')
+        is_debianversion wheezy && is_installed libapache2-modsecurity && \
+            (test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!')
+    fi
+
+    if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
+        egrep -qr "umask=0077" /etc/sudoers* || echo 'IS_CUSTOMSUDOERS FAILED!'
     fi
 
     if [ "$IS_VARTMPFS" = 1 ]; then
@@ -370,9 +350,6 @@ if [ -e /etc/debian_version ]; then
     fi
 fi
 
-#-----------------------------------------------------------
-#Vérifie si c'est une OpenBSD et fait les tests appropriés.
-#-----------------------------------------------------------
 
 if [ `uname -s` == "OpenBSD" ]; then
 
@@ -466,10 +443,6 @@ if [ `uname -s` == "OpenBSD" ]; then
     # - Check en profondeur de postfix
     # - NRPEDISK et NRPEPOSTFIX
 fi
-
-#---------------
-# Tests communs
-#---------------
 
 if [ "$IS_TMP_1777" = 1 ]; then
     ls -ld /tmp | grep -q drwxrwxrwt || echo 'IS_TMP_1777 FAILED!'

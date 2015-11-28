@@ -296,7 +296,8 @@ if [ -e /etc/debian_version ]; then
         is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/syslog" /etc/log2mail/config/default 2>/dev/null || echo 'IS_LOG2MAILMYSQL FAILED!' )
     fi
     if [ "$IS_LOG2MAILSQUID" = 1 ]; then
-        is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/squid.*/access.log" /etc/log2mail/config/default 2>/dev/null || echo 'IS_LOG2MAILSQUID FAILED!' )
+        is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/squid.*/access.log" \
+            /etc/log2mail/config/* 2>/dev/null || echo 'IS_LOG2MAILSQUID FAILED!' )
     fi
     
     # Verification si bind est chroote

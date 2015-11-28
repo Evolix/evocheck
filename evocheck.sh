@@ -221,7 +221,9 @@ if [ -e /etc/debian_version ]; then
     fi
     
     if [ "$IS_MINIFWPERMS" = 1 ]; then
-        ls -l /etc/firewall.rc | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!'
+        is_debianversion squeeze && ( ls -l /etc/firewall.rc | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!' )
+        is_debianversion wheezy && ( ls -l /etc/firewall.rc | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!' )
+        is_debianversion jessie && ( ls -l /etc/default/minifirewall | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!' )
     fi
     
     if [ "$IS_NRPEDISKS" = 1 ]; then
@@ -268,7 +270,9 @@ if [ -e /etc/debian_version ]; then
         
     # Verification de l'activation de Squid dans le cas d'un pack mail
     if [ "$IS_SQUID" = 1 ]; then
-        f=/etc/firewall.rc
+        is_debianversion squeeze && f=/etc/firewall.rc
+        is_debianversion wheezy && f=/etc/firewall.rc
+        is_debianversion jessie && f=/etc/default/minifirewall
         is_pack_web && ( is_installed squid || is_installed squid3 \
         && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $f \
         && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $f \

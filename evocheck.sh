@@ -302,7 +302,15 @@ if [ -e /etc/debian_version ]; then
     
     # Verification si bind est chroote
     if [ "$IS_BINDCHROOT" = 1 ]; then
-        is_installed bind && ( grep -qE '^OPTIONS=".*-t"' /etc/default/bind9 && grep -qE '^OPTIONS=".*-u"' /etc/default/bind9 || echo 'IS_BINDCHROOT FAILED!' )
+        if is_installed bind; then
+            if grep -qE '^OPTIONS=".*-t"' /etc/default/bind9 && grep -qE '^OPTIONS=".*-u"' /etc/default/bind9; then
+                if [ "$(md5sum /usr/sbin/named)" = "$(md5sum /var/chroot-bind/usr/sbin/named)" ]; then
+                    echo 'IS_BINDCHROOT FAILED!'
+                fi
+            else
+                echo 'IS_BINDCHROOT FAILED!'
+            fi
+        fi
     fi
     
     # Verification de la présence du depot volatile

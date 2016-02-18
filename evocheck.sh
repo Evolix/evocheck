@@ -304,7 +304,7 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_BINDCHROOT" = 1 ]; then
         if is_installed bind9; then
             if grep -qE '^OPTIONS=".*-t"' /etc/default/bind9 && grep -qE '^OPTIONS=".*-u"' /etc/default/bind9; then
-                if [ "$(md5sum /usr/sbin/named)" = "$(md5sum /var/chroot-bind/usr/sbin/named)" ]; then
+                if [ "$(md5sum /usr/sbin/named |cut -f 1 -d ' ')" = "$(md5sum /var/chroot-bind/usr/sbin/named |cut -f 1 -d ' ')" ]; then
                     echo 'IS_BINDCHROOT FAILED!'
                 fi
             else

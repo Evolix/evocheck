@@ -61,6 +61,7 @@ IS_USERLOGROTATE=1
 IS_MODSECURITY=1
 IS_APACHECTL=1
 IS_APACHESYMLINK=1
+IS_APACHEIPINALLOW=1
 IS_MUNINAPACHECONF=1
 IS_SAMBAPINPRIORITY=1
 IS_KERNELUPTODATE=1
@@ -360,6 +361,12 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_APACHESYMLINK" = 1 ]; then
         is_installed apache2.2-common && \
             (stat -c %F /etc/apache2/sites-enabled/* | grep -q regular && echo 'IS_APACHESYMLINK FAILED!')
+    fi
+
+    # Check if there is real IP addresses in Allow/Deny directives (no trailing space, inline comments or so).
+    if [ "$IS_APACHEIPINALLOW" = 1 ]; then
+        # Note: Replace "exit 1" by "print" in Perl code to debug it.
+        is_installed apache2.2-common && grep -IrE "(Allow|Deny) from" /etc/apache2/ |grep -v "from all" |perl -ne 'exit 1 unless (/from( \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})+$/)' || echo 'IS_APACHEIPINALLOW FAILED!'
     fi
 
     # Check if default Apache configuration file for munin is absent (or empty or commented).

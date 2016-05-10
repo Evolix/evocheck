@@ -36,6 +36,7 @@ IS_NRPEPERMS=1
 IS_MINIFWPERMS=1
 IS_NRPEDISKS=0
 IS_NRPEPOSTFIX=1
+IS_NRPEPID=1
 IS_GRSECPROCS=1
 IS_UMASKSUDOERS=1
 IS_EVOMAINTENANCEUSERS=1
@@ -241,6 +242,10 @@ if [ -e /etc/debian_version ]; then
         NRPEDISKS=$(grep command.check_disk /etc/nagios/nrpe.cfg | grep ^command.check_disk[0-9] | sed -e "s/^command.check_disk\([0-9]\+\).*/\1/" | sort -n | tail -1)
         DFDISKS=$(df -Pl | egrep -v "(^Filesystem|/lib/init/rw|/dev/shm|udev|rpc_pipefs)" | wc -l)
         [ "$NRPEDISKS" = "$DFDISKS" ] || echo 'IS_NRPEDISKS FAILED!'
+    fi
+
+    if ["$IS_NRPEPID" = 1 ]; then
+        ! is_debianversion squeeze && grep "^pid_file=/var/run/nrpe.pid" /etc/nagios/nrpe.cfg && echo 'IS_NRPEPID FAILED!'
     fi
     
     if [ "$IS_GRSECPROCS" = 1 ]; then

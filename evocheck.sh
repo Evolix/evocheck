@@ -292,7 +292,7 @@ if [ -e /etc/debian_version ]; then
     
     # Verification de la conf log2mail
     if [ "$IS_LOG2MAILRUNNING" ]; then
-        pgrep log2mail >/dev/null || echo 'IS_LOG2MAILRUNNING'
+        is_pack_web && (is_installed log2mail && pgrep log2mail >/dev/null || echo 'IS_LOG2MAILRUNNING')
     fi
     if [ "$IS_LOG2MAILAPACHE" = 1 ]; then
         is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/apache2/error.log" /etc/log2mail/config/default 2>/dev/null || echo 'IS_LOG2MAILAPACHE FAILED!' )
@@ -491,7 +491,12 @@ if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
 fi
 
 if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
-    for i in $(grep "^User_Alias ADMIN" /etc/sudoers | cut -d= -f2 | tr -d " " | tr "," "\n"); do
+    if [ -f /etc/sudoers.d/evolinux ]; then
+        sudoers="/etc/sudoers.d/evolinux"
+    else
+        sudoers="/etc/sudoers"
+    fi
+    for i in $( (grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep ^sudo /etc/group |cut -d: -f 4) | tr "," "\n" |sort -u); do
         grep -q "^trap.*sudo.*evomaintenance.sh" /home/$i/.*profile || echo 'IS_EVOMAINTENANCEUSERS FAILED!'
     done
 fi

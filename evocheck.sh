@@ -65,6 +65,7 @@ IS_APACHEIPINALLOW=1
 IS_MUNINAPACHECONF=1
 IS_SAMBAPINPRIORITY=1
 IS_KERNELUPTODATE=1
+IS_UPTIME=1
 IS_MUNINRUNNING=1
 
 #Proper to OpenBSD
@@ -387,6 +388,13 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_KERNELUPTODATE" = 1 ]; then
         if is_installed linux-image* && [ $(date -d $(ls --full-time -lcrt /boot | tail -n1 | tr -s " " | cut -d " " -f 6) +%s) -gt $(date -d "$(uptime -s)" +%s) ]; then
             echo 'IS_KERNELUPTODATE FAILED!'
+        fi
+    fi
+    
+    # Check if the server is running for more than a year.
+    if [ "$IS_UPTIME" = 1 ]; then
+        if is_installed linux-image* && [ $(date -d "now - 1 year" +%s) -gt $(date -d "$(uptime -s)" +%s) ]; then
+            echo 'IS_UPTIME FAILED!'
         fi
     fi
 

@@ -48,6 +48,7 @@ IS_EVOMAINTENANCECONF=1
 #IS_METCHE=1
 IS_SQUID=1
 IS_MODDEFLATE=1
+IS_LOG2MAILRUNNING=1
 IS_LOG2MAILAPACHE=1
 IS_LOG2MAILMYSQL=1
 IS_LOG2MAILSQUID=1
@@ -289,6 +290,9 @@ if [ -e /etc/debian_version ]; then
     fi
     
     # Verification de la conf log2mail
+    if [ "$IS_LOG2MAILRUNNING" ]; then
+        pgrep log2mail >/dev/null || echo 'IS_LOG2MAILRUNNING'
+    fi
     if [ "$IS_LOG2MAILAPACHE" = 1 ]; then
         is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/apache2/error.log" /etc/log2mail/config/default 2>/dev/null || echo 'IS_LOG2MAILAPACHE FAILED!' )
     fi

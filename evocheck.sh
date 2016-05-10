@@ -88,6 +88,11 @@ IS_RSYNC=1
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
 
+# If --cron is passed, ignore some checks.
+if [ "$1" = "--cron" ]; then
+    IS_KERNELUPTODATE=0
+fi
+
 # Functions
 is_pack_web(){
     test -e /usr/share/scripts/web-add.sh

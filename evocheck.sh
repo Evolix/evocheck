@@ -166,7 +166,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_APTITUDE" = 1 ]; then
-        is_debianversion jessie && test -e /usr/bin/aptitude && echo 'IS_APTITUDEONLY FAILED!'
+        is_debianversion jessie && test -e /usr/bin/aptitude && echo 'IS_APTITUDE FAILED!'
     fi
 
     if [ "$IS_APTICRON" = 1 ]; then

@@ -401,7 +401,8 @@ if [ -e /etc/debian_version ]; then
     # Check if munin-node running and RRD files are up to date.
     if [ "$IS_MUNINRUNNING" ]; then
         pgrep munin-node >/dev/null || echo 'IS_MUNINRUNNING FAILED!'
-        [ $(stat -c "%Y" /var/lib/munin/evolix.net/*uptime-g.rrd) -lt $(date +"%s" -d "now - 10 minutes") ] && echo 'IS_MUNINRUNNING FAILED!'
+        [ $(stat -c "%Y" /var/lib/munin/*/*uptime-g.rrd |head -1) -lt $(date +"%s" -d "now - 10 minutes") ] && echo 'IS_MUNINRUNNING FAILED!'
+        [ $(stat -c "%Y" /var/cache/munin/www/*/*/uptime-day.png |head -1) -lt $(date +"%s" -d "now - 10 minutes") ] && echo 'IS_MUNINRUNNING FAILED!'
     fi
 fi
 

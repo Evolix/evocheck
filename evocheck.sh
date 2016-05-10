@@ -63,6 +63,7 @@ IS_APACHECTL=1
 IS_APACHESYMLINK=1
 IS_SAMBAPINPRIORITY=1
 IS_KERNELUPTODATE=1
+IS_MUNINRUNNING=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -370,6 +371,12 @@ if [ -e /etc/debian_version ]; then
         if is_installed linux-image* && [ $(date -d $(ls --full-time -lcrt /boot | tail -n1 | tr -s " " | cut -d " " -f 6) +%s) -gt $(date -d $(LANG=en_US.UTF8 LANGUAGE=C who -b | tr -s " " | cut -d " " -f 4) +%s) ]; then
             echo 'IS_KERNELUPTODATE FAILED!'
         fi
+    fi
+
+    # Check if munin-node running and RRD files are up to date.
+    if [ "$IS_MUNINRUNNING" ]; then
+        pgrep munin-node >/dev/null || echo 'IS_MUNINRUNNING FAILED!'
+        [ $(stat -c "%Y" /var/lib/munin/evolix.net/*uptime-g.rrd) -lt $(date +"%s" -d "now - 10 minutes") ] && echo 'IS_MUNINRUNNING FAILED!'
     fi
 fi
 

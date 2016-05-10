@@ -305,7 +305,7 @@ if [ -e /etc/debian_version ]; then
     fi
     
     # Verification de la conf log2mail
-    if [ "$IS_LOG2MAILRUNNING" ]; then
+    if [ "$IS_LOG2MAILRUNNING" = 1 ]; then
         is_pack_web && (is_installed log2mail && pgrep log2mail >/dev/null || echo 'IS_LOG2MAILRUNNING')
     fi
     if [ "$IS_LOG2MAILAPACHE" = 1 ]; then
@@ -382,7 +382,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     # Check if default Apache configuration file for munin is absent (or empty or commented).
-    if [ "$IS_MUNINAPACHECONF" ]; then
+    if [ "$IS_MUNINAPACHECONF" = 1 ]; then
         if is_debianversion squeeze || is_debianversion wheezy; then
             muninconf="/etc/apache2/conf.d/munin"
         else
@@ -410,7 +410,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     # Check if munin-node running and RRD files are up to date.
-    if [ "$IS_MUNINRUNNING" ]; then
+    if [ "$IS_MUNINRUNNING" = 1 ]; then
         pgrep munin-node >/dev/null || echo 'IS_MUNINRUNNING FAILED!'
         [ $(stat -c "%Y" /var/lib/munin/*/*uptime-g.rrd |head -1) -lt $(date +"%s" -d "now - 10 minutes") ] && echo 'IS_MUNINRUNNING FAILED!'
         [ $(stat -c "%Y" /var/cache/munin/www/*/*/uptime-day.png |head -1) -lt $(date +"%s" -d "now - 10 minutes") ] && echo 'IS_MUNINRUNNING FAILED!'

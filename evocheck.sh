@@ -61,6 +61,7 @@ IS_USERLOGROTATE=1
 IS_MODSECURITY=1
 IS_APACHECTL=1
 IS_APACHESYMLINK=1
+IS_MUNINAPACHECONF=1
 IS_SAMBAPINPRIORITY=1
 IS_KERNELUPTODATE=1
 IS_MUNINRUNNING=1
@@ -360,6 +361,15 @@ if [ -e /etc/debian_version ]; then
         is_installed apache2.2-common && \
             (stat -c %F /etc/apache2/sites-enabled/* | grep -q regular && echo 'IS_APACHESYMLINK FAILED!')
     fi
+
+    # Check if default Apache configuration file for munin is absent (or empty or commented).
+    if [ "$IS_MUNINAPACHECONF" ]; then
+        if is_debianversion squeeze || is_debianversion wheezy; then
+            muninconf="/etc/apache2/conf.d/munin"
+        else
+            muninconf="/etc/apache2/conf-available/munin.conf"
+        fi
+        is_installed apache2.2-common && ([ -e $muninconf ] && grep -vEq "^( |\t)*#" $muninconf && echo 'IS_MUNINAPACHECONF FAILED!')
     
     # Verification de la priorité du package samba si les backports sont utilisés
     if [ "$IS_SAMBAPINPRIORITY" = 1 ]; then

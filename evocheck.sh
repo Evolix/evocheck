@@ -244,7 +244,7 @@ if [ -e /etc/debian_version ]; then
         [ "$NRPEDISKS" = "$DFDISKS" ] || echo 'IS_NRPEDISKS FAILED!'
     fi
 
-    if ["$IS_NRPEPID" = 1 ]; then
+    if [ "$IS_NRPEPID" = 1 ]; then
         ! is_debianversion squeeze && grep "^pid_file=/var/run/nrpe.pid" /etc/nagios/nrpe.cfg && echo 'IS_NRPEPID FAILED!'
     fi
     
@@ -299,9 +299,9 @@ if [ -e /etc/debian_version ]; then
     # Verification de la conf et de l'activation de mod-deflate
     if [ "$IS_MODDEFLATE" = 1 ]; then
         f=/etc/apache2/mods-enabled/deflate.conf
-        is_installed apache2.2 && ((test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
-        && grep -q "AddOutputFilterByType DEFLATE text/css" $f\
-        && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f) || echo 'IS_MODDEFLATE FAILED!')
+        is_installed apache2.2 && (test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
+        && grep -q "AddOutputFilterByType DEFLATE text/css" $f \
+        && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f || echo 'IS_MODDEFLATE FAILED!')
     fi
     
     # Verification de la conf log2mail
@@ -389,6 +389,7 @@ if [ -e /etc/debian_version ]; then
             muninconf="/etc/apache2/conf-available/munin.conf"
         fi
         is_installed apache2.2-common && ([ -e $muninconf ] && grep -vEq "^( |\t)*#" $muninconf && echo 'IS_MUNINAPACHECONF FAILED!')
+    fi
     
     # Verification de la priorité du package samba si les backports sont utilisés
     if [ "$IS_SAMBAPINPRIORITY" = 1 ]; then

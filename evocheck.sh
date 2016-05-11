@@ -347,9 +347,9 @@ if [ -e /etc/debian_version ]; then
     
     # Network conf verification
     if [ "$IS_INTERFACESGW" = 1 ]; then
-        number=$(grep -Ec "[^#]gateway [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" /etc/network/interfaces)
+        number=$(grep -Ec "^[^#]*gateway [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" /etc/network/interfaces)
         test $number -gt 1 && echo 'IS_INTERFACESGW FAILED!'
-        number=$(grep -Ec "[^#]gateway [0-9a-fA-F]+:" /etc/network/interfaces)
+        number=$(grep -Ec "^[^#]*gateway [0-9a-fA-F]+:" /etc/network/interfaces)
         test $number -gt 1 && echo 'IS_INTERFACESGW FAILED!'
     fi
 

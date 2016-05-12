@@ -415,7 +415,7 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_MUNINRUNNING" = 1 ]; then
         pgrep munin-node >/dev/null || echo 'IS_MUNINRUNNING FAILED!'
         [ $(stat -c "%Y" /var/lib/munin/*/*uptime-g.rrd |head -1) -lt $(date +"%s" -d "now - 10 minutes") ] && echo 'IS_MUNINRUNNING FAILED!'
-        [ $(stat -c "%Y" /var/cache/munin/www/*/*/uptime-day.png |head -1) -lt $(date +"%s" -d "now - 10 minutes") ] && echo 'IS_MUNINRUNNING FAILED!'
+        grep -q "^graph_strategy cron" /etc/munin/munin.conf && ([ $(stat -c "%Y" /var/cache/munin/www/*/*/uptime-day.png |head -1) -lt $(date +"%s" -d "now - 10 minutes") ]) && echo 'IS_MUNINRUNNING FAILED!'
     fi
 
     # Check if files in /home/backup/ are up-to-date

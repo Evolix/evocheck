@@ -379,7 +379,7 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_APACHEIPINALLOW" = 1 ]; then
         # Note: Replace "exit 1" by "print" in Perl code to debug it.
         is_installed apache2.2-common && \
-            (grep -IrE "[^#] *(Allow|Deny) from" /etc/apache2/ |grep -v "from all" |perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)' || echo 'IS_APACHEIPINALLOW FAILED!')
+            (grep -IrE "^[^#] *(Allow|Deny) from" /etc/apache2/ |grep -v "from all" |perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)' || echo 'IS_APACHEIPINALLOW FAILED!')
     fi
 
     # Check if default Apache configuration file for munin is absent (or empty or commented).

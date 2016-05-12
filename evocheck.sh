@@ -399,14 +399,14 @@ if [ -e /etc/debian_version ]; then
     
     # Verification si le système doit redémarrer suite màj kernel.
     if [ "$IS_KERNELUPTODATE" = 1 ]; then
-        if is_installed linux-image* && [ $(date -d $(ls --full-time -lcrt /boot | tail -n1 | tr -s " " | cut -d " " -f 6) +%s) -gt $(date -d "$(uptime -s)" +%s) ]; then
+        if is_installed linux-image* && [ $(date -d $(ls --full-time -lcrt /boot | tail -n1 | tr -s " " | cut -d " " -f 6) +%s) -gt $(($(date +%s) - $(cut -f1 -d '.' /proc/uptime))) ]; then
             echo 'IS_KERNELUPTODATE FAILED!'
         fi
     fi
     
     # Check if the server is running for more than a year.
     if [ "$IS_UPTIME" = 1 ]; then
-        if is_installed linux-image* && [ $(date -d "now - 1 year" +%s) -gt $(date -d "$(uptime -s)" +%s) ]; then
+        if is_installed linux-image* && [ $(date -d "now - 1 year" +%s) -gt $(($(date +%s) - $(cut -f1 -d '.' /proc/uptime))) ]; then
             echo 'IS_UPTIME FAILED!'
         fi
     fi

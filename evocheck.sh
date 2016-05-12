@@ -321,7 +321,7 @@ if [ -e /etc/debian_version ]; then
     
     # Verification si bind est chroote
     if [ "$IS_BINDCHROOT" = 1 ]; then
-        if is_installed bind9; then
+        if is_installed bind9 && $(netstat -utpln |grep "/named" |grep :53 |grep -qv 127.0.0.1); then
             if grep -q '^OPTIONS=".*-t' /etc/default/bind9 && grep -q '^OPTIONS=".*-u' /etc/default/bind9; then
                 if [ "$(md5sum /usr/sbin/named |cut -f 1 -d ' ')" != "$(md5sum /var/chroot-bind/usr/sbin/named |cut -f 1 -d ' ')" ]; then
                     echo 'IS_BINDCHROOT FAILED!'

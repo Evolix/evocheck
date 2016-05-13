@@ -245,9 +245,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_NRPEPID" = 1 ]; then
-        ! is_debianversion squeeze && grep -q "^pid_file=/var/run/nrpe.pid" /etc/nagios/nrpe.cfg && echo 'IS_NRPEPID FAILED!'
-
-
+        ! is_debianversion squeeze && (grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPID FAILED!')
     fi
     
     if [ "$IS_GRSECPROCS" = 1 ]; then

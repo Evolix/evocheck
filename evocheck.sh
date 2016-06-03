@@ -379,7 +379,7 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_APACHEIPINALLOW" = 1 ]; then
         # Note: Replace "exit 1" by "print" in Perl code to debug it.
         is_installed apache2.2-common && \
-            (grep -IrE "^[^#] *(Allow|Deny) from" /etc/apache2/ |grep -v "from all" |perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)' || echo 'IS_APACHEIPINALLOW FAILED!')
+            (grep -IrE "^[^#] *(Allow|Deny) from" /etc/apache2/ |grep -iv "from all" |perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)' || echo 'IS_APACHEIPINALLOW FAILED!')
     fi
 
     # Check if default Apache configuration file for munin is absent (or empty or commented).
@@ -414,14 +414,14 @@ if [ -e /etc/debian_version ]; then
     # Check if munin-node running and RRD files are up to date.
     if [ "$IS_MUNINRUNNING" = 1 ]; then
         pgrep munin-node >/dev/null || echo 'IS_MUNINRUNNING FAILED!'
-        [ "$(stat -c "%Y" /var/lib/munin/*/*uptime-g.rrd |sort |tail -1)" -lt $(date +"%s" -d "now - 10 minutes") ] && echo 'IS_MUNINRUNNING FAILED!'
-        grep -q "^graph_strategy cron" /etc/munin/munin.conf && ([ "$(stat -c "%Y" /var/cache/munin/www/*/*/uptime-day.png |sort |tail -1)" -lt $(date +"%s" -d "now - 10 minutes") ]) && echo 'IS_MUNINRUNNING FAILED!'
+        [ "$(stat -c "%Y" /var/lib/munin/*/*load-g.rrd |sort |tail -1)" -lt $(date +"%s" -d "now - 10 minutes") ] && echo 'IS_MUNINRUNNING FAILED!'
+        grep -q "^graph_strategy cron" /etc/munin/munin.conf && ([ "$(stat -c "%Y" /var/cache/munin/www/*/*/load-day.png |sort |tail -1)" -lt $(date +"%s" -d "now - 10 minutes") ]) && echo 'IS_MUNINRUNNING FAILED!'
     fi
 
     # Check if files in /home/backup/ are up-to-date
     if [ "$IS_BACKUPUPTODATE" = 1 ]; then
         [ -d /home/backup/ ] && for file in /home/backup/*; do
-            if [ $(stat -c "%Y" $file) -lt $(date +"%s" -d "now - 1 day") ]; then
+            if [ -f $file ] && [ $(stat -c "%Y" $file) -lt $(date +"%s" -d "now - 1 day") ]; then
                 echo 'IS_BACKUPUPTODATE FAILED!'
                 break;
             fi

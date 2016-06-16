@@ -69,6 +69,7 @@ IS_KERNELUPTODATE=1
 IS_UPTIME=1
 IS_MUNINRUNNING=1
 IS_BACKUPUPTODATE=1
+IS_GITPERMS=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -427,6 +428,12 @@ if [ -e /etc/debian_version ]; then
             fi
         done
     fi
+
+    # Check if /etc/.git/ has read/write permissions for root only.
+    if [ "$IS_GITPERMS" = 1 ]; then
+        [ "$(stat -c "%a" /etc/.git/)" = "700" ] || echo 'IS_GITPERMS FAILED!'
+    fi
+    
 fi
 
 

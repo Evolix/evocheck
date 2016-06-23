@@ -126,8 +126,8 @@ if [ -e /etc/debian_version ]; then
             egrep -i "(Pre-Invoke ..echo Are you sure to have rw on|Post-Invoke ..echo Dont forget to mount -o remount)" \
             /etc/apt/apt.conf | wc -l | grep -q ^2$ || echo 'IS_DPKGWARNING FAILED!' )
         is_debianversion wheezy && ( ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && \
-            test -e /etc/apt/apt.conf && echo 'IS_DPKGWARNING FAILED!'
-            test -e /etc/apt/apt.conf.d/80evolinux || echo 'IS_DPKGWARNING FAILED!' )
+            ( test -e /etc/apt/apt.conf.d/80evolinux || echo 'IS_DPKGWARNING FAILED!' )
+            test -e /etc/apt/apt.conf && echo 'IS_DPKGWARNING FAILED!' )
     fi
 
     if [ "$IS_UMASKSUDOERS" = 1 ]; then

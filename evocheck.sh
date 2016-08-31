@@ -19,6 +19,7 @@ IS_SYSLOGCONF=1
 IS_DEBIANSECURITY=1
 IS_APTITUDEONLY=1
 IS_APTITUDE=1
+IS_APTGETBAK=1
 IS_APTICRON=0
 IS_USRRO=1
 IS_TMPNOEXEC=1
@@ -179,6 +180,10 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_APTITUDE" = 1 ]; then
         is_debianversion jessie && test -e /usr/bin/aptitude && echo 'IS_APTITUDE FAILED!'
+    fi
+
+    if [ "$IS_APTGETBAK" = 1 ]; then
+        is_debianversion jessie && test -e /usr/bin/apt-get.bak && echo 'IS_APTGETBAK FAILED!'
     fi
 
     if [ "$IS_APTICRON" = 1 ]; then

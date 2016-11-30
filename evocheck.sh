@@ -71,6 +71,7 @@ IS_UPTIME=1
 IS_MUNINRUNNING=1
 IS_BACKUPUPTODATE=1
 IS_GITPERMS=1
+IS_NOTUPGRADED=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -437,6 +438,18 @@ if [ -e /etc/debian_version ]; then
     # Check if /etc/.git/ has read/write permissions for root only.
     if [ "$IS_GITPERMS" = 1 ]; then
         [ "$(stat -c "%a" /etc/.git/)" = "700" ] || echo 'IS_GITPERMS FAILED!'
+    fi
+
+    # Check if /etc/.git/ has read/write permissions for root only.
+    if [ "$IS_NOTUPGRADED" = 1 ]; then
+        last_upgrade=$(date +%s -d $(zgrep -h upgrade /var/log/dpkg.log* |sort -n |tail -1 |cut -f1 -d ' '))
+        limit=$(date +%s -d "now - 42 days")
+        if [ -f /var/log/evolinux/00_prepare_system.log ]; then
+            install_date=$(stat -c %Z /var/log/evolinux/00_prepare_system.log)
+        else
+            install_date=0
+        fi
+        [ $install_date -lt $limit ] && [ $last_upgrade -lt $limit ] && echo 'IS_NOTUPGRADED FAILED!'
     fi
     
 fi

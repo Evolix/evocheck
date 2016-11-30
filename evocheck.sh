@@ -440,7 +440,7 @@ if [ -e /etc/debian_version ]; then
         [ "$(stat -c "%a" /etc/.git/)" = "700" ] || echo 'IS_GITPERMS FAILED!'
     fi
 
-    # Check if /etc/.git/ has read/write permissions for root only.
+    # Check if no package has been upgraded since $limit.
     if [ "$IS_NOTUPGRADED" = 1 ]; then
         last_upgrade=$(date +%s -d $(zgrep -h upgrade /var/log/dpkg.log* |sort -n |tail -1 |cut -f1 -d ' '))
         limit=$(date +%s -d "now - 42 days")

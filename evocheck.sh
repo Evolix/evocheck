@@ -428,7 +428,7 @@ if [ -e /etc/debian_version ]; then
     # Check if files in /home/backup/ are up-to-date
     if [ "$IS_BACKUPUPTODATE" = 1 ]; then
         [ -d /home/backup/ ] && for file in /home/backup/*; do
-            if [ -f $file ] && [ $(stat -c "%Y" $file) -lt $(date +"%s" -d "now - 1 day") ]; then
+            if [ -f $file ] && [ $(stat -c "%Y" $file) -lt $(date +"%s" -d "now - 2 day") ]; then
                 echo 'IS_BACKUPUPTODATE FAILED!'
                 break;
             fi

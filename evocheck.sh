@@ -72,6 +72,7 @@ IS_MUNINRUNNING=1
 IS_BACKUPUPTODATE=1
 IS_GITPERMS=1
 IS_NOTUPGRADED=1
+IS_TUNE2FS_M5=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -451,7 +452,24 @@ if [ -e /etc/debian_version ]; then
         fi
         [ $install_date -lt $limit ] && [ $last_upgrade -lt $limit ] && echo 'IS_NOTUPGRADED FAILED!'
     fi
-    
+
+    # Check if reserved blocks for root is at least 5% on every mounted partitions.
+    if [ "$IS_TUNE2FS_M5" = 1 ]; then
+        parts=$(grep -E "ext(3|4)" /proc/mounts | cut -d ' ' -f1 | tr -s '\n' ' ')
+        for part in $parts; do
+            blockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Block count:" | grep -Eo "[0-9]+")
+            reservedBlockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Reserved block count:" | grep -Eo "[0-9]+")
+            percentage=$(bc -l <<< "(${reservedBlockCount}/${blockCount})*100" | awk '{printf("%d\n",$1 + 0.5)}')
+            if [ "$percentage" -lt 5 ]; then
+                echo 'IS_TUNE2FS_M5 FAILED!'
+                # Set debug to 1, to displays which partitions has less than 5%
+                debug=0
+                if [ "$debug" -eq 1 ]; then
+                    echo "Partition $part has less than 5% reserved blocks!"
+                fi
+            fi
+        done
+    fi
 fi
 
 

@@ -458,6 +458,10 @@ if [ -e /etc/debian_version ]; then
         parts=$(grep -E "ext(3|4)" /proc/mounts | cut -d ' ' -f1 | tr -s '\n' ' ')
         for part in $parts; do
             blockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Block count:" | grep -Eo "[0-9]+")
+            # If buggy partition, skip it.
+            if [ -z $blockCount ]; then
+                continue
+            fi
             reservedBlockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Reserved block count:" | grep -Eo "[0-9]+")
             percentage=$(bc -l <<< "(${reservedBlockCount}/${blockCount})*100" | awk '{printf("%d\n",$1 + 0.5)}')
             if [ "$percentage" -lt 5 ]; then

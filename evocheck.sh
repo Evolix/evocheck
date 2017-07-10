@@ -182,10 +182,12 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_APTITUDE" = 1 ]; then
         is_debianversion jessie && test -e /usr/bin/aptitude && echo 'IS_APTITUDE FAILED!'
+        is_debianversion stretch && test -e /usr/bin/aptitude && echo 'IS_APTITUDE FAILED!'
     fi
 
     if [ "$IS_APTGETBAK" = 1 ]; then
         is_debianversion jessie && test -e /usr/bin/apt-get.bak && echo 'IS_APTGETBAK FAILED!'
+        is_debianversion stretch && test -e /usr/bin/apt-get.bak && echo 'IS_APTGETBAK FAILED!'
     fi
 
     if [ "$IS_APTICRON" = 1 ]; then
@@ -205,7 +207,7 @@ if [ -e /etc/debian_version ]; then
     fi
     
     if [ "$IS_LISTCHANGESCONF" = 1 ]; then
-        egrep "(which=both|confirm=1)" /etc/apt/listchanges.conf | wc -l | grep -q ^2$ || echo 'IS_LISTCHANGESCONF FAILED!'
+        is_debianversion stretch || ( test -e /etc/apt/listchanges.conf && egrep "(which=both|confirm=1)" /etc/apt/listchanges.conf | wc -l | grep -q ^2$ || echo 'IS_LISTCHANGESCONF FAILED!' )
     fi
     
     if [ "$IS_CUSTOMCRONTAB" = 1 ]; then

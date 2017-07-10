@@ -140,7 +140,7 @@ if [ -e /etc/debian_version ]; then
     # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
     if [ "$IS_NRPEPOSTFIX" = 1 ]; then
         is_debianversion squeeze && is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPOSTFIX FAILED!' )
-        is_debianversion squeeze || ( is_installed postfix && ( grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* || echo 'IS_NRPEPOSTFIX FAILED!' ) )
+        is_debianversion squeeze || ( is_installed postfix && ( test -e /etc/nagios/nrpe.cfg && grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* || echo 'IS_NRPEPOSTFIX FAILED!' ) )
     fi
 
     # Check if mod-security config file is present
@@ -239,7 +239,7 @@ if [ -e /etc/debian_version ]; then
     fi
     
     if [ "$IS_NRPEPERMS" = 1 ]; then
-        ls -ld /etc/nagios | grep -q drwxr-x--- || echo 'IS_NRPEPERMS FAILED!'
+        test -d /etc/nagios && ls -ld /etc/nagios | grep -q drwxr-x--- || echo 'IS_NRPEPERMS FAILED!'
     fi
     
     if [ "$IS_MINIFWPERMS" = 1 ]; then
@@ -255,7 +255,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_NRPEPID" = 1 ]; then
-        ! is_debianversion squeeze && (grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPID FAILED!')
+        is_debianversion squeeze || (test -e /etc/nagios/nrpe.cfg && grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPID FAILED!')
     fi
     
     if [ "$IS_GRSECPROCS" = 1 ]; then
@@ -350,7 +350,10 @@ if [ -e /etc/debian_version ]; then
     
     # Verify if all if are in auto
     if [ "$IS_AUTOIF" = 1 ]; then
-        for interface in `/sbin/ifconfig -s |tail -n +2 |egrep -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" |cut -d " " -f 1 |tr "\n" " "`; do
+        is_debianversion stretch || for interface in `/sbin/ifconfig -s |tail -n +2 |egrep -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" |cut -d " " -f 1 |tr "\n" " "`; do
+                    grep -q "^auto $interface" /etc/network/interfaces || (echo 'IS_AUTOIF FAILED!' && break)
+            done
+        is_debianversion stretch && for interface in `/sbin/ip address show | grep ^[0-9]*: |egrep -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 |tr -d : | tr "\n" " "`; do
                     grep -q "^auto $interface" /etc/network/interfaces || (echo 'IS_AUTOIF FAILED!' && break)
             done
     fi
@@ -440,7 +443,7 @@ if [ -e /etc/debian_version ]; then
 
     # Check if /etc/.git/ has read/write permissions for root only.
     if [ "$IS_GITPERMS" = 1 ]; then
-        [ "$(stat -c "%a" /etc/.git/)" = "700" ] || echo 'IS_GITPERMS FAILED!'
+        test -d /etc/.git && [ "$(stat -c "%a" /etc/.git/)" = "700" ] || echo 'IS_GITPERMS FAILED!'
     fi
 
     # Check if no package has been upgraded since $limit.
@@ -602,7 +605,7 @@ fi
 # Verification de la configuration d'evomaintenance
 if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
     f=/etc/evomaintenance.cf
-    ( grep "^export PGPASSWORD" $f |grep -qv "your-passwd" \
+    ( test -e $f && grep "^export PGPASSWORD" $f |grep -qv "your-passwd" \
     && grep "^PGDB" $f |grep -qv "your-db" \
     && grep "^PGTABLE" $f |grep -qv "your-table" \
     && grep "^PGHOST" $f |grep -qv "your-pg-host" \

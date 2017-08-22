@@ -589,7 +589,7 @@ fi
 
 if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
     is_debianversion stretch || ( egrep -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
-    is_debianversion stretch && grep ^PermitRoot /etc/ssh/sshd_config && ( egrep -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
+    is_debianversion stretch && grep -q ^PermitRoot /etc/ssh/sshd_config && ( egrep -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
 fi
 
 if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then

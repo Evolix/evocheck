@@ -269,11 +269,7 @@ if [ -e /etc/debian_version ]; then
     
     # Verification mytop + Munin si MySQL
     if [ "$IS_MYSQLUTILS" = 1 ]; then
-        if is_debianversion stretch; then
-            is_installed mysql-server && ( grep -q mysqladmin /root/.my.cnf && is_installed mariadb-client && grep -q debian-sys-maint /root/.mytop || echo 'IS_MYSQLUTILS FAILED!' )
-        else
-            is_installed mysql-server && ( grep -q mysqladmin /root/.my.cnf && is_installed mytop && grep -q debian-sys-maint /root/.mytop || echo 'IS_MYSQLUTILS FAILED!' )
-        fi
+        is_installed mysql-server && ( grep -q mysqladmin /root/.my.cnf && test -x /usr/bin/mytop && grep -q debian-sys-maint /root/.mytop || echo 'IS_MYSQLUTILS FAILED!' )
     fi
     
     # Verification de la configuration du raid soft (mdadm)

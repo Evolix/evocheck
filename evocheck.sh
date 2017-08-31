@@ -300,6 +300,7 @@ if [ -e /etc/debian_version ]; then
         is_debianversion squeeze && f=/etc/firewall.rc
         is_debianversion wheezy && f=/etc/firewall.rc
         is_debianversion jessie && f=/etc/default/minifirewall
+        is_debianversion stretch && f=/etc/default/minifirewall
         is_pack_web && ( is_installed squid || is_installed squid3 \
         && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $f \
         && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $f \

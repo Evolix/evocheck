@@ -263,8 +263,8 @@ if [ -e /etc/debian_version ]; then
     fi
     
     if [ "$IS_APACHEMUNIN" = 1 ]; then
-        test -e /etc/apache2/apache2.conf && is_debianversion stretch || ( egrep -q "^env.url.*/server-status-[[:alnum:]]{4}" /etc/munin/plugin-conf.d/munin-node && egrep -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf || egrep -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf 2>/dev/null || echo 'IS_APACHEMUNIN FAILED!' )
-        test -e /etc/apache2/apache2.conf && is_debianversion stretch && ( test -h /etc/apache2/mods-enabled/status.load && test -h /etc/munin/plugins/apache_accesses && test -h /etc/munin/plugins/apache_processes && test -h /etc/munin/plugins/apache_accesses || echo 'IS_APACHEMUNIN FAILED!' )
+        test -e /etc/apache2/apache2.conf && ( is_debianversion stretch || ( egrep -q "^env.url.*/server-status-[[:alnum:]]{4}" /etc/munin/plugin-conf.d/munin-node && egrep -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf || egrep -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf 2>/dev/null || echo 'IS_APACHEMUNIN FAILED!' ) )
+        test -e /etc/apache2/apache2.conf && ( is_debianversion stretch && ( test -h /etc/apache2/mods-enabled/status.load && test -h /etc/munin/plugins/apache_accesses && test -h /etc/munin/plugins/apache_processes && test -h /etc/munin/plugins/apache_accesses || echo 'IS_APACHEMUNIN FAILED!' ) )
     fi
     
     # Verification mytop + Munin si MySQL

@@ -608,7 +608,9 @@ fi
 # Verification de la configuration d'evomaintenance
 if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
     f=/etc/evomaintenance.cf
-    ( test -e $f && grep "^export PGPASSWORD" $f |grep -qv "your-passwd" \
+    ( test -e $f \
+    && test $(stat -c "%a" $f) = "600" \
+    && grep "^export PGPASSWORD" $f |grep -qv "your-passwd" \
     && grep "^PGDB" $f |grep -qv "your-db" \
     && grep "^PGTABLE" $f |grep -qv "your-table" \
     && grep "^PGHOST" $f |grep -qv "your-pg-host" \

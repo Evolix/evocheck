@@ -73,6 +73,7 @@ IS_BACKUPUPTODATE=1
 IS_GITPERMS=1
 IS_NOTUPGRADED=1
 IS_TUNE2FS_M5=1
+IS_PRIVKEYWOLRDREADABLE=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -619,4 +620,13 @@ if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
     && grep "^URGENCYFROM" $f |grep -qv "mama.doe@example.com" \
     && grep "^URGENCYTEL" $f |grep -qv "06.00.00.00.00" \
     && grep "^REALM" $f |grep -qv "example.com" ) || echo 'IS_EVOMAINTENANCECONF FAILED!'
+fi
+
+if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then
+    for f in /etc/ssl/private/*; do
+        perms=$(stat -c "%a" $f)
+        if [ ${perms: -1} != "0" ]; then
+            echo 'IS_PRIVKEYWOLRDREADABLE FAILED!'
+        fi
+    done
 fi

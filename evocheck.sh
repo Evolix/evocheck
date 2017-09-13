@@ -116,7 +116,7 @@ is_installed(){
 }
 
 is_debianversion(){
-    [ $(lsb_release -c -s) = $1 ] && return 0;
+    [ $(lsb_release -c -s) = $1 ] && return 0
 }
 
 #-----------------------------------------------------------

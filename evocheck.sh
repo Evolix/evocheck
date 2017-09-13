@@ -102,7 +102,7 @@ fi
 
 # Functions
 is_pack_web(){
-    test -e /usr/share/scripts/web-add.sh
+    test -e /usr/share/scripts/web-add.sh || test -e /usr/share/scripts/evoadmin/web-add.sh
 }
 
 is_pack_samba(){

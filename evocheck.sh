@@ -74,6 +74,22 @@ IS_GITPERMS=1
 IS_NOTUPGRADED=1
 IS_TUNE2FS_M5=1
 IS_PRIVKEYWOLRDREADABLE=1
+IS_EVOLINUXSUDOGROUP=1
+IS_USERINADMGROUP=1
+IS_APACHE2EVOLINUXCONF=1
+IS_BACKPORTSCONF=1
+IS_BIND9MUNIN=1
+IS_BIND9LOGROTATE=1
+IS_BROADCOMFIRMWARE=1
+IS_HARDWARERAIDTOOL=1
+IS_LOG2MAILSYSTEMDUNIT=1
+IS_LISTUPGRADE=1
+IS_MARIADBEVOLINUXCONF=1
+IS_MARIADBSYSTEMDUNIT=1
+IS_MYSQLMUNIN=1
+IS_PHPEVOLINUXCONF=1
+IS_SQUIDLOGROTATE=1
+IS_SQUIDEVOLINUXCONF=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -132,6 +148,7 @@ if [ -e /etc/debian_version ]; then
         is_debianversion wheezy && ( ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && \
             ( test -e /etc/apt/apt.conf.d/80evolinux || echo 'IS_DPKGWARNING FAILED!' )
             test -e /etc/apt/apt.conf && echo 'IS_DPKGWARNING FAILED!' )
+        is_debianversion stretch && (test -e /etc/apt/apt.conf.d/z-evolinux.conf || echo 'IS_DPKGWARNING FAILED!')
     fi
 
     if [ "$IS_UMASKSUDOERS" = 1 ]; then
@@ -208,7 +225,11 @@ if [ -e /etc/debian_version ]; then
     fi
     
     if [ "$IS_LISTCHANGESCONF" = 1 ]; then
-        is_debianversion stretch || ( test -e /etc/apt/listchanges.conf && egrep "(which=both|confirm=1)" /etc/apt/listchanges.conf | wc -l | grep -q ^2$ || echo 'IS_LISTCHANGESCONF FAILED!' )
+        if is_debianversion stretch; then
+            is_installed apt-listchanges && echo 'IS_LISTCHANGESCONF FAILED!'
+        else
+            test -e /etc/apt/listchanges.conf && egrep "(which=both|confirm=1)" /etc/apt/listchanges.conf | wc -l | grep -q ^2$ || echo 'IS_LISTCHANGESCONF FAILED!'
+        fi
     fi
     
     if [ "$IS_CUSTOMCRONTAB" = 1 ]; then
@@ -247,6 +268,7 @@ if [ -e /etc/debian_version ]; then
         is_debianversion squeeze && ( ls -l /etc/firewall.rc | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!' )
         is_debianversion wheezy && ( ls -l /etc/firewall.rc | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!' )
         is_debianversion jessie && ( ls -l /etc/default/minifirewall | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!' )
+        is_debianversion stretch && ( ls -l /etc/default/minifirewall | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!' )
     fi
     
     if [ "$IS_NRPEDISKS" = 1 ]; then
@@ -323,10 +345,15 @@ if [ -e /etc/debian_version ]; then
         is_pack_web && (is_installed log2mail && pgrep log2mail >/dev/null || echo 'IS_LOG2MAILRUNNING')
     fi
     if [ "$IS_LOG2MAILAPACHE" = 1 ]; then
-        is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/apache2/error.log" /etc/log2mail/config/default 2>/dev/null || echo 'IS_LOG2MAILAPACHE FAILED!' )
+        if is_debianversion stretch; then
+            conf=/etc/log2mail/config/apache
+        else
+            conf=/etc/log2mail/config/default
+        fi
+        is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/apache2/error.log" $conf 2>/dev/null || echo 'IS_LOG2MAILAPACHE FAILED!' )
     fi
     if [ "$IS_LOG2MAILMYSQL" = 1 ]; then
-        is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/syslog" /etc/log2mail/config/default 2>/dev/null || echo 'IS_LOG2MAILMYSQL FAILED!' )
+        is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/syslog" /etc/log2mail/config/default /etc/log2mail/config/mysql.conf 2>/dev/null || echo 'IS_LOG2MAILMYSQL FAILED!' )
     fi
     if [ "$IS_LOG2MAILSQUID" = 1 ]; then
         is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/squid.*/access.log" \
@@ -482,6 +509,124 @@ if [ -e /etc/debian_version ]; then
                 fi
             fi
         done
+    fi
+
+    if [ "$IS_EVOLINUXSUDOGROUP" = 1 ]; then
+        if is_debianversion stretch; then
+            (grep -q ^evolinux-sudo: /etc/group \
+                && grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux) || echo 'IS_EVOLINUXSUDOGROUP FAILED!'
+        fi
+    fi
+
+    if [ "$IS_USERINADMGROUP" = 1 ]; then
+        if is_debianversion stretch; then
+            for user in $(grep ^evolinux-sudo: /etc/group |awk -F: '{print $4}' |tr ',' ' '); do
+                groups $user |grep -q adm || echo 'IS_USERINADMGROUP FAILED!'
+            done
+        fi
+    fi
+
+    if [ "$IS_APACHE2EVOLINUXCONF" = 1 ]; then
+        if is_debianversion stretch; then
+            (test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
+                && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
+                && test -f /etc/apache2/ipaddr_whitelist.conf) || echo 'IS_APACHE2EVOLINUXCONF FAILED!'
+        fi
+    fi
+
+    if [ "$IS_BACKPORTSCONF" = 1 ]; then
+        if is_debianversion stretch; then
+            grep -q backports /etc/apt/sources.list && echo 'IS_BACKPORTSCONF FAILED!'
+            grep -q backports /etc/apt/sources.list.d/*.list && (grep -q backports /etc/apt/preferences.d/* || echo 'IS_BACKPORTSCONF FAILED!')
+        fi
+    fi
+
+    if [ "$IS_BIND9MUNIN" = 1 ]; then
+        if is_debianversion stretch && is_installed bind9; then
+            (test -L /etc/munin/plugins/bind9 && test -e /etc/munin/plugin-conf.d/bind9) || echo 'IS_BIND9MUNIN FAILED!'
+        fi
+    fi
+
+    if [ "$IS_BIND9LOGROTATE" = 1 ]; then
+        if is_debianversion stretch && is_installed bind9; then
+            test -e /etc/logrotate.d/bind9 || echo 'IS_BIND9LOGROTATE FAILED!'
+        fi
+    fi
+
+    if [ "$IS_BROADCOMFIRMWARE" = 1 ]; then
+        if lspci | grep -q 'NetXtreme II'; then
+            (is_installed firmware-bnx2 && grep "^deb http://mirror.evolix.org/debian .* non-free" /etc/apt/sources.list) || echo 'IS_BROADCOMFIRMWARE FAILED!'
+        fi
+    fi
+
+    if [ "$IS_HARDWARERAIDTOOL" = 1 ]; then
+        lspci |grep -q 'MegaRAID SAS' && (is_installed megacli && is_installed megaclisas-status || echo 'IS_HARDWARERAIDTOOL FAILED!')
+        lspci |grep -q 'Hewlett-Packard Company Smart Array' && (is_installed cciss-vol-status || echo 'IS_HARDWARERAIDTOOL FAILED!')
+    fi
+
+    if [ "$IS_LOG2MAILSYSTEMDUNIT" = 1 ]; then
+        if is_debianversion stretch; then
+            (systemctl -q is-active log2mail.service && test -f /etc/systemd/system/log2mail.service && ! test -f /etc/init.d/log2mail) || echo 'IS_LOG2MAILSYSTEMDUNIT FAILED!'
+        fi
+    fi
+
+    if [ "$IS_LISTUPGRADE" = 1 ]; then
+        (test -f /etc/cron.d/listupgrade && test -x /usr/share/scripts/listupgrade.sh) || echo 'IS_LISTUPGRADE FAILED!'
+    fi
+
+    if [ "$IS_MARIADBEVOLINUXCONF" = 1 ]; then
+        if is_debianversion stretch && is_installed mariadb-server; then
+            (test -f /etc/mysql/mariadb.conf.d/z-evolinux-defaults.cnf \
+                && test -f /etc/mysql/mariadb.conf.d/zzz-evolinux-custom.cnf) || echo 'IS_MARIADBEVOLINUXCONF FAILED!'
+        fi
+    fi
+
+    if [ "$IS_MARIADBSYSTEMDUNIT" = 1 ]; then
+        if is_debianversion stretch && is_installed mariadb-server; then
+            (systemctl -q is-active mariadb.service && test -f /etc/systemd/system/mariadb.service.d/evolinux.conf) || echo 'IS_MARIADBSYSTEMDUNIT FAILED!'
+        fi
+    fi
+
+    if [ "$IS_MYSQLMUNIN" = 1 ]; then
+        if is_debianversion stretch && is_installed mariadb-server; then
+            for file in mysql_bytes mysql_queries mysql_slowqueries mysql_threads connections files_tables innodb_bpool innodb_bpool_act innodb_io innodb_log innodb_rows innodb_semaphores myisam_indexes qcache qcache_mem sorts tmp_tables; do
+                test -L /etc/munin/plugins/$file || echo 'IS_MYSQLMUNIN FAILED!'
+            done
+        fi
+    fi
+
+    if [ "$IS_MYSQLNRPE" = 1 ]; then
+        if is_debianversion stretch && is_installed mariadb-server; then
+            (test -f ~nagios/.my.cnf \
+                && [ $(stat -c %U ~nagios/.my.cnf) = "nagios" ] \
+                && [ $(stat -c %a ~nagios/.my.cnf) = "600" ] \
+                && grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql -H localhost  -f ~nagios/.my.cnf") || echo 'IS_MYSQLNRPE FAILED!'
+        fi
+    fi
+
+    if [ "$IS_PHPEVOLINUXCONF" = 1 ]; then
+        if is_debianversion stretch && is_installed php; then
+            (test -f /etc/php/7.0/cli/conf.d/z-evolinux-defaults.ini \
+                && test -f /etc/php/7.0/cli/conf.d/zzz-evolinux-custom.ini) || echo 'IS_PHPEVOLINUXCONF FAILED!'
+        fi
+    fi
+
+    if [ "$IS_SQUIDLOGROTATE" = 1 ]; then
+        if is_debianversion stretch && is_installed squid; then
+            grep -q monthly /etc/logrotate.d/squid || echo 'IS_SQUIDLOGROTATE FAILED!'
+        fi
+    fi
+
+    if [ "$IS_SQUIDEVOLINUXCONF" = 1 ]; then
+        if is_debianversion stretch && is_installed squid; then
+            (grep -q "^CONFIG=/etc/squid/evolinux-defaults.conf$" /etc/default/squid \
+                && test -f /etc/squid/evolinux-defaults.conf \
+                && test -f /etc/squid/evolinux-whitelist-defaults.conf \
+                && test -f /etc/squid/evolinux-whitelist-custom.conf \
+                && test -f /etc/squid/evolinux-acl.conf \
+                && test -f /etc/squid/evolinux-httpaccess.conf \
+                && test -f /etc/squid/evolinux-custom.conf) || echo 'IS_SQUIDEVOLINUXCONF FAILED!'
+        fi
     fi
 fi
 

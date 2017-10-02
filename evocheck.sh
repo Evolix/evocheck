@@ -555,12 +555,12 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_BROADCOMFIRMWARE" = 1 ]; then
         if lspci | grep -q 'NetXtreme II'; then
-            (is_installed firmware-bnx2 && grep "^deb http://mirror.evolix.org/debian .* non-free" /etc/apt/sources.list) || echo 'IS_BROADCOMFIRMWARE FAILED!'
+            (is_installed firmware-bnx2 && grep -q "^deb http://mirror.evolix.org/debian.* non-free" /etc/apt/sources.list) || echo 'IS_BROADCOMFIRMWARE FAILED!'
         fi
     fi
 
     if [ "$IS_HARDWARERAIDTOOL" = 1 ]; then
-        lspci |grep -q 'MegaRAID SAS' && (is_installed megacli && is_installed megaclisas-status || echo 'IS_HARDWARERAIDTOOL FAILED!')
+        lspci |grep -q 'MegaRAID SAS' && (is_installed megacli && (is_installed megaclisas-status || is_installed megaraidsas-status) || echo 'IS_HARDWARERAIDTOOL FAILED!')
         lspci |grep -q 'Hewlett-Packard Company Smart Array' && (is_installed cciss-vol-status || echo 'IS_HARDWARERAIDTOOL FAILED!')
     fi
 

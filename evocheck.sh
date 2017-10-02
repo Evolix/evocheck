@@ -499,7 +499,7 @@ if [ -e /etc/debian_version ]; then
                 continue
             fi
             reservedBlockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Reserved block count:" | grep -Eo "[0-9]+")
-            percentage=$(bc -l <<< "(${reservedBlockCount}/${blockCount})*100" | awk '{printf("%d\n",$1 + 0.5)}')
+            percentage=$(python -c "print(int(round(float(${reservedBlockCount})/${blockCount}*100)))")
             if [ "$percentage" -lt 5 ]; then
                 echo 'IS_TUNE2FS_M5 FAILED!'
                 # Set debug to 1, to displays which partitions has less than 5%

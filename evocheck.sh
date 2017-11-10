@@ -527,7 +527,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_APACHE2EVOLINUXCONF" = 1 ]; then
-        if is_debianversion stretch; then
+        if (test -d /etc/apache2 && is_debianversion stretch); then
             (test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
                 && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
                 && test -f /etc/apache2/ipaddr_whitelist.conf) || echo 'IS_APACHE2EVOLINUXCONF FAILED!'

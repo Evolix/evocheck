@@ -742,14 +742,20 @@ if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
 fi
 
 if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
-    if [ -f /etc/sudoers.d/evolinux ]; then
-        sudoers="/etc/sudoers.d/evolinux"
+    if ! is_debianversion stretch; then
+        if [ -f /etc/sudoers.d/evolinux ]; then
+            sudoers="/etc/sudoers.d/evolinux"
+        else
+            sudoers="/etc/sudoers"
+        fi
+        for i in $( (grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep ^sudo /etc/group |cut -d: -f 4) | tr "," "\n" |sort -u); do
+            grep -q "^trap.*sudo.*evomaintenance.sh" /home/$i/.*profile || echo 'IS_EVOMAINTENANCEUSERS FAILED!'
+        done
     else
-        sudoers="/etc/sudoers"
+        for i in $(getent group evolinux-sudo | cut -d':' -f4 | tr ',' ' '); do 
+            grep -q "^trap.*sudo.*evomaintenance.sh" /home/$i/.*profile || echo 'IS_EVOMAINTENANCEUSERS FAILED!'
+        done
     fi
-    for i in $( (grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep ^sudo /etc/group |cut -d: -f 4) | tr "," "\n" |sort -u); do
-        grep -q "^trap.*sudo.*evomaintenance.sh" /home/$i/.*profile || echo 'IS_EVOMAINTENANCEUSERS FAILED!'
-    done
 fi
 
 # Verification de la configuration d'evomaintenance

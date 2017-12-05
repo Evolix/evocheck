@@ -581,6 +581,18 @@ if [ -e /etc/debian_version ]; then
         fi
     fi
 
+    if [ "$IS_SQL_BACKUP" = 1 ]; then
+        if (is_installed mysql-server || is_installed mariadb-server); then
+            # You could change the default path in /etc/evocheck.cf
+            SQL_BACKUP_PATH=${SQL_BACKUP_PATH:-"/home/backup/mysql.bak.gz"}
+            if [ -f "$SQL_BACKUP_PATH" ]; then
+                if [ $(stat -c "%Y" $SQL_BACKUP_PATH) -lt $(date +"%s" -d "now - 2 day") ]; then
+                    echo 'IS_SQL_BACKUP FAILED!'
+                fi
+            fi
+        fi
+    fi
+
     if [ "$IS_MARIADBSYSTEMDUNIT" = 1 ]; then
         if is_debianversion stretch && is_installed mariadb-server; then
             (systemctl -q is-active mariadb.service && test -f /etc/systemd/system/mariadb.service.d/evolinux.conf) || echo 'IS_MARIADBSYSTEMDUNIT FAILED!'

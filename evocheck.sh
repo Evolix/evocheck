@@ -92,6 +92,7 @@ IS_SQUIDLOGROTATE=1
 IS_SQUIDEVOLINUXCONF=1
 IS_SQL_BACKUP=1
 IS_POSTGRES_BACKUP=1
+IS_MONGO_BACKUP=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -597,6 +598,25 @@ if [ -e /etc/debian_version ]; then
             # You could change the default path in /etc/evocheck.cf
             POSTGRES_BACKUP_PATH=${POSTGRES_BACKUP_PATH:-"/home/backup/pg.dump.bak"}
             test -f "$POSTGRES_BACKUP_PATH" || echo 'IS_POSTGRES_BACKUP FAILED!'
+        fi
+    fi
+
+    if [ "$IS_MONGO_BACKUP" = 1 ]; then
+        if is_installed "mongodb-org-server"; then
+            # You could change the default path in /etc/evocheck.cf
+            MONGO_BACKUP_PATH=${MONGO_BACKUP_PATH:-"/home/backup/mongodump"}
+            if [ -d "$MONGO_BACKUP_PATH" ]; then
+                for file in ${MONGO_BACKUP_PATH}/*/*.{json,bson}; do
+                    # Skip indexes file.
+                    if ! [[ "$file" =~ indexes ]]; then
+                        if [ -f $file ] && [ $(stat -c "%Y" $file) -lt $(date +"%s" -d "now - 2 day") ]; then
+                            echo 'IS_MONGO_BACKUP FAILED!'
+                        fi
+                    fi
+                done
+            else
+                echo 'IS_MONGO_BACKUP FAILED!'
+            fi
         fi
     fi
 

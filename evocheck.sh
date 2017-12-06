@@ -93,6 +93,7 @@ IS_SQUIDEVOLINUXCONF=1
 IS_SQL_BACKUP=1
 IS_POSTGRES_BACKUP=1
 IS_LDAP_BACKUP=1
+IS_REDIS_BACKUP=1
 IS_MONGO_BACKUP=1
 
 #Proper to OpenBSD
@@ -626,6 +627,14 @@ if [ -e /etc/debian_version ]; then
             # You could change the default path in /etc/evocheck.cf
             LDAP_BACKUP_PATH=${LDAP_BACKUP_PATH:-"/home/backup/ldap.bak"}
             test -f "$LDAP_BACKUP_PATH" || echo 'IS_LDAP_BACKUP FAILED!'
+        fi
+    fi
+
+    if [ "$IS_REDIS_BACKUP" = 1 ]; then
+        if is_installed redis-server; then
+            # You could change the default path in /etc/evocheck.cf
+            REDIS_BACKUP_PATH=${REDIS_BACKUP_PATH:-"/home/backup/dump.rdb"}
+            test -f "$REDIS_BACKUP_PATH" || echo 'IS_REDIS_BACKUP FAILED!'
         fi
     fi
 

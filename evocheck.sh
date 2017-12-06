@@ -90,6 +90,12 @@ IS_MYSQLMUNIN=1
 IS_PHPEVOLINUXCONF=1
 IS_SQUIDLOGROTATE=1
 IS_SQUIDEVOLINUXCONF=1
+IS_SQL_BACKUP=1
+IS_POSTGRES_BACKUP=1
+IS_LDAP_BACKUP=1
+IS_REDIS_BACKUP=1
+IS_ELASTIC_BACKUP=1
+IS_MONGO_BACKUP=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -578,6 +584,66 @@ if [ -e /etc/debian_version ]; then
         if is_debianversion stretch && is_installed mariadb-server; then
             (test -f /etc/mysql/mariadb.conf.d/z-evolinux-defaults.cnf \
                 && test -f /etc/mysql/mariadb.conf.d/zzz-evolinux-custom.cnf) || echo 'IS_MARIADBEVOLINUXCONF FAILED!'
+        fi
+    fi
+
+    if [ "$IS_SQL_BACKUP" = 1 ]; then
+        if (is_installed "mysql-server" || is_installed "mariadb-server"); then
+            # You could change the default path in /etc/evocheck.cf
+            SQL_BACKUP_PATH=${SQL_BACKUP_PATH:-"/home/backup/mysql.bak.gz"}
+            test -f "$SQL_BACKUP_PATH" || echo 'IS_SQL_BACKUP FAILED!'
+        fi
+    fi
+
+    if [ "$IS_POSTGRES_BACKUP" = 1 ]; then
+        if is_installed "postgresql-9*"; then
+            # If you use something like barman, you should deactivate this check
+            # You could change the default path in /etc/evocheck.cf
+            POSTGRES_BACKUP_PATH=${POSTGRES_BACKUP_PATH:-"/home/backup/pg.dump.bak"}
+            test -f "$POSTGRES_BACKUP_PATH" || echo 'IS_POSTGRES_BACKUP FAILED!'
+        fi
+    fi
+
+    if [ "$IS_MONGO_BACKUP" = 1 ]; then
+        if is_installed "mongodb-org-server"; then
+            # You could change the default path in /etc/evocheck.cf
+            MONGO_BACKUP_PATH=${MONGO_BACKUP_PATH:-"/home/backup/mongodump"}
+            if [ -d "$MONGO_BACKUP_PATH" ]; then
+                for file in ${MONGO_BACKUP_PATH}/*/*.{json,bson}; do
+                    # Skip indexes file.
+                    if ! [[ "$file" =~ indexes ]]; then
+                        if [ -f $file ] && [ $(stat -c "%Y" $file) -lt $(date +"%s" -d "now - 2 day") ]; then
+                            echo 'IS_MONGO_BACKUP FAILED!'
+                        fi
+                    fi
+                done
+            else
+                echo 'IS_MONGO_BACKUP FAILED!'
+            fi
+        fi
+    fi
+
+    if [ "$IS_LDAP_BACKUP" = 1 ]; then
+        if is_installed slapd; then
+            # You could change the default path in /etc/evocheck.cf
+            LDAP_BACKUP_PATH=${LDAP_BACKUP_PATH:-"/home/backup/ldap.bak"}
+            test -f "$LDAP_BACKUP_PATH" || echo 'IS_LDAP_BACKUP FAILED!'
+        fi
+    fi
+
+    if [ "$IS_REDIS_BACKUP" = 1 ]; then
+        if is_installed redis-server; then
+            # You could change the default path in /etc/evocheck.cf
+            REDIS_BACKUP_PATH=${REDIS_BACKUP_PATH:-"/home/backup/dump.rdb"}
+            test -f "$REDIS_BACKUP_PATH" || echo 'IS_REDIS_BACKUP FAILED!'
+        fi
+    fi
+
+    if [ "$IS_ELASTIC_BACKUP" = 1 ]; then
+        if is_installed elasticsearch; then
+            # You could change the default path in /etc/evocheck.cf
+            ELASTIC_BACKUP_PATH=${ELASTIC_BACKUP_PATH:-"/home/backup/elasticsearch"}
+            test -d "$ELASTIC_BACKUP_PATH" || echo 'IS_ELASTIC_BACKUP FAILED!'
         fi
     fi
 

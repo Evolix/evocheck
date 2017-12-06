@@ -589,6 +589,14 @@ if [ -e /etc/debian_version ]; then
         fi
     fi
 
+    if [ "$IS_LDAP_BACKUP" = 1 ]; then
+        if is_installed slapd; then
+            # You could change the default path in /etc/evocheck.cf
+            LDAP_BACKUP_PATH=${LDAP_BACKUP_PATH:-"/home/backup/ldap.bak"}
+            test -f "$LDAP_BACKUP_PATH" || echo 'IS_LDAP_BACKUP FAILED!'
+        fi
+    fi
+
     if [ "$IS_MARIADBSYSTEMDUNIT" = 1 ]; then
         if is_debianversion stretch && is_installed mariadb-server; then
             (systemctl -q is-active mariadb.service && test -f /etc/systemd/system/mariadb.service.d/evolinux.conf) || echo 'IS_MARIADBSYSTEMDUNIT FAILED!'

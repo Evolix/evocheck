@@ -90,6 +90,8 @@ IS_MYSQLMUNIN=1
 IS_PHPEVOLINUXCONF=1
 IS_SQUIDLOGROTATE=1
 IS_SQUIDEVOLINUXCONF=1
+IS_SQL_BACKUP=1
+IS_POSTGRES_BACKUP=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -582,10 +584,19 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_SQL_BACKUP" = 1 ]; then
-        if (is_installed mysql-server || is_installed mariadb-server); then
+        if (is_installed "mysql-server" || is_installed "mariadb-server"); then
             # You could change the default path in /etc/evocheck.cf
             SQL_BACKUP_PATH=${SQL_BACKUP_PATH:-"/home/backup/mysql.bak.gz"}
             test -f "$SQL_BACKUP_PATH" || echo 'IS_SQL_BACKUP FAILED!'
+        fi
+    fi
+
+    if [ "$IS_POSTGRES_BACKUP" = 1 ]; then
+        if is_installed "postgresql-9*"; then
+            # If you use something like barman, you should deactivate this check
+            # You could change the default path in /etc/evocheck.cf
+            POSTGRES_BACKUP_PATH=${POSTGRES_BACKUP_PATH:-"/home/backup/pg.dump.bak"}
+            test -f "$POSTGRES_BACKUP_PATH" || echo 'IS_POSTGRES_BACKUP FAILED!'
         fi
     fi
 

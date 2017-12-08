@@ -96,6 +96,7 @@ IS_LDAP_BACKUP=1
 IS_REDIS_BACKUP=1
 IS_ELASTIC_BACKUP=1
 IS_MONGO_BACKUP=1
+IS_MOUNT_FSTAB=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -230,6 +231,15 @@ if [ -e /etc/debian_version ]; then
         mount | grep "on /tmp" | grep -q noexec || echo 'IS_TMPNOEXEC FAILED!'
     fi
     
+    if [ "$IS_MOUNT_FSTAB" = 1 ]; then
+        # Test if lsblk available, if not skip this test...
+        if test -x "$(command -v lsblk)"; then
+            for mountPoint in $(lsblk -o MOUNTPOINT -l -n | grep '/'); do
+                grep -Eq "$mountPoint\W" /etc/fstab || echo 'IS_MOUNT_FSTAB FAILED!'
+            done
+        fi
+    fi
+
     if [ "$IS_LISTCHANGESCONF" = 1 ]; then
         if is_debianversion stretch; then
             is_installed apt-listchanges && echo 'IS_LISTCHANGESCONF FAILED!'

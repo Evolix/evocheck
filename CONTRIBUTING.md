@@ -1,0 +1,2 @@
+- Use English
+- Always do a Merge Request

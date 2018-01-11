@@ -712,10 +712,16 @@ if [ -e /etc/debian_version ]; then
             kernelPath=$(grep -Eo 'BOOT_IMAGE=[^ ]+' /proc/cmdline | cut -d= -f2)
             kernelVer=${kernelPath##*/vmlinuz-}
             kernelConfig="config-${kernelVer}"
-            grep -Eq '^(CONFIG_PAGE_TABLE_ISOLATION|CONFIG_KAISER)=y' /boot/$kernelConfig || echo 'IS_MELTDOWN FAILED!'
+            grep -Eq '^(CONFIG_PAGE_TABLE_ISOLATION|CONFIG_KAISER)=y' "/boot/${kernelConfig}" \
+              || echo 'IS_MELTDOWN FAILED!'
         fi
         # We check if the running kernel has kaiser loaded
-        grep '^flags' /proc/cpuinfo | grep -qEw '(kaiser|pti)' || echo 'IS_MELTDOWN FAILED!'
+        if is_debianversion stretch; then
+            grep '^flags' /proc/cpuinfo | grep -qEw '(kaiser|pti)' || echo 'IS_MELTDOWN FAILED!'
+        elif is_debianversion jessie; then
+            dmesg | grep -Eq 'Kernel/User page tables isolation: enabled|Kernel page table isolation enabled' \
+            || echo 'IS_MELTDOWN FAILED!'
+        fi
     fi
 fi
 

@@ -715,7 +715,7 @@ if [ -e /etc/debian_version ]; then
             grep -Eq '^(CONFIG_PAGE_TABLE_ISOLATION|CONFIG_KAISER)=y' /boot/$kernelConfig || echo 'IS_MELTDOWN FAILED!'
         fi
         # We check if the running kernel has kaiser loaded
-        grep -Eq '^flags\s+:\s+.+(kaiser).+' /proc/cpuinfo || echo 'IS_MELTDOWN FAILED!'
+        grep '^flags' /proc/cpuinfo | grep -qEw '(kaiser|pti)' || echo 'IS_MELTDOWN FAILED!'
     fi
 fi
 

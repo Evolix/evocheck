@@ -97,6 +97,7 @@ IS_REDIS_BACKUP=1
 IS_ELASTIC_BACKUP=1
 IS_MONGO_BACKUP=1
 IS_MOUNT_FSTAB=1
+IS_MELTDOWN=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -703,6 +704,18 @@ if [ -e /etc/debian_version ]; then
                 && test -f /etc/squid/evolinux-httpaccess.conf \
                 && test -f /etc/squid/evolinux-custom.conf) || echo 'IS_SQUIDEVOLINUXCONF FAILED!'
         fi
+    fi
+
+    if [ "$IS_MELTDOWN" = 1 ]; then
+        if grep -q BOOT_IMAGE= /proc/cmdline; then
+            # We check if the current running kernel has CONFIG_PAGE_TABLE_ISOLATION enabled
+            kernelPath=$(grep -Eo 'BOOT_IMAGE=[^ ]+' /proc/cmdline | cut -d= -f2)
+            kernelVer=${kernelPath##*/vmlinuz-}
+            kernelConfig="config-${kernelVer}"
+            grep -Eq '^(CONFIG_PAGE_TABLE_ISOLATION|CONFIG_KAISER)=y' /boot/$kernelConfig || echo 'IS_MELTDOWN FAILED!'
+        fi
+        # We check if the running kernel has kaiser loaded
+        grep -Eq '^flags\s+:\s+.+(kaiser).+' /proc/cpuinfo || echo 'IS_MELTDOWN FAILED!'
     fi
 fi
 

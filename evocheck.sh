@@ -720,7 +720,7 @@ if [ -e /etc/debian_version ]; then
             grep '^flags' /proc/cpuinfo | grep -qEw '(kaiser|pti)' || echo 'IS_MELTDOWN FAILED!'
         elif is_debianversion jessie; then
             dmesg | grep -Eq 'Kernel/User page tables isolation: enabled|Kernel page table isolation enabled' \
-            || echo 'IS_MELTDOWN FAILED!'
+              || echo 'IS_MELTDOWN FAILED!'
         fi
     fi
 fi

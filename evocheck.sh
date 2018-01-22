@@ -97,6 +97,7 @@ IS_REDIS_BACKUP=1
 IS_ELASTIC_BACKUP=1
 IS_MONGO_BACKUP=1
 IS_MOUNT_FSTAB=1
+IS_NETWORK_INTERFACES=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -395,6 +396,15 @@ if [ -e /etc/debian_version ]; then
             test `cat /etc/debian_version |cut -d "." -f 1` -eq 6 && (grep -qE "^deb.*squeeze-updates" /etc/apt/sources.list || echo 'IS_REPVOLATILE FAILED!')
     fi
     
+    # /etc/network/interfaces should be present, we don't manage systemd-network yet
+    if [ "$IS_NETWORK_INTERFACES" = 1 ]; then
+        if ! test -f /etc/network/interfaces; then
+            echo "IS_NETWORK_INTERFACES FAILED!"
+            IS_AUTOIF=0
+            IS_INTERFACESGW=0
+        fi
+    fi
+
     # Verify if all if are in auto
     if [ "$IS_AUTOIF" = 1 ]; then
         is_debianversion stretch || for interface in `/sbin/ifconfig -s |tail -n +2 |egrep -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" |cut -d " " -f 1 |tr "\n" " "`; do

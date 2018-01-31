@@ -122,6 +122,7 @@ test -f /etc/evocheck.cf && . /etc/evocheck.cf
 # If --cron is passed, ignore some checks.
 if [ "$1" = "--cron" ]; then
     IS_KERNELUPTODATE=0
+    IS_UPTIME=0
 fi
 
 # Functions
@@ -476,7 +477,7 @@ if [ -e /etc/debian_version ]; then
     
     # Check if the server is running for more than a year.
     if [ "$IS_UPTIME" = 1 ]; then
-        if is_installed linux-image* && [ $(date -d "now - 1 year" +%s) -gt $(($(date +%s) - $(cut -f1 -d '.' /proc/uptime))) ]; then
+        if is_installed linux-image* && [ $(date -d "now - 2 year" +%s) -gt $(($(date +%s) - $(cut -f1 -d '.' /proc/uptime))) ]; then
             echo 'IS_UPTIME FAILED!'
         fi
     fi
@@ -506,7 +507,7 @@ if [ -e /etc/debian_version ]; then
     # Check if no package has been upgraded since $limit.
     if [ "$IS_NOTUPGRADED" = 1 ]; then
         last_upgrade=$(date +%s -d $(zgrep -h upgrade /var/log/dpkg.log* |sort -n |tail -1 |cut -f1 -d ' '))
-        limit=$(date +%s -d "now - 60 days")
+        limit=$(date +%s -d "now - 90 days")
         if [ -f /var/log/evolinux/00_prepare_system.log ]; then
             install_date=$(stat -c %Z /var/log/evolinux/00_prepare_system.log)
         else

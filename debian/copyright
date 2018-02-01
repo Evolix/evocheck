@@ -1,0 +1,11 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: evocheck
+Upstream-Contact: Evolix <equipe@evolix.fr>
+Source: https://gitlab.evolix.org/evolix/evocheck
+
+Files: *
+Copyright: 2009-2018 Evolix <equipe@evolix.fr>
+License: AGPL-3
+
+License: AGPL-3
+ https://www.gnu.org/licenses/agpl.txt

@@ -1,0 +1,90 @@
+evocheck (0.10-1) UNRELEASED; urgency=medium
+
+  * New release.
+
+ -- Gregory Colpart <reg@debian.org>  Fri, 01 Sep 2017 02:13:24 +0200
+
+evocheck (0.9-1) UNRELEASED; urgency=medium
+
+  * Stretch support.
+
+ -- Gregory Colpart <reg@debian.org>  Mon, 10 Jul 2017 21:16:09 +0200
+
+evocheck (0.8-1) UNRELEASED; urgency=medium
+
+  [ Benoît SÉRIE ]
+  * From upstream https://forge.evolix.org/versions/48
+  * Jessie support!
+  * IS_MINIFW update path.
+  * IS_AUTOIF Filter docker.
+  * Fix a bug on IS_BINDCHROOT check.
+  * Fix IS_APTITUDEONLY and IS_APTICRON.
+  * Fix IS_LOG2MAILSQUID : we parse now all log2mail config files
+  * Fix #1654 : minifirewall uses now /etc/default/minifirewall
+
+  [ Romain Dessort ]
+  * New check NRPEPID
+  * New check UPTIME
+  * Add check to ensure there is real IP addresses in Allow/Deny directives
+  * Replace who -b by uptime -s which does not depend on a TTY and locales.
+  * Add LOG2MAILRUNNING check.
+  * Add MUNINRUNNING check.
+  * Disable APTICRON check.
+  * Add option to skip KERNELUPTODATE check
+  * IPv6 compatible regexp for BINDCHROOT.
+
+ -- Romain Dessort <rdessort@evolix.fr>  Tue, 07 Mar 2017 10:05:55 -0500
+
+evocheck (0.5-7) UNRELEASED; urgency=low
+
+  [ Benoît SÉRIE ]
+  * From upstream:
+  * Better check for iptables.
+  * Better check for apt.conf. 
+  * Fix a bug in check apache symlink. #936 
+  * Fix a bug in apticron check.
+  * Improve comments.
+  * Remove IS_TOOMUCHDEBIANSYSMAINT check.
+  * Support IPv6 for IS_INTERFACESGW check. 
+
+ -- Benoît SÉRIE <bserie@evolix.fr>  Thu, 09 Oct 2014 16:42:27 +0200
+
+evocheck (0.5-3) unstable; urgency=low
+
+  * New upstream v0.5 release. See https://redmine.evolix.net/versions/show/45 
+  * Fix an issue with the sudoers check.
+  * Fix an issue with the modsec check.
+
+ -- Benoit Serie <bserie@evolix.fr>  Wed, 08 Oct 2014 15:15:03 +0200
+
+evocheck (0.4-1) unstable; urgency=low
+
+  * New upstream (bug and features) release.
+
+ -- Benoit Serie <bserie@huit.evolix.net>  Wed, 08 Oct 2014 12:31:33 +0200
+
+evocheck (0.3.1-1) UNRELEASED; urgency=low
+
+  * New upstream bug release. 
+
+ -- Gregory Colpart <reg@debian.org>  Thu, 23 Jul 2009 23:22:53 +0200
+
+evocheck (0.3-1) UNRELEASED; urgency=low
+
+  * New upstream release. Add a lot of tests.
+  * Improve crontab (no mail when no warnings).
+
+ -- Gregory Colpart <reg@debian.org>  Thu, 23 Jul 2009 14:06:14 +0200
+
+evocheck (0.2-1) UNRELEASED; urgency=low
+
+  * New upstream release. Add a lot of tests.
+  * Add daily crontab.
+
+ -- Gregory Colpart <reg@debian.org>  Sat, 18 Jul 2009 18:01:36 +0200
+
+evocheck (0.1-1) UNRELEASED; urgency=low
+
+  * Initial release.
+
+ -- Gregory Colpart <reg@debian.org>  Sun, 05 Jul 2009 02:19:30 +0200

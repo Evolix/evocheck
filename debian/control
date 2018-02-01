@@ -1,0 +1,14 @@
+Source: evocheck
+Section: misc
+Priority: optional
+Maintainer: Benoît SÉRIE <bserie@evolix.fr>
+Build-Depends: debhelper (>= 9), dh-exec
+Standards-Version: 4.0.0
+
+Package: evocheck
+Architecture: all
+Depends: lsb-release
+Description: script to check a Pack Evolix server installation
+ This package contains the script evocheck.sh
+ which check installation of a Pack Evolix server.
+

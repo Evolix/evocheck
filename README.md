@@ -1,14 +1,24 @@
-Release:
+
+# How to build the package for a new release
+
+On the master branch, add the last stable version with a release tag.
+```
+git tag -s v<VERSION> -m 'New release'
+git push --tags
+```
+
+Checkout the branch debian, merge the master branch.
 
 ```
-master> git archive --format=tar master | gzip > ../evocheck_<VERSION>.orig.tar.gz
-master> pristine-tar commit ../evocheck_<VERSION>.orig.tar.gz master
+git checkout debian
+git merge master --no-ff
+dch -v <VERSION>-1
+gbp buildpackage --git-debian-branch=debian --git-upstream-tree=master --git-ignore-new
 ```
 
-Debian release:
+If the build is OK, you can now build the final package.
 
 ```
-debian-sid> git merge master
-debian-sid> dch -v <VERSION>-1
-debian-sid> git-buildpackage -us -uc --git-pristine-tar --git-upstream-branch=master --git-debian-branch=debian-sid
+dch -D stretch -r
+gbp buildpackage --git-debian-branch=debian --git-upstream-tree=master --git-tag --git-sign --git-keyid=<KEY>
 ```

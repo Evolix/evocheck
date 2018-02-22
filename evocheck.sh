@@ -676,8 +676,19 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_MYSQLMUNIN" = 1 ]; then
         if is_debianversion stretch && is_installed mariadb-server; then
-            for file in mysql_bytes mysql_queries mysql_slowqueries mysql_threads mysql_connections mysql_files_tables mysql_innodb_bpool mysql_innodb_bpool_act mysql_innodb_io mysql_innodb_log mysql_innodb_rows mysql_innodb_semaphores mysql_myisam_indexes mysql_qcache mysql_qcache_mem mysql_sorts mysql_tmp_tables; do
-                test -L /etc/munin/plugins/$file || echo 'IS_MYSQLMUNIN FAILED!'
+            for file in mysql_bytes mysql_queries mysql_slowqueries \
+            mysql_threads mysql_connections mysql_files_tables \
+            mysql_innodb_bpool mysql_innodb_bpool_act mysql_innodb_io \
+            mysql_innodb_log mysql_innodb_rows mysql_innodb_semaphores \
+            mysql_myisam_indexes mysql_qcache mysql_qcache_mem \
+            mysql_sorts mysql_tmp_tables; do
+
+                failed=false
+                if [[ ! -L /etc/munin/plugins/$file ]]; then
+                    echo 'IS_MYSQLMUNIN FAILED!'
+                    failed=true
+                fi
+                ($failed) && break
             done
         fi
     fi

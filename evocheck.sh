@@ -683,12 +683,10 @@ if [ -e /etc/debian_version ]; then
             mysql_myisam_indexes mysql_qcache mysql_qcache_mem \
             mysql_sorts mysql_tmp_tables; do
 
-                failed=false
                 if [[ ! -L /etc/munin/plugins/$file ]]; then
                     echo 'IS_MYSQLMUNIN FAILED!'
-                    failed=true
+                    break
                 fi
-                ($failed) && break
             done
         fi
     fi

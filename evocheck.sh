@@ -98,6 +98,7 @@ IS_ELASTIC_BACKUP=1
 IS_MONGO_BACKUP=1
 IS_MOUNT_FSTAB=1
 IS_NETWORK_INTERFACES=1
+IS_EVOBACKUP=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -426,7 +427,7 @@ if [ -e /etc/debian_version ]; then
 
     # Verification de la mise en place d'evobackup
     if [ "$IS_EVOBACKUP" = 1 ]; then
-        ls /etc/cron* |grep -q "zz.backup$" || echo 'IS_EVOBACKUP FAILED!'
+        ls /etc/cron* |grep -q "evobackup" || echo 'IS_EVOBACKUP FAILED!'
     fi
     
     # Verification de la presence du userlogrotate

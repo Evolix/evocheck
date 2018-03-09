@@ -99,6 +99,7 @@ IS_MONGO_BACKUP=1
 IS_MOUNT_FSTAB=1
 IS_NETWORK_INTERFACES=1
 IS_EVOBACKUP=1
+IS_DUPLICATE_FS_LABEL=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -723,6 +724,17 @@ if [ -e /etc/debian_version ]; then
                 && test -f /etc/squid/evolinux-acl.conf \
                 && test -f /etc/squid/evolinux-httpaccess.conf \
                 && test -f /etc/squid/evolinux-custom.conf) || echo 'IS_SQUIDEVOLINUXCONF FAILED!'
+        fi
+    fi
+
+    if [ "IS_DUPLICATE_FS_LABEL" = 1 ]; then
+        # Only on systems that have lsblk
+        if [ -x "$(which lsblk)" ]; then
+            tmpFile=$(mktemp -p /tmp)
+            for part in $(lsblk -n -o LABEL); do
+                echo $part >> $tmpFile
+            done
+            sort < $tmpFile | uniq -d
         fi
     fi
 fi

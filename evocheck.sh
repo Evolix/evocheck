@@ -99,6 +99,7 @@ IS_MONGO_BACKUP=1
 IS_MOUNT_FSTAB=1
 IS_NETWORK_INTERFACES=1
 IS_EVOBACKUP=1
+IS_EVOMAINTENANCE_FW=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -350,7 +351,20 @@ if [ -e /etc/debian_version ]; then
         && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" $f \
         && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* `grep http_port $squidconffile | cut -f 2 -d " "`" $f || echo 'IS_SQUID FAILED!' )
     fi
-    
+
+    if [ "$IS_EVOMAINTENANCE_FW" = 1 ]; then
+        is_debianversion squeeze && f=/etc/firewall.rc
+        is_debianversion wheezy && f=/etc/firewall.rc
+        is_debianversion jessie && f=/etc/default/minifirewall
+        is_debianversion stretch && f=/etc/default/minifirewall
+        if [ -f "$f" ]; then
+            rulesNumber=$(grep -c "/sbin/iptables -A INPUT -p tcp --sport 5432 --dport 1024:65535 -s .* -m state --state ESTABLISHED,RELATED -j ACCEPT" "$f")
+            if [ "$rulesNumber" -lt 4 ]; then
+                echo 'IS_EVOMAINTENANCE_FW FAILED!'
+            fi
+        fi
+    fi
+
     # Verification de la conf et de l'activation de mod-deflate
     if [ "$IS_MODDEFLATE" = 1 ]; then
         f=/etc/apache2/mods-enabled/deflate.conf

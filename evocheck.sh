@@ -352,7 +352,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_EVOMAINTENANCE_FW" = 1 ]; then
-        if [ -f "$f" ]; then
+        if [ -f "$MINIFW_FILE" ]; then
             rulesNumber=$(grep -c "/sbin/iptables -A INPUT -p tcp --sport 5432 --dport 1024:65535 -s .* -m state --state ESTABLISHED,RELATED -j ACCEPT" "$MINIFW_FILE")
             if [ "$rulesNumber" -lt 4 ]; then
                 echo 'IS_EVOMAINTENANCE_FW FAILED!'

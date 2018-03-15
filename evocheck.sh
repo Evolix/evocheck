@@ -146,6 +146,13 @@ is_debianversion(){
     [ $(lsb_release -c -s) = $1 ] && return 0
 }
 
+set_minifw_file(){
+    is_debianversion squeeze && MINIFW_FILE=/etc/firewall.rc
+    is_debianversion wheezy && MINIFW_FILE=/etc/firewall.rc
+    is_debianversion jesssie && MINIFW_FILE=/etc/default/minifirewall
+    is_debianversion stretch && MINIFW_FILE=/etc/default/minifirewall
+}
+
 #-----------------------------------------------------------
 #Vérifie si c'est une debian et fait les tests appropriés.
 #-----------------------------------------------------------
@@ -285,10 +292,7 @@ if [ -e /etc/debian_version ]; then
     fi
     
     if [ "$IS_MINIFWPERMS" = 1 ]; then
-        is_debianversion squeeze && ( ls -l /etc/firewall.rc | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!' )
-        is_debianversion wheezy && ( ls -l /etc/firewall.rc | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!' )
-        is_debianversion jessie && ( ls -l /etc/default/minifirewall | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!' )
-        is_debianversion stretch && ( ls -l /etc/default/minifirewall | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!' )
+        ls -l "$MINIFW_FILE" | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!'
     fi
     
     if [ "$IS_NRPEDISKS" = 1 ]; then
@@ -341,24 +345,17 @@ if [ -e /etc/debian_version ]; then
     # Verification de l'activation de Squid dans le cas d'un pack mail
     if [ "$IS_SQUID" = 1 ]; then
         squidconffile=/etc/squid*/squid.conf
-        is_debianversion squeeze && f=/etc/firewall.rc
-        is_debianversion wheezy && f=/etc/firewall.rc
-        is_debianversion jessie && f=/etc/default/minifirewall
-        is_debianversion stretch && f=/etc/default/minifirewall && squidconffile=/etc/squid/evolinux-custom.conf
+        is_debianversion stretch && squidconffile=/etc/squid/evolinux-custom.conf
         is_pack_web && ( is_installed squid || is_installed squid3 \
-        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $f \
-        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $f \
-        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" $f \
-        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* `grep http_port $squidconffile | cut -f 2 -d " "`" $f || echo 'IS_SQUID FAILED!' )
+        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $MINIFW_FILE \
+        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $MINIFW_FILE \
+        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" $MINIFW_FILE \
+        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* `grep http_port $squidconffile | cut -f 2 -d " "`" $MINIFW_FILE || echo 'IS_SQUID FAILED!' )
     fi
 
     if [ "$IS_EVOMAINTENANCE_FW" = 1 ]; then
-        is_debianversion squeeze && f=/etc/firewall.rc
-        is_debianversion wheezy && f=/etc/firewall.rc
-        is_debianversion jessie && f=/etc/default/minifirewall
-        is_debianversion stretch && f=/etc/default/minifirewall
         if [ -f "$f" ]; then
-            rulesNumber=$(grep -c "/sbin/iptables -A INPUT -p tcp --sport 5432 --dport 1024:65535 -s .* -m state --state ESTABLISHED,RELATED -j ACCEPT" "$f")
+            rulesNumber=$(grep -c "/sbin/iptables -A INPUT -p tcp --sport 5432 --dport 1024:65535 -s .* -m state --state ESTABLISHED,RELATED -j ACCEPT" "$MINIFW_FILE")
             if [ "$rulesNumber" -lt 4 ]; then
                 echo 'IS_EVOMAINTENANCE_FW FAILED!'
             fi

@@ -146,14 +146,14 @@ is_debianversion(){
     [ $(lsb_release -c -s) = $1 ] && return 0
 }
 
-#-----------------------------------------------------------
-#Vérifie si c'est une debian et fait les tests appropriés.
-#-----------------------------------------------------------
-
 is_debianversion squeeze && MINIFW_FILE=/etc/firewall.rc
 is_debianversion wheezy && MINIFW_FILE=/etc/firewall.rc
 is_debianversion jessie && MINIFW_FILE=/etc/default/minifirewall
 is_debianversion stretch && MINIFW_FILE=/etc/default/minifirewall
+
+#-----------------------------------------------------------
+#Vérifie si c'est une debian et fait les tests appropriés.
+#-----------------------------------------------------------
 
 if [ -e /etc/debian_version ]; then
 

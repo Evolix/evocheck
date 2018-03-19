@@ -727,14 +727,22 @@ if [ -e /etc/debian_version ]; then
         fi
     fi
 
-    if [ "IS_DUPLICATE_FS_LABEL" = 1 ]; then
-        # Only on systems that have lsblk
+    if [ "$IS_DUPLICATE_FS_LABEL" = 1 ]; then
+        # Only on systems which have lsblk
         if [ -x "$(which lsblk)" ]; then
             tmpFile=$(mktemp -p /tmp)
             for part in $(lsblk -n -o LABEL); do
-                echo $part >> $tmpFile
+                echo "$part" >> "$tmpFile"
             done
-            sort < $tmpFile | uniq -d
+            tmpOutput=$(sort < "$tmpFile" | uniq -d)
+            # If there is no duplicate, uniq will have no output
+            # So, if $tmpOutput is not null, there is a duplicate
+            if [ -n "$tmpOutput" ]; then
+                echo 'IS_DUPLICATE_FS_LABEL FAILED!'
+                # For debug, you may echo the contents of $tmpOutput
+                # echo $tmpOutput
+            fi
+            rm $tmpFile
         fi
     fi
 fi

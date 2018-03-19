@@ -13,12 +13,12 @@ Checkout the branch debian, merge the master branch.
 git checkout debian
 git merge master --no-ff
 dch -v <VERSION>-1
-gbp buildpackage --git-debian-branch=debian --git-upstream-tree=master --git-ignore-new
+gbp buildpackage --git-debian-branch=debian --git-upstream-tree=master --git-export-dir=/tmp/build-area --git-ignore-new
 ```
 
 If the build is OK, you can now build the final package.
 
 ```
 dch -D stretch -r
-gbp buildpackage --git-debian-branch=debian --git-upstream-tree=master --git-tag --git-sign --git-keyid=<KEY>
+gbp buildpackage --git-debian-branch=debian --git-upstream-tree=master --git-export-dir=/tmp/build-area --git-tag --git-sign --git-keyid=<KEY>
 ```

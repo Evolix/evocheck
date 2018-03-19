@@ -3,6 +3,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.12] - 2018-03-19
+
+### Added
+
+* New checks:
+  IS_DUPLICATE_FS_LEVEL
+  IS_EVOMAINTENANCE_FW
+
+### Changed
+
+* Enabling IS_EVOBACKUP by default
+* Better output for IS_MYSQLMUNIN
+
 ## [0.11] - 2018-02-07
 
 ### Added

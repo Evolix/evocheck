@@ -99,6 +99,7 @@ IS_MONGO_BACKUP=1
 IS_MOUNT_FSTAB=1
 IS_NETWORK_INTERFACES=1
 IS_EVOBACKUP=1
+IS_DUPLICATE_FS_LABEL=1
 IS_EVOMAINTENANCE_FW=1
 
 #Proper to OpenBSD
@@ -732,6 +733,25 @@ if [ -e /etc/debian_version ]; then
                 && test -f /etc/squid/evolinux-acl.conf \
                 && test -f /etc/squid/evolinux-httpaccess.conf \
                 && test -f /etc/squid/evolinux-custom.conf) || echo 'IS_SQUIDEVOLINUXCONF FAILED!'
+        fi
+    fi
+
+    if [ "$IS_DUPLICATE_FS_LABEL" = 1 ]; then
+        # Only on systems which have lsblk
+        if [ -x "$(which lsblk)" ]; then
+            tmpFile=$(mktemp -p /tmp)
+            for part in $(lsblk -n -o LABEL); do
+                echo "$part" >> "$tmpFile"
+            done
+            tmpOutput=$(sort < "$tmpFile" | uniq -d)
+            # If there is no duplicate, uniq will have no output
+            # So, if $tmpOutput is not null, there is a duplicate
+            if [ -n "$tmpOutput" ]; then
+                echo 'IS_DUPLICATE_FS_LABEL FAILED!'
+                # For debug, you may echo the contents of $tmpOutput
+                # echo $tmpOutput
+            fi
+            rm $tmpFile
         fi
     fi
 fi

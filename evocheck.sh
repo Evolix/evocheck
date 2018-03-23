@@ -101,6 +101,7 @@ IS_NETWORK_INTERFACES=1
 IS_EVOBACKUP=1
 IS_DUPLICATE_FS_LABEL=1
 IS_EVOMAINTENANCE_FW=1
+IS_EVOLIX_USER=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -753,6 +754,9 @@ if [ -e /etc/debian_version ]; then
             fi
             rm $tmpFile
         fi
+
+    if [ "$IS_EVOLIX_USER" = 1 ]; then
+        getent passwd evolix >/dev/null && echo 'IS_EVOLIX_USER FAILED!'
     fi
 fi
 

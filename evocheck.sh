@@ -161,7 +161,7 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_DPKGWARNING" = 1 ]; then
         is_debianversion squeeze && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && ( \
-            egrep -i "(Pre-Invoke ..echo Are you sure to have rw on|Post-Invoke ..echo Dont forget to mount -o remount)" \
+            grep -E -i "(Pre-Invoke ..echo Are you sure to have rw on|Post-Invoke ..echo Dont forget to mount -o remount)" \
             /etc/apt/apt.conf | wc -l | grep -q ^2$ || echo 'IS_DPKGWARNING FAILED!' )
         is_debianversion wheezy && ( ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && \
             ( test -e /etc/apt/apt.conf.d/80evolinux || echo 'IS_DPKGWARNING FAILED!' )
@@ -188,7 +188,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
-        egrep -qr "umask=0077" /etc/sudoers* || echo 'IS_CUSTOMSUDOERS FAILED!'
+        grep -E -qr "umask=0077" /etc/sudoers* || echo 'IS_CUSTOMSUDOERS FAILED!'
     fi
 
     if [ "$IS_VARTMPFS" = 1 ]; then
@@ -255,16 +255,16 @@ if [ -e /etc/debian_version ]; then
         if is_debianversion stretch; then
             is_installed apt-listchanges && echo 'IS_LISTCHANGESCONF FAILED!'
         else
-            test -e /etc/apt/listchanges.conf && egrep "(which=both|confirm=1)" /etc/apt/listchanges.conf | wc -l | grep -q ^2$ || echo 'IS_LISTCHANGESCONF FAILED!'
+            test -e /etc/apt/listchanges.conf && grep -E "(which=both|confirm=1)" /etc/apt/listchanges.conf | wc -l | grep -q ^2$ || echo 'IS_LISTCHANGESCONF FAILED!'
         fi
     fi
 
     if [ "$IS_CUSTOMCRONTAB" = 1 ]; then
-        egrep "^(17 \*|25 6|47 6|52 6)" /etc/crontab | wc -l | grep -q ^4$ && echo 'IS_CUSTOMCRONTAB FAILED!'
+        grep -E "^(17 \*|25 6|47 6|52 6)" /etc/crontab | wc -l | grep -q ^4$ && echo 'IS_CUSTOMCRONTAB FAILED!'
     fi
 
     if [ "$IS_SSHALLOWUSERS" = 1 ]; then
-        egrep -qi "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config || echo 'IS_SSHALLOWUSERS FAILED!'
+        grep -E -qi "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config || echo 'IS_SSHALLOWUSERS FAILED!'
     fi
 
     if [ "$IS_DISKPERF" = 1 ]; then
@@ -297,7 +297,7 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_NRPEDISKS" = 1 ]; then
         NRPEDISKS=$(grep command.check_disk /etc/nagios/nrpe.cfg | grep ^command.check_disk[0-9] | sed -e "s/^command.check_disk\([0-9]\+\).*/\1/" | sort -n | tail -1)
-        DFDISKS=$(df -Pl | egrep -v "(^Filesystem|/lib/init/rw|/dev/shm|udev|rpc_pipefs)" | wc -l)
+        DFDISKS=$(df -Pl | grep -E -v "(^Filesystem|/lib/init/rw|/dev/shm|udev|rpc_pipefs)" | wc -l)
         [ "$NRPEDISKS" = "$DFDISKS" ] || echo 'IS_NRPEDISKS FAILED!'
     fi
 
@@ -310,7 +310,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_APACHEMUNIN" = 1 ]; then
-        test -e /etc/apache2/apache2.conf && ( is_debianversion stretch || ( egrep -q "^env.url.*/server-status-[[:alnum:]]{4}" /etc/munin/plugin-conf.d/munin-node && egrep -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf || egrep -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf 2>/dev/null || echo 'IS_APACHEMUNIN FAILED!' ) )
+        test -e /etc/apache2/apache2.conf && ( is_debianversion stretch || ( grep -E -q "^env.url.*/server-status-[[:alnum:]]{4}" /etc/munin/plugin-conf.d/munin-node && grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf || grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf 2>/dev/null || echo 'IS_APACHEMUNIN FAILED!' ) )
         test -e /etc/apache2/apache2.conf && ( is_debianversion stretch && ( test -h /etc/apache2/mods-enabled/status.load && test -h /etc/munin/plugins/apache_accesses && test -h /etc/munin/plugins/apache_processes && test -h /etc/munin/plugins/apache_accesses || echo 'IS_APACHEMUNIN FAILED!' ) )
     fi
 
@@ -420,10 +420,10 @@ if [ -e /etc/debian_version ]; then
 
     # Verify if all if are in auto
     if [ "$IS_AUTOIF" = 1 ]; then
-        is_debianversion stretch || for interface in `/sbin/ifconfig -s |tail -n +2 |egrep -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" |cut -d " " -f 1 |tr "\n" " "`; do
+        is_debianversion stretch || for interface in `/sbin/ifconfig -s |tail -n +2 |grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" |cut -d " " -f 1 |tr "\n" " "`; do
                     grep -q "^auto $interface" /etc/network/interfaces || (echo 'IS_AUTOIF FAILED!' && break)
             done
-        is_debianversion stretch && for interface in `/sbin/ip address show up | grep ^[0-9]*: |egrep -v "(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 |tr -d : |cut -d@ -f1 |tr "\n" " "`; do
+        is_debianversion stretch && for interface in `/sbin/ip address show up | grep ^[0-9]*: |grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 |tr -d : |cut -d@ -f1 |tr "\n" " "`; do
                     grep -q "^auto $interface" /etc/network/interfaces || (echo 'IS_AUTOIF FAILED!' && break)
             done
     fi
@@ -830,7 +830,7 @@ if [ `uname -s` == "OpenBSD" ]; then
 
 # if [ "$IS_NRPEDISKS" = 1 ]; then
 #     NRPEDISKS=$(grep command.check_disk /etc/nrpe.cfg 2>/dev/null | grep ^command.check_disk[0-9] | sed -e "s/^command.check_disk\([0-9]\+\).*/\1/" | sort -n | tail -1)
-#     DFDISKS=$(df -Pl | egrep -v "(^Filesystem|/lib/init/rw|/dev/shm|udev|rpc_pipefs)" | wc -l)
+#     DFDISKS=$(df -Pl | grep -E -v "(^Filesystem|/lib/init/rw|/dev/shm|udev|rpc_pipefs)" | wc -l)
 #     [ "$NRPEDISKS" = "$DFDISKS" ] || echo 'IS_NRPEDISKS FAILED!'
 # fi
 
@@ -874,8 +874,8 @@ if [ "$IS_USRSHARESCRIPTS" = 1 ]; then
 fi
 
 if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
-    is_debianversion stretch || ( egrep -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
-    is_debianversion stretch && grep -q ^PermitRoot /etc/ssh/sshd_config && ( egrep -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
+    is_debianversion stretch || ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
+    is_debianversion stretch && grep -q ^PermitRoot /etc/ssh/sshd_config && ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
 fi
 
 if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then

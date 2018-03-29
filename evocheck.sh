@@ -264,7 +264,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_SSHALLOWUSERS" = 1 ]; then
-        egrep -qi "AllowUsers" /etc/ssh/sshd_config || echo 'IS_SSHALLOWUSERS FAILED!'
+        egrep -qi "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config || echo 'IS_SSHALLOWUSERS FAILED!'
     fi
 
     if [ "$IS_DISKPERF" = 1 ]; then

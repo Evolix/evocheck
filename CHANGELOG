@@ -3,21 +3,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.13] - 2018-04-10
+
+### Added
+
+* New checks:
+  IS_EVOLIX_USER
+
+### Changed
+
+* Fixing IS_DUPLICATE_FS_LEVEL check
+* Custom limit for IS_NOTUPGRADED
+* IS_SSHALLOWUSERS now check also for AllowGroups
+
 ## [0.12] - 2018-03-19
 
 ### Added
 
 * New checks:
   IS_DUPLICATE_FS_LEVEL
-  IS_EVOMAINTENANCE_FW
-  IS_EVOLIX_USER
 
 ### Changed
 
 * Enabling IS_EVOBACKUP by default
 * Better output for IS_MYSQLMUNIN
-* Custom limit for IS_NOTUPGRADED
-* IS_SSHALLOWUSERS now check also for AllowGroups
 
 ## [0.11] - 2018-02-07
 

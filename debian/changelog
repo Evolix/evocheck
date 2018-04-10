@@ -1,3 +1,10 @@
+evocheck (0.13.1-1) stretch; urgency=medium
+
+  * Fixing IS_DUPLICATE_FS_LEVEL check
+    missing space for the grep pattern
+
+ -- Benoît SÉRIE <bserie@evolix.fr>  Tue, 10 Apr 2018 15:48:16 +0200
+
 evocheck (0.13-1) stretch; urgency=medium
 
     * New checks:

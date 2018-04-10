@@ -745,10 +745,10 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_DUPLICATE_FS_LABEL" = 1 ]; then
-        # Only on systems which have lsblk
-        if [ -x "$(which lsblk)" ]; then
+        # Do it only if thereis blkid binary
+        if [ -x "$(which blkid)" ]; then
             tmpFile=$(mktemp -p /tmp)
-            for part in $(lsblk -n -o LABEL); do
+            for part in $(blkid | grep -v raid_member | grep -Eo 'LABEL=".*"' | cut -d'"' -f2); do
                 echo "$part" >> "$tmpFile"
             done
             tmpOutput=$(sort < "$tmpFile" | uniq -d)
@@ -761,6 +761,7 @@ if [ -e /etc/debian_version ]; then
             fi
             rm $tmpFile
         fi
+    fi
 
     if [ "$IS_EVOLIX_USER" = 1 ]; then
         getent passwd evolix >/dev/null && echo 'IS_EVOLIX_USER FAILED!'

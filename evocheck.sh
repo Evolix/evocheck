@@ -761,6 +761,7 @@ if [ -e /etc/debian_version ]; then
             fi
             rm $tmpFile
         fi
+    fi
 
     if [ "$IS_EVOLIX_USER" = 1 ]; then
         getent passwd evolix >/dev/null && echo 'IS_EVOLIX_USER FAILED!'

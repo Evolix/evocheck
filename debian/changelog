@@ -1,3 +1,14 @@
+evocheck (0.13-1) stretch; urgency=medium
+
+    * New checks:
+      IS_EVOLIX_USER
+
+    * Fixing IS_DUPLICATE_FS_LEVEL check
+    * Custom limit for IS_NOTUPGRADED
+    * IS_SSHALLOWUSERS now check also for AllowGroups
+
+ -- Benoît SÉRIE <bserie@evolix.fr>  Tue, 10 Apr 2018 15:34:32 +0200
+
 evocheck (0.12-1) stretch; urgency=medium
 
   * New checks:

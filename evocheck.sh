@@ -102,6 +102,7 @@ IS_EVOBACKUP=1
 IS_DUPLICATE_FS_LABEL=1
 IS_EVOMAINTENANCE_FW=1
 IS_EVOLIX_USER=1
+IS_EVOACME_CRON=1
 IS_EVOACME_LIVELINKS=1
 
 #Proper to OpenBSD
@@ -766,6 +767,15 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_EVOLIX_USER" = 1 ]; then
         getent passwd evolix >/dev/null && echo 'IS_EVOLIX_USER FAILED!'
+    fi
+
+    if [ "$IS_EVOACME_CRON" = 1 ]; then
+        if [ -f "/usr/local/sbin/evoacme" ]; then
+            # Old cron file, should be deleted
+            test -f /etc/cron.daily/certbot && echo 'IS_EVOACME_CRON FAILED!'
+            # evoacme cron file should be present
+            test -f /etc/cron.daily/evoacme || echo 'IS_EVOACME_CRON FAILED!'
+        fi
     fi
 
     if [ "$IS_EVOACME_LIVELINKS" = 1 ]; then

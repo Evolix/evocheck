@@ -777,6 +777,7 @@ if [ -e /etc/debian_version ]; then
             test -f /etc/cron.daily/evoacme || echo 'IS_EVOACME_CRON FAILED!'
         fi
     fi
+
     if [ "$IS_EVOACME_LIVELINKS" = 1 ]; then
         if [ -x "$(which evoacme)" ]; then
             for live in /etc/letsencrypt/*/live; do

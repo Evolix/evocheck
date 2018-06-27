@@ -707,14 +707,6 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_MELTDOWN" = 1 ]; then
-        if grep -q BOOT_IMAGE= /proc/cmdline; then
-            # We check if the current running kernel has CONFIG_PAGE_TABLE_ISOLATION enabled
-            kernelPath=$(grep -Eo 'BOOT_IMAGE=[^ ]+' /proc/cmdline | cut -d= -f2)
-            kernelVer=${kernelPath##*/vmlinuz-}
-            kernelConfig="config-${kernelVer}"
-            grep -Eq '^(CONFIG_PAGE_TABLE_ISOLATION|CONFIG_KAISER)=y' "/boot/${kernelConfig}" \
-              || echo 'IS_MELTDOWN FAILED!'
-        fi
         # We check if the running kernel has kaiser loaded
         if is_debianversion stretch; then
             grep '^flags' /proc/cpuinfo | grep -qEw '(kaiser|pti)' || echo 'IS_MELTDOWN FAILED!'

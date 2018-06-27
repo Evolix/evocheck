@@ -104,6 +104,7 @@ IS_EVOMAINTENANCE_FW=1
 IS_EVOLIX_USER=1
 IS_EVOACME_CRON=1
 IS_EVOACME_LIVELINKS=1
+IS_APACHE_CONFENABLED=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -793,6 +794,15 @@ if [ -e /etc/debian_version ]; then
                 fi
             done
         fi
+    fi
+
+    if [ "$IS_APACHE_CONFENABLED" = 1 ]; then
+        # Starting from Jessie and Apache 2.4, /etc/apache2/conf.d/
+        # must be replaced by conf-available/ and config files symlinked
+        # to conf-enabled/
+        test -d /etc/apache2/conf.d/ && echo 'IS_APACHE_CONFENABLED FAILED!'
+        grep -q 'Include conf.d' /etc/apache2/apache2.conf && \
+          echo 'IS_APACHE_CONFENABLED FAILED!'
     fi
 fi
 

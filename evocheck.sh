@@ -707,10 +707,10 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_MELTDOWN_SPECTRE" = 1 ]; then
-        # We check if the running kernel has kaiser loaded
         if is_debianversion stretch; then
-            grep '^flags' /proc/cpuinfo | grep -qEw '(kaiser|pti)' || echo 'IS_MELTDOWN_SPECTRE FAILED!'
-            test -f /sys/devices/system/cpu/vulnerabilities/spectre_v2 || echo 'IS_MELTDOWN_SPECTRE FAILED!'
+            for vuln in meltdown spectre_v1 spectre_v2; do
+                test -f /sys/devices/system/cpu/vulnerabilities/$vuln || echo 'IS_MELTDOWN_SPECTRE FAILED!'
+            done
         fi
     fi
 fi

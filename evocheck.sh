@@ -718,9 +718,6 @@ if [ -e /etc/debian_version ]; then
         # We check if the running kernel has kaiser loaded
         if is_debianversion stretch; then
             grep '^flags' /proc/cpuinfo | grep -qEw '(kaiser|pti)' || echo 'IS_MELTDOWN FAILED!'
-        elif is_debianversion jessie; then
-            dmesg | grep -Eq 'Kernel/User page tables isolation: enabled|Kernel page table isolation enabled' \
-              || echo 'IS_MELTDOWN FAILED!'
         fi
     fi
 fi

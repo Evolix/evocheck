@@ -97,7 +97,7 @@ IS_REDIS_BACKUP=1
 IS_ELASTIC_BACKUP=1
 IS_MONGO_BACKUP=1
 IS_MOUNT_FSTAB=1
-IS_MELTDOWN=1
+IS_MELTDOWN_SPECTRE=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -706,10 +706,11 @@ if [ -e /etc/debian_version ]; then
         fi
     fi
 
-    if [ "$IS_MELTDOWN" = 1 ]; then
+    if [ "$IS_MELTDOWN_SPECTRE" = 1 ]; then
         # We check if the running kernel has kaiser loaded
         if is_debianversion stretch; then
-            grep '^flags' /proc/cpuinfo | grep -qEw '(kaiser|pti)' || echo 'IS_MELTDOWN FAILED!'
+            grep '^flags' /proc/cpuinfo | grep -qEw '(kaiser|pti)' || echo 'IS_MELTDOWN_SPECTRE FAILED!'
+            test -f /sys/devices/system/cpu/vulnerabilities/spectre_v2 || echo 'IS_MELTDOWN_SPECTRE FAILED!'
         fi
     fi
 fi

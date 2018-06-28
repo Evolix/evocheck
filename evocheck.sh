@@ -719,8 +719,11 @@ if [ -e /etc/debian_version ]; then
                 kernelPath=$(grep -Eo 'BOOT_IMAGE=[^ ]+' /proc/cmdline | cut -d= -f2)
                 kernelVer=${kernelPath##*/vmlinuz-}
                 kernelConfig="config-${kernelVer}"
-                grep -Eq '^CONFIG_PAGE_TABLE_ISOLATION=y' /boot/$kernelConfig || echo 'IS_MELTDOWN_SPECTRE FAILED!'
-                grep -Eq '^CONFIG_RETPOLINE=y' /boot/$kernelConfig || echo 'IS_MELTDOWN_SPECTRE FAILED!'
+                # Sometimes autodetection of kernel config file fail, so we test if the file really exists.
+                if [ -f /boot/$kernelConfig ]; then
+                    grep -Eq '^CONFIG_PAGE_TABLE_ISOLATION=y' /boot/$kernelConfig || echo 'IS_MELTDOWN_SPECTRE FAILED!'
+                    grep -Eq '^CONFIG_RETPOLINE=y' /boot/$kernelConfig || echo 'IS_MELTDOWN_SPECTRE FAILED!'
+                fi
             fi
         fi
     fi

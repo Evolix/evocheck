@@ -105,6 +105,7 @@ IS_EVOLIX_USER=1
 IS_EVOACME_CRON=1
 IS_EVOACME_LIVELINKS=1
 IS_APACHE_CONFENABLED=1
+IS_MELTDOWN_SPECTRE=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -803,6 +804,28 @@ if [ -e /etc/debian_version ]; then
         test -d /etc/apache2/conf.d/ && echo 'IS_APACHE_CONFENABLED FAILED!'
         grep -q 'Include conf.d' /etc/apache2/apache2.conf && \
           echo 'IS_APACHE_CONFENABLED FAILED!'
+    fi
+
+    if [ "$IS_MELTDOWN_SPECTRE" = 1 ]; then
+        # For Stretch, detection is easy as the kernel use
+        # /sys/devices/system/cpu/vulnerabilities/
+        if is_debianversion stretch; then
+            for vuln in meltdown spectre_v1 spectre_v2; do
+                test -f /sys/devices/system/cpu/vulnerabilities/$vuln || echo 'IS_MELTDOWN_SPECTRE FAILED!'
+            done
+        # For Jessie this is quite complicated to verify and we need to use kernel config file
+        elif is_debianversion jessie; then
+            if grep -q BOOT_IMAGE= /proc/cmdline; then
+                kernelPath=$(grep -Eo 'BOOT_IMAGE=[^ ]+' /proc/cmdline | cut -d= -f2)
+                kernelVer=${kernelPath##*/vmlinuz-}
+                kernelConfig="config-${kernelVer}"
+                # Sometimes autodetection of kernel config file fail, so we test if the file really exists.
+                if [ -f /boot/$kernelConfig ]; then
+                    grep -Eq '^CONFIG_PAGE_TABLE_ISOLATION=y' /boot/$kernelConfig || echo 'IS_MELTDOWN_SPECTRE FAILED!'
+                    grep -Eq '^CONFIG_RETPOLINE=y' /boot/$kernelConfig || echo 'IS_MELTDOWN_SPECTRE FAILED!'
+                fi
+            fi
+        fi
     fi
 fi
 

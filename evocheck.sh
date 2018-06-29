@@ -801,9 +801,11 @@ if [ -e /etc/debian_version ]; then
         # Starting from Jessie and Apache 2.4, /etc/apache2/conf.d/
         # must be replaced by conf-available/ and config files symlinked
         # to conf-enabled/
-        test -d /etc/apache2/conf.d/ && echo 'IS_APACHE_CONFENABLED FAILED!'
-        grep -q 'Include conf.d' /etc/apache2/apache2.conf && \
-          echo 'IS_APACHE_CONFENABLED FAILED!'
+        if is_debianversion jessie || is_debianversion stretch; then
+            test -d /etc/apache2/conf.d/ && echo 'IS_APACHE_CONFENABLED FAILED!'
+            grep -q 'Include conf.d' /etc/apache2/apache2.conf && \
+              echo 'IS_APACHE_CONFENABLED FAILED!'
+        fi
     fi
 
     if [ "$IS_MELTDOWN_SPECTRE" = 1 ]; then

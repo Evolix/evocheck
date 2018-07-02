@@ -802,9 +802,11 @@ if [ -e /etc/debian_version ]; then
         # must be replaced by conf-available/ and config files symlinked
         # to conf-enabled/
         if is_debianversion jessie || is_debianversion stretch; then
-            test -d /etc/apache2/conf.d/ && echo 'IS_APACHE_CONFENABLED FAILED!'
-            grep -q 'Include conf.d' /etc/apache2/apache2.conf && \
-              echo 'IS_APACHE_CONFENABLED FAILED!'
+            if [ -f /etc/apache2/apache2.conf ]; then
+                test -d /etc/apache2/conf.d/ && echo 'IS_APACHE_CONFENABLED FAILED!'
+                grep -q 'Include conf.d' /etc/apache2/apache2.conf && \
+                  echo 'IS_APACHE_CONFENABLED FAILED!'
+            fi
         fi
     fi
 

@@ -782,18 +782,22 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_EVOACME_LIVELINKS" = 1 ]; then
         if [ -x "$(which evoacme)" ]; then
-            for live in /etc/letsencrypt/*/live; do
-                actualLink=$(ls -lhad $live | tr -s ' ' | cut -d' ' -f 11)
-                actualCertDate=$(cut -d'/' -f5 <<< $actualLink)
-                liveDir=$(ls -lhad $live | tr -s ' ' | cut -d' ' -f 9)
-                certDir=${liveDir%%/live}
-                lastCertDir=$(stat -c %n ${certDir}/[0-9]* | tail -1)
-                lastCertDate=$(cut -d'/' -f5 <<< $lastCertDir)
-                if [[ "$actualCertDate" != "$lastCertDate" ]]; then
-                    echo 'IS_EVOACME_LIVELINKS FAILED!'
-                    break
-                fi
-            done
+            # Sometimes evoacme is installed but no certificates has been generated
+            numberOfLinks=$(find /etc/letsencrypt/ -type l | wc -l)
+            if [ $numberOfLinks -gt 0 ]; then
+                for live in /etc/letsencrypt/*/live; do
+                    actualLink=$(ls -lhad $live | tr -s ' ' | cut -d' ' -f 11)
+                    actualCertDate=$(cut -d'/' -f5 <<< $actualLink)
+                    liveDir=$(ls -lhad $live | tr -s ' ' | cut -d' ' -f 9)
+                    certDir=${liveDir%%/live}
+                    lastCertDir=$(stat -c %n ${certDir}/[0-9]* | tail -1)
+                    lastCertDate=$(cut -d'/' -f5 <<< $lastCertDir)
+                    if [[ "$actualCertDate" != "$lastCertDate" ]]; then
+                        echo 'IS_EVOACME_LIVELINKS FAILED!'
+                        break
+                    fi
+                done
+            fi
         fi
     fi
 

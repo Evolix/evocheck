@@ -983,7 +983,7 @@ fi
 
 if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then
     for f in /etc/ssl/private/*; do
-        perms=$(stat -c "%a" $f)
+        perms=$(stat -L -c "%a" $f)
         if [ ${perms: -1} != "0" ]; then
             echo 'IS_PRIVKEYWOLRDREADABLE FAILED!'
         fi

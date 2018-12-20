@@ -5,7 +5,7 @@ Source: https://gitlab.evolix.org/evolix/evocheck
 
 Files: *
 Copyright: 2009-2018 Evolix <equipe@evolix.fr>
-License: AGPL-3
+License: GPL-3
 
-License: AGPL-3
- https://www.gnu.org/licenses/agpl.txt
+License: GPL-3
+ https://www.gnu.org/licenses/gpl-3.0.txt

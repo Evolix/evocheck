@@ -523,8 +523,8 @@ if [ -e /etc/debian_version ]; then
     # Check if no package has been upgraded since $limit.
     if [ "$IS_NOTUPGRADED" = 1 ]; then
         last_upgrade=$(date +%s -d $(zgrep -h upgrade /var/log/dpkg.log* |sort -n |tail -1 |cut -f1 -d ' '))
-        if grep -q '^mailto="listupgrade-todo@' /etc/evolinux/listupgrade.cnf \
-        || grep -q -E '^[[:digit:]]+[[:space:]]+[[:digit:]]+[[:space:]]+[^\*]' /etc/cron.d/listupgrade; then
+        if grep -sq '^mailto="listupgrade-todo@' /etc/evolinux/listupgrade.cnf \
+        || grep -sq -E '^[[:digit:]]+[[:space:]]+[[:digit:]]+[[:space:]]+[^\*]' /etc/cron.d/listupgrade; then
             # Manual upgrade process
             limit=$(date +%s -d "now - 180 days")
         else

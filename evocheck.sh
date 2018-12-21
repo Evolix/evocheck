@@ -986,6 +986,7 @@ if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then
         perms=$(stat -L -c "%a" $f)
         if [ ${perms: -1} != "0" ]; then
             echo 'IS_PRIVKEYWOLRDREADABLE FAILED!'
+            break
         fi
     done
 fi

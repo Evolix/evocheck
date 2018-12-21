@@ -586,8 +586,8 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_BACKPORTSCONF" = 1 ]; then
         if is_debianversion stretch; then
-            grep -q backports /etc/apt/sources.list && echo 'IS_BACKPORTSCONF FAILED!'
-            grep -q backports /etc/apt/sources.list.d/*.list 2>/dev/null && (grep -q backports /etc/apt/preferences.d/* || echo 'IS_BACKPORTSCONF FAILED!')
+            grep -qE "^[^#].*backports" /etc/apt/sources.list && echo 'IS_BACKPORTSCONF FAILED!'
+            grep -qE "^[^#].*backports" /etc/apt/sources.list.d/*.list 2>/dev/null && (grep -qE "^[^#].*backports" /etc/apt/preferences.d/* || echo 'IS_BACKPORTSCONF FAILED!')
         fi
     fi
 

@@ -1,5 +1,15 @@
+# Evocheck
 
-# How to build the package for a new release
+This program scans the machine it is run on and verifies if it
+adheres to the Evolix standard,  non-compliance warnings are outputted
+on standard out.
+
+It is currently adapted for Debian and OpenBSD systems.
+
+Configure by modifying evocheck.cf and use the VagrantFile to test
+it.
+
+# How to build the package for a new Debian release
 
 On the master branch, add the last stable version with a release tag.
 ```

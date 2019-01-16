@@ -8,10 +8,8 @@ vagrantfile = File.join("#{Dir.home}", '.VagrantFile')
 load File.expand_path(vagrantfile) if File.exists?(vagrantfile)
 
 Vagrant.configure('2') do |config|
-  config.vm.synced_folder "./", "/vagrant", type: "rsync", rsync__exclude: [ '.vagrant', '.git', 'config/config.ini' ]
-
-  config.vm.network "forwarded_port", guest: 80, host: 8080, auto_correct: true
-  config.vm.network "forwarded_port", guest: 443, host: 8443, auto_correct: true
+  config.vm.synced_folder "./", "/vagrant", type: "rsync", rsync__exclude: [ '.vagrant', '.git' ]
+  config.ssh.shell="/bin/sh"
 
   $deps = <<SCRIPT
 rm -f /usr/share/scripts/evocheck.sh

@@ -538,7 +538,8 @@ if [ -e /etc/debian_version ]; then
         else
             install_date=0
         fi
-        [ $install_date -lt $limit ] && [ $last_upgrade -lt $limit ] && echo 'IS_NOTUPGRADED FAILED!'
+        # Check install_date or last_upgrade, because if you never upgraded you will never match the limit
+        ( [ $install_date -lt $limit ] || [ $last_upgrade -lt $limit ] ) && echo 'IS_NOTUPGRADED FAILED!'
     fi
 
     # Check if reserved blocks for root is at least 5% on every mounted partitions.

@@ -106,6 +106,7 @@ IS_EVOACME_CRON=1
 IS_EVOACME_LIVELINKS=1
 IS_APACHE_CONFENABLED=1
 IS_MELTDOWN_SPECTRE=1
+IS_OLD_HOME_DIR=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -835,6 +836,17 @@ if [ -e /etc/debian_version ]; then
                 fi
             fi
         fi
+    fi
+
+    if [ "$IS_OLD_HOME_DIR" = 1 ]; then
+        for dir in /home/*; do
+            stat -c "%n has owner %u resolved as %U" "$dir" | grep -v .bak | grep -q UNKNOWN
+            if [[ ${PIPESTATUS[2]} == 0 ]]; then
+                # There is at least one dir matching
+                echo 'IS_OLD_HOME_DIR FAILED!'
+                break
+            fi
+        done
     fi
 fi
 

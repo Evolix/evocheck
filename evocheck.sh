@@ -125,8 +125,16 @@ IS_NRPEDAEMON=1
 IS_ALERTBOOT=1
 IS_RSYNC=1
 
+# Verbose function
+verbose() {
+    msg="${1:-$(cat /dev/stdin)}"
+    [ "${VERBOSE}" -eq 1 ] && echo "${msg}"
+}
+
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
+
+VERBOSE="${VERBOSE:-0}"
 
 # If --cron is passed, ignore some checks.
 if [ "$1" = "--cron" ]; then
@@ -553,11 +561,7 @@ if [ -e /etc/debian_version ]; then
             percentage=$(python -c "print(int(round(float(${reservedBlockCount})/${blockCount}*100)))")
             if [ "$percentage" -lt 5 ]; then
                 echo 'IS_TUNE2FS_M5 FAILED!'
-                # Set debug to 1, to displays which partitions has less than 5%
-                debug=0
-                if [ "$debug" -eq 1 ]; then
-                    echo "Partition $part has less than 5% reserved blocks!"
-                fi
+                verbose "Partition $part has less than 5% reserved blocks!"
             fi
         done
     fi
@@ -840,7 +844,7 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_OLD_HOME_DIR" = 1 ]; then
         for dir in /home/*; do
-            stat -c "%n has owner %u resolved as %U" "$dir" | grep -v .bak | grep -q UNKNOWN
+            stat -c "%n has owner %u resolved as %U" "$dir" | grep -v .bak | grep UNKNOWN | verbose
             if [[ ${PIPESTATUS[2]} == 0 ]]; then
                 # There is at least one dir matching
                 echo 'IS_OLD_HOME_DIR FAILED!'

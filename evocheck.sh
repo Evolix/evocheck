@@ -842,7 +842,7 @@ if [ -e /etc/debian_version ]; then
             stat -c "%n has owner %u resolved as %U" "$dir" | grep -v .bak | grep -q UNKNOWN
             if [[ ${PIPESTATUS[2]} == 0 ]]; then
                 # There is at least one dir matching
-                echo 'IS OLD_HOME_DIR FAILED!'
+                echo 'IS_OLD_HOME_DIR FAILED!'
                 break
             fi
         done

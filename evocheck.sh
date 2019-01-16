@@ -658,6 +658,7 @@ if [ -e /etc/debian_version ]; then
                     if ! [[ "$file" =~ indexes ]]; then
                         if [ -f $file ] && [ $(stat -c "%Y" $file) -lt $(date +"%s" -d "now - 2 day") ]; then
                             echo 'IS_MONGO_BACKUP FAILED!'
+                            break
                         fi
                     fi
                 done

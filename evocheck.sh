@@ -128,7 +128,7 @@ IS_RSYNC=1
 # Verbose function
 verbose() {
     msg="${1:-$(cat /dev/stdin)}"
-    [ "${VERBOSE}" -eq 1 ] && echo "${msg}"
+    [ "${VERBOSE}" -eq 1 ] && [ -n "${msg}" ] && echo "${msg}"
 }
 
 # Source configuration file

@@ -843,14 +843,8 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_OLD_HOME_DIR" = 1 ]; then
-        for dir in /home/*; do
-            stat -c "%n has owner %u resolved as %U" "$dir" | grep -v .bak | grep UNKNOWN | verbose
-            if [[ ${PIPESTATUS[2]} == 0 ]]; then
-                # There is at least one dir matching
-                echo 'IS_OLD_HOME_DIR FAILED!'
-                break
-            fi
-        done
+        find /home/ -maxdepth 1 -type d -nouser | grep -q '^' && echo 'IS_OLD_HOME_DIR FAILED!'
+        [ "${VERBOSE}" -eq 1 ] && find /home/ -maxdepth 1 -type d -nouser -exec stat -c "%n has owner %u resolved as %U" {} \;
     fi
 fi
 

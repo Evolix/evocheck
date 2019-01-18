@@ -106,6 +106,7 @@ IS_EVOACME_CRON=1
 IS_EVOACME_LIVELINKS=1
 IS_APACHE_CONFENABLED=1
 IS_MELTDOWN_SPECTRE=1
+IS_OLD_HOME_DIR=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -124,8 +125,16 @@ IS_NRPEDAEMON=1
 IS_ALERTBOOT=1
 IS_RSYNC=1
 
+# Verbose function
+verbose() {
+    msg="${1:-$(cat /dev/stdin)}"
+    [ "${VERBOSE}" -eq 1 ] && [ -n "${msg}" ] && echo "${msg}"
+}
+
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
+
+VERBOSE="${VERBOSE:-0}"
 
 # If --cron is passed, ignore some checks.
 if [ "$1" = "--cron" ]; then
@@ -528,21 +537,24 @@ if [ -e /etc/debian_version ]; then
 
     # Check if no package has been upgraded since $limit.
     if [ "$IS_NOTUPGRADED" = 1 ]; then
-        last_upgrade=$(date +%s -d $(zgrep -h upgrade /var/log/dpkg.log* |sort -n |tail -1 |cut -f1 -d ' '))
-        if grep -sq '^mailto="listupgrade-todo@' /etc/evolinux/listupgrade.cnf \
-        || grep -sq -E '^[[:digit:]]+[[:space:]]+[[:digit:]]+[[:space:]]+[^\*]' /etc/cron.d/listupgrade; then
+        if zgrep -hq upgrade /var/log/dpkg.log*; then
+            last_upgrade=$(date +%s -d $(zgrep -h upgrade /var/log/dpkg.log* |sort -n |tail -1 |cut -f1 -d ' '))
+        fi
+        if grep -q '^mailto="listupgrade-todo@' /etc/evolinux/listupgrade.cnf \
+        || grep -q -E '^[[:digit:]]+[[:space:]]+[[:digit:]]+[[:space:]]+[^\*]' /etc/cron.d/listupgrade; then
             # Manual upgrade process
             limit=$(date +%s -d "now - 180 days")
         else
             # Regular process
             limit=$(date +%s -d "now - 90 days")
         fi
-        if [ -f /var/log/evolinux/00_prepare_system.log ]; then
-            install_date=$(stat -c %Z /var/log/evolinux/00_prepare_system.log)
+        if [ -d /var/log/installer ]; then
+            install_date=$(stat -c %Z /var/log/installer)
         else
             install_date=0
         fi
-        [ $install_date -lt $limit ] && [ $last_upgrade -lt $limit ] && echo 'IS_NOTUPGRADED FAILED!'
+        # Check install_date or last_upgrade, because if you never upgraded you will never match the limit
+        ( [ $install_date -lt $limit ] || [ $last_upgrade -lt $limit ] ) && echo 'IS_NOTUPGRADED FAILED!'
     fi
 
     # Check if reserved blocks for root is at least 5% on every mounted partitions.
@@ -558,11 +570,7 @@ if [ -e /etc/debian_version ]; then
             percentage=$(python -c "print(int(round(float(${reservedBlockCount})/${blockCount}*100)))")
             if [ "$percentage" -lt 5 ]; then
                 echo 'IS_TUNE2FS_M5 FAILED!'
-                # Set debug to 1, to displays which partitions has less than 5%
-                debug=0
-                if [ "$debug" -eq 1 ]; then
-                    echo "Partition $part has less than 5% reserved blocks!"
-                fi
+                verbose "Partition $part has less than 5% reserved blocks!"
             fi
         done
     fi
@@ -841,6 +849,11 @@ if [ -e /etc/debian_version ]; then
                 fi
             fi
         fi
+    fi
+
+    if [ "$IS_OLD_HOME_DIR" = 1 ]; then
+        find /home/ -maxdepth 1 -type d -nouser | grep -q '^' && echo 'IS_OLD_HOME_DIR FAILED!'
+        [ "${VERBOSE}" -eq 1 ] && find /home/ -maxdepth 1 -type d -nouser -exec stat -c "%n has owner %u resolved as %U" {} \;
     fi
 fi
 

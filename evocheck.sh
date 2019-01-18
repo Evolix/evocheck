@@ -329,7 +329,18 @@ if [ -e /etc/debian_version ]; then
 
     # Verification mytop + Munin si MySQL
     if [ "$IS_MYSQLUTILS" = 1 ]; then
-        is_installed mysql-server && ( grep -q mysqladmin /root/.my.cnf && test -x /usr/bin/mytop && grep -q debian-sys-maint /root/.mytop || echo 'IS_MYSQLUTILS FAILED!' )
+        MYSQL_ADMIN=${MYSQL_ADMIN:-mysqladmin}
+        if is_installed mysql-server; then
+            # You can configure MYSQL_ADMIN in evocheck.cf
+            grep -qs "$MYSQL_ADMIN" /root/.my.cnf && echo 'IS_MYSQLUTILS FAILED!' \
+              && verbose 'mysqladmin missing in /root/.my.cnf'
+
+            ( test -x /usr/bin/mytop || test -x /usr/local/bin/mytop ) \
+              && echo 'IS_MYSQLUTILS FAILED!' && verbose 'mytop binary missing'
+
+            grep -qs debian-sys-maint /root/.mytop || echo 'IS_MYSQLUTILS FAILED!' \
+              && verbose 'debian-sys-maint missing in /root/.mytop'
+        fi
     fi
 
     # Verification de la configuration du raid soft (mdadm)

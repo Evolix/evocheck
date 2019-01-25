@@ -987,6 +987,8 @@ if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
 fi
 
 if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
+    # Can be changed in evocheck.cf
+    homeDir=${homeDir:-/home}
     if ! is_debianversion stretch; then
         if [ -f /etc/sudoers.d/evolinux ]; then
             sudoers="/etc/sudoers.d/evolinux"
@@ -994,11 +996,27 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
             sudoers="/etc/sudoers"
         fi
         for i in $( (grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep ^sudo /etc/group |cut -d: -f 4) | tr "," "\n" |sort -u); do
-            grep -q "^trap.*sudo.*evomaintenance.sh" /home/$i/.*profile || echo 'IS_EVOMAINTENANCEUSERS FAILED!'
+            grep -qs "^trap.*sudo.*evomaintenance.sh" ${homeDir}/${i}/.*profile
+            if [ $? != 0 ]; then
+                echo 'IS_EVOMAINTENANCEUSERS FAILED!'
+                if [ "$VERBOSE" = 1 ]; then
+                    echo "$i doesn't have evomaintenance trap!"
+                else
+                    break
+                fi
+            fi
         done
     else
         for i in $(getent group evolinux-sudo | cut -d':' -f4 | tr ',' ' '); do
-            grep -q "^trap.*sudo.*evomaintenance.sh" /home/$i/.*profile || echo 'IS_EVOMAINTENANCEUSERS FAILED!'
+            grep -qs "^trap.*sudo.*evomaintenance.sh" ${homeDir}/$i/.*profile
+            if [ $? != 0 ]; then
+                echo 'IS_EVOMAINTENANCEUSERS FAILED!'
+                if [ "$VERBOSE" = 1 ]; then
+                    echo "$i doesn't have evomaintenance trap!"
+                else
+                    break
+                fi
+            fi
         done
     fi
 fi

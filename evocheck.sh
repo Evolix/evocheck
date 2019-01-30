@@ -863,11 +863,10 @@ if [ -e /etc/debian_version ]; then
               | grep UNKNOWN)
             # There is at least one dir matching
             if [[ -n "$statResult" ]]; then
+                echo 'IS_OLD_HOME_DIR FAILED!'
                 if [[ "$VERBOSE" == 1 ]]; then
-                    echo 'IS_OLD_HOME_DIR FAILED!'
                     echo "$statResult"
                 else
-                    echo 'IS_OLD_HOME_DIR FAILED!'
                     break
                 fi
             fi

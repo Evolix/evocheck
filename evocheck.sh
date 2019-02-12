@@ -544,6 +544,7 @@ if [ -e /etc/debian_version ]; then
 
     # Check if no package has been upgraded since $limit.
     if [ "$IS_NOTUPGRADED" = 1 ]; then
+        last_upgrade=0
         if zgrep -hq upgrade /var/log/dpkg.log*; then
             last_upgrade=$(date +%s -d $(zgrep -h upgrade /var/log/dpkg.log* |sort -n |tail -1 |cut -f1 -d ' '))
         fi
@@ -555,13 +556,16 @@ if [ -e /etc/debian_version ]; then
             # Regular process
             limit=$(date +%s -d "now - 90 days")
         fi
+        install_date=0
         if [ -d /var/log/installer ]; then
             install_date=$(stat -c %Z /var/log/installer)
-        else
-            install_date=0
         fi
-        # Check install_date or last_upgrade, because if you never upgraded you will never match the limit
-        ( [ $install_date -lt $limit ] || [ $last_upgrade -lt $limit ] ) && echo 'IS_NOTUPGRADED FAILED!'
+        # Check install_date if the system never received an upgrade
+        if [ $last_upgrade -eq 0 ]; then
+            [ $install_date -lt $limit ] && echo 'IS_NOTUPGRADED FAILED!'
+        else
+            [ $last_upgrade -lt $limit ] && echo 'IS_NOTUPGRADED FAILED!'
+        fi
     fi
 
     # Check if reserved blocks for root is at least 5% on every mounted partitions.

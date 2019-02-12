@@ -790,7 +790,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_EVOLIX_USER" = 1 ]; then
-        getent passwd evolix >/dev/null && echo 'IS_EVOLIX_USER FAILED!'
+        grep -q "evolix:" /etc/passwd && echo 'IS_EVOLIX_USER FAILED!'
     fi
 
     if [ "$IS_EVOACME_CRON" = 1 ]; then

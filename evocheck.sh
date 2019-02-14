@@ -786,8 +786,10 @@ if [ -e /etc/debian_version ]; then
             # So, if $tmpOutput is not null, there is a duplicate
             if [ -n "$tmpOutput" ]; then
                 echo 'IS_DUPLICATE_FS_LABEL FAILED!'
-                # For debug, you may echo the contents of $tmpOutput
-                # echo $tmpOutput
+                if [ "$VERBOSE" = 1 ]; then
+                    echo "Duplicate labels:"
+                    echo -e "$tmpOutput\n"
+                fi
             fi
             rm $tmpFile
         fi

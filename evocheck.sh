@@ -778,7 +778,9 @@ if [ -e /etc/debian_version ]; then
         # Do it only if thereis blkid binary
         if [ -x "$(which blkid)" ]; then
             tmpFile=$(mktemp -p /tmp)
-            for part in $(blkid | grep -v raid_member | grep -Eo ' LABEL=".*"' | cut -d'"' -f2); do
+            parts=$(blkid | grep -ve raid_member -e EFI_SYSPART \
+              | grep -Eo ' LABEL=".*"' | cut -d'"' -f2)
+            for part in $parts; do
                 echo "$part" >> "$tmpFile"
             done
             tmpOutput=$(sort < "$tmpFile" | uniq -d)

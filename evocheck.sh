@@ -901,7 +901,7 @@ if [ -e /etc/debian_version ]; then
                 homeUser=$(stat "$homeProfile" -c %U)
                 if [ "$homeSize" -gt "$homeMaxSize" ]; then
                     echo 'IS_HOME_SIZE FAILED!'
-                    verbose "User $homeUser has more than 1G in his home"\
+                    verbose "User $homeUser has more than 1G in his home" \
                       || break
                 fi
             fi

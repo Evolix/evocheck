@@ -266,11 +266,21 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_LISTCHANGESCONF" = 1 ]; then
         if is_debianversion stretch; then
-            is_installed apt-listchanges && echo 'IS_LISTCHANGESCONF FAILED!' \
-              && verbose "apt-listchanges must not be installed on Stretch"
+            if is_installed apt-listchanges; then
+                echo 'IS_LISTCHANGESCONF FAILED!'
+                verbose "apt-listchanges must not be installed on Stretch"
+            fi
         else
-            test -e /etc/apt/listchanges.conf && grep -E "(which=both|confirm=1)" /etc/apt/listchanges.conf | wc -l | grep -q ^2$ || echo 'IS_LISTCHANGESCONF FAILED!' \
-              && verbose "apt-listchanges config is incorrect"
+            if [ -e "/etc/apt/listchanges.conf" ]; then
+                lines=$(grep -cE "(which=both|confirm=1)" /etc/apt/listchanges.conf)
+                if [ $lines != 2 ]; then
+                    echo 'IS_LISTCHANGESCONF FAILED!'
+                    verbose "apt-listchanges config is incorrect"
+                fi
+            else
+                echo 'IS_LISTCHANGESCONF FAILED!'
+                verbose "apt-listchanges config is missing"
+            fi
         fi
     fi
 

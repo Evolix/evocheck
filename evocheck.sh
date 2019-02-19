@@ -107,6 +107,7 @@ IS_EVOACME_LIVELINKS=1
 IS_APACHE_CONFENABLED=1
 IS_MELTDOWN_SPECTRE=1
 IS_OLD_HOME_DIR=1
+IS_HOME_SIZE=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -882,6 +883,26 @@ if [ -e /etc/debian_version ]; then
                     echo "$statResult"
                 else
                     break
+                fi
+            fi
+        done
+    fi
+
+    if [ "$IS_HOME_SIZE" = 1 ]; then
+        # Can be changed in evocheck.cf
+        homeDir=${homeDir:-/home}
+        homeMaxSize=${homeMaxSize:-1048576}
+        # If the user has an evomaintenance profile trap he is
+        # considered a sysadmin
+        for homeProfile in ${homeDir}/*/.profile; do
+            if grep -q "evomaintenance.sh" "$homeProfile"; then
+                homeSize=$(du -s "${homeProfile%%.profile}" \
+                  | awk '{print $1}')
+                homeUser=$(stat "$homeProfile" -c %U)
+                if [ "$homeSize" -gt "$homeMaxSize" ]; then
+                    echo 'IS_HOME_SIZE FAILED!'
+                    verbose "User $homeUser has more than 1G in his home"\
+                      || break
                 fi
             fi
         done

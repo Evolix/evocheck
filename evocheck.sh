@@ -768,7 +768,7 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_SQUIDEVOLINUXCONF" = 1 ]; then
         if is_debianversion stretch && is_installed squid; then
-            (grep -q "^CONFIG=/etc/squid/evolinux-defaults.conf$" /etc/default/squid \
+            (grep -qs "^CONFIG=/etc/squid/evolinux-defaults.conf$" /etc/default/squid \
                 && test -f /etc/squid/evolinux-defaults.conf \
                 && test -f /etc/squid/evolinux-whitelist-defaults.conf \
                 && test -f /etc/squid/evolinux-whitelist-custom.conf \

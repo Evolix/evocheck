@@ -1,13 +1,13 @@
 # Evocheck
 
-This program scans the machine it is run on and verifies if it
-adheres to the Evolix standard,  non-compliance warnings are outputted
-on standard out.
+It runs many compliance checks of the server with Evolix conventions.
+Non-compliance warnings are printed on standard output.
 
-It is currently adapted for Debian and OpenBSD systems.
+It supports Debian and OpenBSD systems.
 
-Configure by modifying evocheck.cf and use the VagrantFile to test
-it.
+Some checks can be disabled in the `/etc/evocheck.cf` config file.
+
+Tests can be run with Vagrant and the provided `VagrantFile`.
 
 ## How to build the package for a new Debian release
 

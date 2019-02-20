@@ -344,14 +344,20 @@ if [ -e /etc/debian_version ]; then
         MYSQL_ADMIN=${MYSQL_ADMIN:-mysqladmin}
         if is_installed mysql-server; then
             # You can configure MYSQL_ADMIN in evocheck.cf
-            grep -qs "$MYSQL_ADMIN" /root/.my.cnf && echo 'IS_MYSQLUTILS FAILED!' \
-              && verbose 'mysqladmin missing in /root/.my.cnf'
-
-            ( test -x /usr/bin/mytop || test -x /usr/local/bin/mytop ) \
-              && echo 'IS_MYSQLUTILS FAILED!' && verbose 'mytop binary missing'
-
-            grep -qs debian-sys-maint /root/.mytop || echo 'IS_MYSQLUTILS FAILED!' \
-              && verbose 'debian-sys-maint missing in /root/.mytop'
+            if ! grep -qs "$MYSQL_ADMIN" /root/.my.cnf; then
+                echo 'IS_MYSQLUTILS FAILED!'
+                verbose 'mysqladmin missing in /root/.my.cnf'
+            fi
+            if ! test -x /usr/bin/mytop; then
+                if ! test -x /usr/local/bin/mytop; then
+                    echo 'IS_MYSQLUTILS FAILED!'
+                    verbose 'mytop binary missing'
+                fi
+            fi
+            if ! grep -qs debian-sys-maint /root/.mytop; then
+                echo 'IS_MYSQLUTILS FAILED!'
+                verbose 'debian-sys-maint missing in /root/.mytop'
+            fi
         fi
     fi
 

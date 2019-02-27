@@ -1,0 +1,8 @@
+kind: pipeline
+name: default
+
+steps:
+- name: run shellcheck on evocheck.sh 
+  image: vlaborie/shellcheck
+  commands:
+  - shellcheck evocheck.sh

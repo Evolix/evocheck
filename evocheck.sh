@@ -561,7 +561,16 @@ if [ -e /etc/debian_version ]; then
     # Check if no package has been upgraded since $limit.
     if [ "$IS_NOTUPGRADED" = 1 ]; then
         last_upgrade=0
-        if zgrep -hqs upgrade /var/log/dpkg.log*; then
+        upgraded=false
+        for log in /var/log/dpkg.log*; do
+            zgrep -qsm1 upgrade "$log"
+            if [ $? -eq 0 ]; then
+                # There is at least one upgrade
+                upgraded=true
+                break
+            fi
+        done
+        if $upgraded; then
             last_upgrade=$(date +%s -d $(zgrep -h upgrade /var/log/dpkg.log* |sort -n |tail -1 |cut -f1 -d ' '))
         fi
         if grep -qs '^mailto="listupgrade-todo@' /etc/evolinux/listupgrade.cnf \

@@ -940,7 +940,10 @@ if [ `uname -s` == "OpenBSD" ]; then
     fi
 
     if [ "$IS_PKGMIRROR" = 1 ]; then
-        grep -qE "^export PKG_PATH=http://ftp\.fr\.openbsd\.org/pub/OpenBSD/[0-9.]+/packages/[a-z0-9]+/$" /root/.profile || echo 'IS_PKGMIRROR FAILED!'
+        grep -qE "^https://cdn\.openbsd\.org/pub/OpenBSD" /etc/installurl || echo 'IS_PKGMIRROR FAILED!'
+        if [[ "$VERBOSE" == 1 ]]; then
+            echo "Check whether the right repo is present in the /etc/installurl file"
+        fi
     fi
 
     if [ "$IS_HISTORY" = 1 ]; then

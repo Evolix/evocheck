@@ -934,7 +934,9 @@ if [ `uname -s` == "OpenBSD" ]; then
     fi
 
     if [ "$IS_WHEEL" = 1 ]; then
-        grep -qE "^%wheel.*$" /etc/sudoers || echo 'IS_WHEEL FAILED!'
+        if test -f /etc/sudoers; then
+            grep -qE "^%wheel.*$" /etc/sudoers || echo 'IS_WHEEL FAILED!'
+        fi
     fi
 
     if [ "$IS_SUDOADMIN" = 1 ]; then

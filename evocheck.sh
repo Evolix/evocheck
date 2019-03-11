@@ -939,10 +939,6 @@ if [ `uname -s` == "OpenBSD" ]; then
         fi
     fi
 
-    if [ "$IS_SUDOADMIN" = 1 ]; then
-    grep -qE "^User_Alias ADMIN=.*$" /etc/sudoers || echo 'IS_SUDOADMIN FAILED!'
-    fi
-
     if [ "$IS_PKGMIRROR" = 1 ]; then
         grep -qE "^export PKG_PATH=http://ftp\.fr\.openbsd\.org/pub/OpenBSD/[0-9.]+/packages/[a-z0-9]+/$" /root/.profile || echo 'IS_PKGMIRROR FAILED!'
     fi

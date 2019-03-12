@@ -919,7 +919,7 @@ if [ `uname -s` == "OpenBSD" ]; then
     if [ "$IS_ADVBASE" = 1 ]; then
         if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
             for advbase in $(ifconfig carp | grep advbase | awk -F 'advbase' '{print $2}' | awk '{print $1}' | xargs); do
-            if [[ "$advbase" gt 1 ]]; then
+            if [[ "$advbase" -gt 1 ]]; then
                 echo 'IS_ADVBASE FAILED!'
                 if [[ "$VERBOSE" == 1 ]]; then
                         echo "At least one CARP interface has advbase greater than 5 seconds!" 

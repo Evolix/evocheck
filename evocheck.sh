@@ -929,6 +929,26 @@ if [ `uname -s` == "OpenBSD" ]; then
         fi
     fi
 
+    if [ "$IS_PREEMPT" = 1 ]; then
+        if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
+            preempt=$(sysctl net.inet.carp.preempt | cut -d"=" -f2)
+            if [[ "$preempt" -ne 1 ]]; then
+                echo 'IS_PREEMPT FAILED!'
+                if [[ "$VERBOSE" == 1 ]]; then
+                    echo "The preempt function is not activated! Please type 'sysctl net.inet.carp.preempt=1' in"
+                fi
+            fi
+            if [ -f /etc/sysctl.conf ]; then
+                grep -qE "^net.inet.carp.preempt=1" /etc/sysctl.conf || echo 'IS_PREEMPT FAILED!'
+            else
+                echo 'IS_PREEMPT FAILED!'
+                if [[ "$VERBOSE" == 1 ]]; then
+                    echo "The preempt parameter is not permanently activated! Please add 'net.inet.carp.preempt=1' in /etc/sysctl.conf"
+                fi
+            fi
+        fi
+    fi
+
     if [ "$IS_SOFTDEP" = 1 ]; then
         grep -q "softdep" /etc/fstab || echo 'IS_SOFTDEP FAILED!'
     fi

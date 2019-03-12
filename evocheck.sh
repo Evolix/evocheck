@@ -976,7 +976,7 @@ if [ `uname -s` == "OpenBSD" ]; then
     fi
 
     if [ "$IS_VIM" = 1 ]; then
-        which vim 2>1 >> /dev/null || echo 'IS_VIM FAILED!'
+        command -v vim 2>1 >> /dev/null || echo 'IS_VIM FAILED!'
     fi
 
     if [ "$IS_TTYC0SECURE" = 1 ]; then

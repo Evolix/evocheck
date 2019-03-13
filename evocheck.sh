@@ -951,11 +951,11 @@ if [ `uname -s` == "OpenBSD" ]; then
 
     if [ "$IS_REBOOTMAIL" = 1 ]; then
         if [ -f /etc/rc.local ]; then
-            grep -qE '^date | mail -s "boot/reboot of' /etc/rc.local || echo 'IS_REBOOTMAIL FAILED!'
+            grep -qE '^date \| mail -s "boot/reboot of' /etc/rc.local || echo 'IS_REBOOTMAIL FAILED!'
         else
             echo 'IS_REBOOTMAIL FAILED!'
             if [[ "$VERBOSE" == 1 ]]; then
-                echo "Make sure /etc/rc.local exist and 'date | mail -s \"boot/reboot of $hostname' is present!"
+                echo "Make sure /etc/rc.local exist and 'date | mail -s \"boot/reboot of \$hostname' is present!"
             fi
         fi
     fi

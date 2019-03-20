@@ -125,6 +125,28 @@ IS_NRPEDAEMON=1
 IS_ALERTBOOT=1
 IS_RSYNC=1
 
+DEBIAN_RELEASE=""
+OPENBSD_RELEASE=""
+
+if [ -e /etc/debian_version ]; then
+    DEBIAN_RELEASE=$(lsb_release -c -s)
+    DEBIAN_VERSION=$(cat /etc/debian_version |cut -d "." -f 1)
+elif [ "$(uname -s)" = "OpenBSD" ]; then
+    # use a better release name
+    OPENBSD_RELEASE="OpenBSD"
+fi
+
+# Source configuration file
+test -f /etc/evocheck.cf && . /etc/evocheck.cf
+
+VERBOSE="${VERBOSE:-0}"
+
+# If --cron is passed, ignore some checks.
+if [ "$1" = "--cron" ]; then
+    IS_KERNELUPTODATE=0
+    IS_UPTIME=0
+fi
+
 # logging function
 failed() {
     check_name=$1
@@ -137,17 +159,6 @@ failed() {
         printf "%s FAILED!\n" "${check_name}" 2>&1
     fi
 }
-
-# Source configuration file
-test -f /etc/evocheck.cf && . /etc/evocheck.cf
-
-VERBOSE="${VERBOSE:-0}"
-
-# If --cron is passed, ignore some checks.
-if [ "$1" = "--cron" ]; then
-    IS_KERNELUPTODATE=0
-    IS_UPTIME=0
-fi
 
 # Functions
 is_pack_web(){
@@ -164,46 +175,70 @@ is_installed(){
     done
 }
 
-is_debianversion(){
-    [ $(lsb_release -c -s) = $1 ] && return 0
+is_debian() {
+  test -n "${DEBIAN_RELEASE}"
+}
+is_debian_lenny() {
+    test "${DEBIAN_VERSION}" = "5"
+}
+is_debian_squeeze() {
+    test "${DEBIAN_RELEASE}" = "squeeze"
+}
+is_debian_wheezy() {
+    test "${DEBIAN_RELEASE}" = "wheezy"
+}
+is_debian_jessie() {
+    test "${DEBIAN_RELEASE}" = "jessie"
+}
+is_debian_stretch() {
+    test "${DEBIAN_RELEASE}" = "stretch"
+}
+debian_release() {
+    printf "%s" "${DEBIAN_RELEASE}"
+}
+debian_version() {
+    printf "%s" "${DEBIAN_VERSION}"
+}
+is_openbsd() {
+  test -n "${OPENBSD_RELEASE}"
 }
 
-is_debianversion squeeze && MINIFW_FILE=/etc/firewall.rc
-is_debianversion wheezy && MINIFW_FILE=/etc/firewall.rc
-is_debianversion jessie && MINIFW_FILE=/etc/default/minifirewall
-is_debianversion stretch && MINIFW_FILE=/etc/default/minifirewall
+is_debian_squeeze && MINIFW_FILE=/etc/firewall.rc
+is_debian_wheezy  && MINIFW_FILE=/etc/firewall.rc
+is_debian_jessie  && MINIFW_FILE=/etc/default/minifirewall
+is_debian_stretch && MINIFW_FILE=/etc/default/minifirewall
 
 #-----------------------------------------------------------
 #Vérifie si c'est une debian et fait les tests appropriés.
 #-----------------------------------------------------------
 
-if [ -e /etc/debian_version ]; then
+if is_debian; then
 
     if [ "$IS_DPKGWARNING" = 1 ]; then
-        is_debianversion squeeze && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && ( \
+        is_debian_squeeze && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && ( \
             grep -E -i "(Pre-Invoke ..echo Are you sure to have rw on|Post-Invoke ..echo Dont forget to mount -o remount)" \
             /etc/apt/apt.conf | wc -l | grep -q ^2$ || failed "IS_DPKGWARNING" )
-        is_debianversion wheezy && ( ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && \
+        is_debian_wheezy && ( ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && \
             ( test -e /etc/apt/apt.conf.d/80evolinux || failed "IS_DPKGWARNING" )
             test -e /etc/apt/apt.conf && failed "IS_DPKGWARNING" )
-        is_debianversion stretch && (test -e /etc/apt/apt.conf.d/z-evolinux.conf || failed "IS_DPKGWARNING")
+        is_debian_stretch && (test -e /etc/apt/apt.conf.d/z-evolinux.conf || failed "IS_DPKGWARNING")
     fi
 
     if [ "$IS_UMASKSUDOERS" = 1 ]; then
-        is_debianversion squeeze && ( grep -q ^Defaults.*umask=0077 /etc/sudoers || failed "IS_UMASKSUDOERS" )
+        is_debian_squeeze && ( grep -q ^Defaults.*umask=0077 /etc/sudoers || failed "IS_UMASKSUDOERS" )
     fi
 
     # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
     if [ "$IS_NRPEPOSTFIX" = 1 ]; then
-        is_debianversion squeeze && is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg || failed "IS_NRPEPOSTFIX" )
-        is_debianversion squeeze || ( is_installed postfix && ( test -e /etc/nagios/nrpe.cfg && grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* || failed "IS_NRPEPOSTFIX" ) )
+        is_debian_squeeze && is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg || failed "IS_NRPEPOSTFIX" )
+        is_debian_squeeze || ( is_installed postfix && ( test -e /etc/nagios/nrpe.cfg && grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* || failed "IS_NRPEPOSTFIX" ) )
     fi
 
     # Check if mod-security config file is present
     if [ "$IS_MODSECURITY" = 1 ]; then
-        is_debianversion squeeze && is_installed libapache-mod-security && \
+        is_debian_squeeze && is_installed libapache-mod-security && \
             (test -e /etc/apache2/conf.d/mod-security2.conf || failed "IS_MODSECURITY")
-        is_debianversion wheezy && is_installed libapache2-modsecurity && \
+        is_debian_wheezy && is_installed libapache2-modsecurity && \
             (test -e /etc/apache2/conf.d/mod-security2.conf || failed "IS_MODSECURITY")
     fi
 
@@ -232,18 +267,18 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_APTITUDEONLY" = 1 ]; then
-        is_debianversion squeeze && test -e /usr/bin/apt-get && failed "IS_APTITUDEONLY"
-        is_debianversion wheezy && test -e /usr/bin/apt-get && failed "IS_APTITUDEONLY"
+        is_debian_squeeze && test -e /usr/bin/apt-get && failed "IS_APTITUDEONLY"
+        is_debian_wheezy && test -e /usr/bin/apt-get && failed "IS_APTITUDEONLY"
     fi
 
     if [ "$IS_APTITUDE" = 1 ]; then
-        is_debianversion jessie && test -e /usr/bin/aptitude && failed "IS_APTITUDE"
-        is_debianversion stretch && test -e /usr/bin/aptitude && failed "IS_APTITUDE"
+        is_debian_jessie && test -e /usr/bin/aptitude && failed "IS_APTITUDE"
+        is_debian_stretch && test -e /usr/bin/aptitude && failed "IS_APTITUDE"
     fi
 
     if [ "$IS_APTGETBAK" = 1 ]; then
-        is_debianversion jessie && test -e /usr/bin/apt-get.bak && failed "IS_APTGETBAK"
-        is_debianversion stretch && test -e /usr/bin/apt-get.bak && failed "IS_APTGETBAK"
+        is_debian_jessie && test -e /usr/bin/apt-get.bak && failed "IS_APTGETBAK"
+        is_debian_stretch && test -e /usr/bin/apt-get.bak && failed "IS_APTGETBAK"
     fi
 
     if [ "$IS_APTICRON" = 1 ]; then
@@ -251,7 +286,7 @@ if [ -e /etc/debian_version ]; then
         test -e /etc/cron.d/apticron || status="fail"
         test -e /etc/cron.daily/apticron && status="fail"
         test "$status" = "fail" || test -e /usr/bin/apt-get.bak || status="fail"
-        ( is_debianversion squeeze || is_debianversion wheezy ) && test "$status" = "fail" && failed "IS_APTICRON"
+        ( is_debian_squeeze || is_debian_wheezy ) && test "$status" = "fail" && failed "IS_APTICRON"
     fi
 
     if [ "$IS_USRRO" = 1 ]; then
@@ -272,7 +307,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_LISTCHANGESCONF" = 1 ]; then
-        if is_debianversion stretch; then
+        if is_debian_stretch; then
             if is_installed apt-listchanges; then
                 failed "IS_LISTCHANGESCONF" "apt-listchanges must not be installed on Stretch"
             fi
@@ -331,7 +366,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_NRPEPID" = 1 ]; then
-        is_debianversion squeeze || (test -e /etc/nagios/nrpe.cfg && grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg || failed "IS_NRPEPID")
+        is_debian_squeeze || (test -e /etc/nagios/nrpe.cfg && grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg || failed "IS_NRPEPID")
     fi
 
     if [ "$IS_GRSECPROCS" = 1 ]; then
@@ -339,8 +374,8 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_APACHEMUNIN" = 1 ]; then
-        test -e /etc/apache2/apache2.conf && ( is_debianversion stretch || ( grep -E -q "^env.url.*/server-status-[[:alnum:]]{4}" /etc/munin/plugin-conf.d/munin-node && grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf || grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf 2>/dev/null || failed "IS_APACHEMUNIN" ) )
-        test -e /etc/apache2/apache2.conf && ( is_debianversion stretch && ( test -h /etc/apache2/mods-enabled/status.load && test -h /etc/munin/plugins/apache_accesses && test -h /etc/munin/plugins/apache_processes && test -h /etc/munin/plugins/apache_accesses || failed "IS_APACHEMUNIN" ) )
+        test -e /etc/apache2/apache2.conf && ( is_debian_stretch || ( grep -E -q "^env.url.*/server-status-[[:alnum:]]{4}" /etc/munin/plugin-conf.d/munin-node && grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf || grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf 2>/dev/null || failed "IS_APACHEMUNIN" ) )
+        test -e /etc/apache2/apache2.conf && ( is_debian_stretch && ( test -h /etc/apache2/mods-enabled/status.load && test -h /etc/munin/plugins/apache_accesses && test -h /etc/munin/plugins/apache_processes && test -h /etc/munin/plugins/apache_accesses || failed "IS_APACHEMUNIN" ) )
     fi
 
     # Verification mytop + Munin si MySQL
@@ -388,7 +423,7 @@ if [ -e /etc/debian_version ]; then
     # Verification de l'activation de Squid dans le cas d'un pack mail
     if [ "$IS_SQUID" = 1 ]; then
         squidconffile=/etc/squid*/squid.conf
-        is_debianversion stretch && squidconffile=/etc/squid/evolinux-custom.conf
+        is_debian_stretch && squidconffile=/etc/squid/evolinux-custom.conf
         is_pack_web && ( is_installed squid || is_installed squid3 \
             && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $MINIFW_FILE \
             && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $MINIFW_FILE \
@@ -418,7 +453,7 @@ if [ -e /etc/debian_version ]; then
         is_pack_web && (is_installed log2mail && pgrep log2mail >/dev/null || echo 'IS_LOG2MAILRUNNING')
     fi
     if [ "$IS_LOG2MAILAPACHE" = 1 ]; then
-        if is_debianversion stretch; then
+        if is_debian_stretch; then
             conf=/etc/log2mail/config/apache
         else
             conf=/etc/log2mail/config/default
@@ -463,10 +498,10 @@ if [ -e /etc/debian_version ]; then
 
     # Verify if all if are in auto
     if [ "$IS_AUTOIF" = 1 ]; then
-        is_debianversion stretch || for interface in `/sbin/ifconfig -s |tail -n +2 |grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" |cut -d " " -f 1 |tr "\n" " "`; do
+        is_debian_stretch || for interface in `/sbin/ifconfig -s |tail -n +2 |grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" |cut -d " " -f 1 |tr "\n" " "`; do
             grep -q "^auto $interface" /etc/network/interfaces || (failed "IS_AUTOIF" && break)
         done
-        is_debianversion stretch && for interface in `/sbin/ip address show up | grep ^[0-9]*: |grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 |tr -d : |cut -d@ -f1 |tr "\n" " "`; do
+        is_debian_stretch && for interface in `/sbin/ip address show up | grep ^[0-9]*: |grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 |tr -d : |cut -d@ -f1 |tr "\n" " "`; do
             grep -q "^auto $interface" /etc/network/interfaces || (failed "IS_AUTOIF" && break)
         done
     fi
@@ -510,7 +545,7 @@ if [ -e /etc/debian_version ]; then
 
     # Check if default Apache configuration file for munin is absent (or empty or commented).
     if [ "$IS_MUNINAPACHECONF" = 1 ]; then
-        if is_debianversion squeeze || is_debianversion wheezy; then
+        if is_debian_squeeze || is_debian_wheezy; then
             muninconf="/etc/apache2/conf.d/munin"
         else
             muninconf="/etc/apache2/conf-available/munin.conf"
@@ -612,14 +647,14 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_EVOLINUXSUDOGROUP" = 1 ]; then
-        if is_debianversion stretch; then
+        if is_debian_stretch; then
             (grep -q ^evolinux-sudo: /etc/group \
                 && grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux) || failed "IS_EVOLINUXSUDOGROUP"
         fi
     fi
 
     if [ "$IS_USERINADMGROUP" = 1 ]; then
-        if is_debianversion stretch; then
+        if is_debian_stretch; then
             for user in $(grep ^evolinux-sudo: /etc/group |awk -F: '{print $4}' |tr ',' ' '); do
                 groups $user |grep -q adm || failed "IS_USERINADMGROUP"
             done
@@ -627,7 +662,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_APACHE2EVOLINUXCONF" = 1 ]; then
-        if (test -d /etc/apache2 && is_debianversion stretch); then
+        if (test -d /etc/apache2 && is_debian_stretch); then
             (test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
                 && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
                 && test -f /etc/apache2/ipaddr_whitelist.conf) || failed "IS_APACHE2EVOLINUXCONF"
@@ -635,7 +670,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_BACKPORTSCONF" = 1 ]; then
-        if is_debianversion stretch; then
+        if is_debian_stretch; then
             grep -qsE "^[^#].*backports" /etc/apt/sources.list \
                 && failed "IS_BACKPORTSCONF"
             if grep -qsE "^[^#].*backports" /etc/apt/sources.list.d/*.list; then
@@ -646,13 +681,13 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_BIND9MUNIN" = 1 ]; then
-        if is_debianversion stretch && is_installed bind9; then
+        if is_debian_stretch && is_installed bind9; then
             (test -L /etc/munin/plugins/bind9 && test -e /etc/munin/plugin-conf.d/bind9) || failed "IS_BIND9MUNIN"
         fi
     fi
 
     if [ "$IS_BIND9LOGROTATE" = 1 ]; then
-        if is_debianversion stretch && is_installed bind9; then
+        if is_debian_stretch && is_installed bind9; then
             test -e /etc/logrotate.d/bind9 || failed "IS_BIND9LOGROTATE"
         fi
     fi
@@ -669,7 +704,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_LOG2MAILSYSTEMDUNIT" = 1 ]; then
-        if is_debianversion stretch; then
+        if is_debian_stretch; then
             (systemctl -q is-active log2mail.service && test -f /etc/systemd/system/log2mail.service && ! test -f /etc/init.d/log2mail) || failed "IS_LOG2MAILSYSTEMDUNIT"
         fi
     fi
@@ -679,7 +714,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_MARIADBEVOLINUXCONF" = 1 ]; then
-        if is_debianversion stretch && is_installed mariadb-server; then
+        if is_debian_stretch && is_installed mariadb-server; then
             (test -f /etc/mysql/mariadb.conf.d/z-evolinux-defaults.cnf \
                 && test -f /etc/mysql/mariadb.conf.d/zzz-evolinux-custom.cnf) || failed "IS_MARIADBEVOLINUXCONF"
         fi
@@ -747,13 +782,13 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_MARIADBSYSTEMDUNIT" = 1 ]; then
-        if is_debianversion stretch && is_installed mariadb-server; then
+        if is_debian_stretch && is_installed mariadb-server; then
             (systemctl -q is-active mariadb.service && test -f /etc/systemd/system/mariadb.service.d/evolinux.conf) || failed "IS_MARIADBSYSTEMDUNIT"
         fi
     fi
 
     if [ "$IS_MYSQLMUNIN" = 1 ]; then
-        if is_debianversion stretch && is_installed mariadb-server; then
+        if is_debian_stretch && is_installed mariadb-server; then
             for file in mysql_bytes mysql_queries mysql_slowqueries \
                 mysql_threads mysql_connections mysql_files_tables \
                 mysql_innodb_bpool mysql_innodb_bpool_act mysql_innodb_io \
@@ -770,7 +805,7 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_MYSQLNRPE" = 1 ]; then
-        if is_debianversion stretch && is_installed mariadb-server; then
+        if is_debian_stretch && is_installed mariadb-server; then
             (test -f ~nagios/.my.cnf \
                 && [ $(stat -c %U ~nagios/.my.cnf) = "nagios" ] \
                 && [ $(stat -c %a ~nagios/.my.cnf) = "600" ] \
@@ -779,20 +814,20 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_PHPEVOLINUXCONF" = 1 ]; then
-        if is_debianversion stretch && is_installed php; then
+        if is_debian_stretch && is_installed php; then
             (test -f /etc/php/7.0/cli/conf.d/z-evolinux-defaults.ini \
                 && test -f /etc/php/7.0/cli/conf.d/zzz-evolinux-custom.ini) || failed "IS_PHPEVOLINUXCONF"
         fi
     fi
 
     if [ "$IS_SQUIDLOGROTATE" = 1 ]; then
-        if is_debianversion stretch && is_installed squid; then
+        if is_debian_stretch && is_installed squid; then
             grep -q monthly /etc/logrotate.d/squid || failed "IS_SQUIDLOGROTATE"
         fi
     fi
 
     if [ "$IS_SQUIDEVOLINUXCONF" = 1 ]; then
-        if is_debianversion stretch && is_installed squid; then
+        if is_debian_stretch && is_installed squid; then
             (grep -qs "^CONFIG=/etc/squid/evolinux-defaults.conf$" /etc/default/squid \
                 && test -f /etc/squid/evolinux-defaults.conf \
                 && test -f /etc/squid/evolinux-whitelist-defaults.conf \
@@ -863,7 +898,7 @@ if [ -e /etc/debian_version ]; then
         # Starting from Jessie and Apache 2.4, /etc/apache2/conf.d/
         # must be replaced by conf-available/ and config files symlinked
         # to conf-enabled/
-        if is_debianversion jessie || is_debianversion stretch; then
+        if is_debian_jessie || is_debian_stretch; then
             if [ -f /etc/apache2/apache2.conf ]; then
                 test -d /etc/apache2/conf.d/ && failed "IS_APACHE_CONFENABLED"
                 grep -q 'Include conf.d' /etc/apache2/apache2.conf && failed "IS_APACHE_CONFENABLED"
@@ -874,12 +909,12 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_MELTDOWN_SPECTRE" = 1 ]; then
         # For Stretch, detection is easy as the kernel use
         # /sys/devices/system/cpu/vulnerabilities/
-        if is_debianversion stretch; then
+        if is_debian_stretch; then
             for vuln in meltdown spectre_v1 spectre_v2; do
                 test -f /sys/devices/system/cpu/vulnerabilities/$vuln || failed "IS_MELTDOWN_SPECTRE"
             done
         # For Jessie this is quite complicated to verify and we need to use kernel config file
-        elif is_debianversion jessie; then
+        elif is_debian_jessie; then
             if grep -q BOOT_IMAGE= /proc/cmdline; then
                 kernelPath=$(grep -Eo 'BOOT_IMAGE=[^ ]+' /proc/cmdline | cut -d= -f2)
                 kernelVer=${kernelPath##*/vmlinuz-}
@@ -912,7 +947,7 @@ if [ -e /etc/debian_version ]; then
 fi
 
 
-if [ `uname -s` == "OpenBSD" ]; then
+if is_openbsd; then
 
     if [ "$IS_SOFTDEP" = 1 ]; then
         grep -q "softdep" /etc/fstab || failed "IS_SOFTDEP"
@@ -1018,14 +1053,14 @@ if [ "$IS_USRSHARESCRIPTS" = 1 ]; then
 fi
 
 if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
-    is_debianversion stretch || ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO" )
-    is_debianversion stretch && grep -q ^PermitRoot /etc/ssh/sshd_config && ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO" )
+    is_debian_stretch || ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO" )
+    is_debian_stretch && grep -q ^PermitRoot /etc/ssh/sshd_config && ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO" )
 fi
 
 if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
     # Can be changed in evocheck.cf
     homeDir=${homeDir:-/home}
-    if ! is_debianversion stretch; then
+    if ! is_debian_stretch; then
         if [ -f /etc/sudoers.d/evolinux ]; then
             sudoers="/etc/sudoers.d/evolinux"
         else

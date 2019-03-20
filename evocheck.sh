@@ -382,7 +382,7 @@ if [ -e /etc/debian_version ]; then
 
     # Verification de la présence de metche
     #if [ "$IS_METCHE" = 1 ]; then
-    #	is_installed metche || failed "IS_METCHE"
+    #    is_installed metche || failed "IS_METCHE"
     #fi
 
     # Verification de l'activation de Squid dans le cas d'un pack mail

@@ -366,8 +366,8 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_RAIDSOFT" = 1 ]; then
         test -e /proc/mdstat && grep -q md /proc/mdstat && \
             ( grep -q "^AUTOCHECK=true" /etc/default/mdadm \
-        && grep -q "^START_DAEMON=true" /etc/default/mdadm \
-        && grep -qv "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf || failed "IS_RAIDSOFT")
+            && grep -q "^START_DAEMON=true" /etc/default/mdadm \
+            && grep -qv "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf || failed "IS_RAIDSOFT")
     fi
 
     # Verification du LogFormat de AWStats
@@ -390,10 +390,10 @@ if [ -e /etc/debian_version ]; then
         squidconffile=/etc/squid*/squid.conf
         is_debianversion stretch && squidconffile=/etc/squid/evolinux-custom.conf
         is_pack_web && ( is_installed squid || is_installed squid3 \
-        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $MINIFW_FILE \
-        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $MINIFW_FILE \
-        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" $MINIFW_FILE \
-        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* `grep http_port $squidconffile | cut -f 2 -d " "`" $MINIFW_FILE || failed "IS_SQUID" )
+            && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $MINIFW_FILE \
+            && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $MINIFW_FILE \
+            && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" $MINIFW_FILE \
+            && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* `grep http_port $squidconffile | cut -f 2 -d " "`" $MINIFW_FILE || failed "IS_SQUID" )
     fi
 
     if [ "$IS_EVOMAINTENANCE_FW" = 1 ]; then
@@ -409,8 +409,8 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_MODDEFLATE" = 1 ]; then
         f=/etc/apache2/mods-enabled/deflate.conf
         is_installed apache2.2 && (test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
-        && grep -q "AddOutputFilterByType DEFLATE text/css" $f \
-        && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f || failed "IS_MODDEFLATE")
+            && grep -q "AddOutputFilterByType DEFLATE text/css" $f \
+            && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f || failed "IS_MODDEFLATE")
     fi
 
     # Verification de la conf log2mail
@@ -449,7 +449,7 @@ if [ -e /etc/debian_version ]; then
     # Verification de la présence du depot volatile
     if [ "$IS_REPVOLATILE" = 1 ]; then
         test `cat /etc/debian_version |cut -d "." -f 1` -eq 5 && (grep -qE "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list || failed "IS_REPVOLATILE")
-            test `cat /etc/debian_version |cut -d "." -f 1` -eq 6 && (grep -qE "^deb.*squeeze-updates" /etc/apt/sources.list || failed "IS_REPVOLATILE")
+        test `cat /etc/debian_version |cut -d "." -f 1` -eq 6 && (grep -qE "^deb.*squeeze-updates" /etc/apt/sources.list || failed "IS_REPVOLATILE")
     fi
 
     # /etc/network/interfaces should be present, we don't manage systemd-network yet
@@ -464,11 +464,11 @@ if [ -e /etc/debian_version ]; then
     # Verify if all if are in auto
     if [ "$IS_AUTOIF" = 1 ]; then
         is_debianversion stretch || for interface in `/sbin/ifconfig -s |tail -n +2 |grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" |cut -d " " -f 1 |tr "\n" " "`; do
-                    grep -q "^auto $interface" /etc/network/interfaces || (failed "IS_AUTOIF" && break)
-            done
+            grep -q "^auto $interface" /etc/network/interfaces || (failed "IS_AUTOIF" && break)
+        done
         is_debianversion stretch && for interface in `/sbin/ip address show up | grep ^[0-9]*: |grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 |tr -d : |cut -d@ -f1 |tr "\n" " "`; do
-                    grep -q "^auto $interface" /etc/network/interfaces || (failed "IS_AUTOIF" && break)
-            done
+            grep -q "^auto $interface" /etc/network/interfaces || (failed "IS_AUTOIF" && break)
+        done
     fi
 
     # Network conf verification
@@ -575,7 +575,7 @@ if [ -e /etc/debian_version ]; then
             last_upgrade=$(date +%s -d $(zgrep -h upgrade /var/log/dpkg.log* |sort -n |tail -1 |cut -f1 -d ' '))
         fi
         if grep -qs '^mailto="listupgrade-todo@' /etc/evolinux/listupgrade.cnf \
-        || grep -qs -E '^[[:digit:]]+[[:space:]]+[[:digit:]]+[[:space:]]+[^\*]' /etc/cron.d/listupgrade; then
+            || grep -qs -E '^[[:digit:]]+[[:space:]]+[[:digit:]]+[[:space:]]+[^\*]' /etc/cron.d/listupgrade; then
             # Manual upgrade process
             limit=$(date +%s -d "now - 180 days")
         else
@@ -637,10 +637,10 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_BACKPORTSCONF" = 1 ]; then
         if is_debianversion stretch; then
             grep -qsE "^[^#].*backports" /etc/apt/sources.list \
-              && failed "IS_BACKPORTSCONF"
+                && failed "IS_BACKPORTSCONF"
             if grep -qsE "^[^#].*backports" /etc/apt/sources.list.d/*.list; then
                 grep -qsE "^[^#].*backports" /etc/apt/preferences.d/* \
-                  || failed "IS_BACKPORTSCONF"
+                || failed "IS_BACKPORTSCONF"
             fi
         fi
     fi
@@ -755,11 +755,11 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_MYSQLMUNIN" = 1 ]; then
         if is_debianversion stretch && is_installed mariadb-server; then
             for file in mysql_bytes mysql_queries mysql_slowqueries \
-            mysql_threads mysql_connections mysql_files_tables \
-            mysql_innodb_bpool mysql_innodb_bpool_act mysql_innodb_io \
-            mysql_innodb_log mysql_innodb_rows mysql_innodb_semaphores \
-            mysql_myisam_indexes mysql_qcache mysql_qcache_mem \
-            mysql_sorts mysql_tmp_tables; do
+                mysql_threads mysql_connections mysql_files_tables \
+                mysql_innodb_bpool mysql_innodb_bpool_act mysql_innodb_io \
+                mysql_innodb_log mysql_innodb_rows mysql_innodb_semaphores \
+                mysql_myisam_indexes mysql_qcache mysql_qcache_mem \
+                mysql_sorts mysql_tmp_tables; do
 
                 if [[ ! -L /etc/munin/plugins/$file ]]; then
                     failed "IS_MYSQLMUNIN"
@@ -807,8 +807,7 @@ if [ -e /etc/debian_version ]; then
         # Do it only if thereis blkid binary
         if [ -x "$(which blkid)" ]; then
             tmpFile=$(mktemp -p /tmp)
-            parts=$(blkid | grep -ve raid_member -e EFI_SYSPART \
-              | grep -Eo ' LABEL=".*"' | cut -d'"' -f2)
+            parts=$(blkid | grep -ve raid_member -e EFI_SYSPART | grep -Eo ' LABEL=".*"' | cut -d'"' -f2)
             for part in $parts; do
                 echo "$part" >> "$tmpFile"
             done
@@ -867,8 +866,7 @@ if [ -e /etc/debian_version ]; then
         if is_debianversion jessie || is_debianversion stretch; then
             if [ -f /etc/apache2/apache2.conf ]; then
                 test -d /etc/apache2/conf.d/ && failed "IS_APACHE_CONFENABLED"
-                grep -q 'Include conf.d' /etc/apache2/apache2.conf && \
-                  failed "IS_APACHE_CONFENABLED"
+                grep -q 'Include conf.d' /etc/apache2/apache2.conf && failed "IS_APACHE_CONFENABLED"
             fi
         fi
     fi
@@ -898,8 +896,8 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_OLD_HOME_DIR" = 1 ]; then
         for dir in /home/*; do
             statResult=$(stat -c "%n has owner %u resolved as %U" "$dir" \
-              | grep -Eve '.bak' -e '\.[0-9]{2}-[0-9]{2}-[0-9]{4}' \
-              | grep UNKNOWN)
+               | grep -Eve '.bak' -e '\.[0-9]{2}-[0-9]{2}-[0-9]{4}' \
+               | grep UNKNOWN)
             # There is at least one dir matching
             if [[ -n "$statResult" ]]; then
                 failed "IS_OLD_HOME_DIR"
@@ -925,7 +923,7 @@ if [ `uname -s` == "OpenBSD" ]; then
     fi
 
     if [ "$IS_SUDOADMIN" = 1 ]; then
-    grep -qE "^User_Alias ADMIN=.*$" /etc/sudoers || failed "IS_SUDOADMIN"
+        grep -qE "^User_Alias ADMIN=.*$" /etc/sudoers || failed "IS_SUDOADMIN"
     fi
 
     if [ "$IS_PKGMIRROR" = 1 ]; then
@@ -935,10 +933,10 @@ if [ `uname -s` == "OpenBSD" ]; then
     if [ "$IS_HISTORY" = 1 ]; then
         f=/root/.profile
         grep -q "^HISTFILE=\$HOME/.histfile" $f \
-        && grep -q "^export HISTFILE" $f \
-        && grep -q "^HISTSIZE=1000" $f \
-        && grep -q "^export HISTSIZE" $f \
-        || failed "IS_HISTORY"
+            && grep -q "^export HISTFILE" $f \
+            && grep -q "^HISTSIZE=1000" $f \
+            && grep -q "^export HISTSIZE" $f \
+            || failed "IS_HISTORY"
     fi
 
     if [ "$IS_VIM" = 1 ]; then
@@ -960,8 +958,8 @@ if [ `uname -s` == "OpenBSD" ]; then
     if [ "$IS_SUDOMAINT" = 1 ]; then
         f=/etc/sudoers
         grep -q "Cmnd_Alias MAINT = /usr/share/scripts/evomaintenance.sh" $f \
-        && grep -q "ADMIN ALL=NOPASSWD: MAINT" $f \
-        || failed "IS_SUDOMAINT"
+            && grep -q "ADMIN ALL=NOPASSWD: MAINT" $f \
+            || failed "IS_SUDOMAINT"
     fi
 
     if [ "$IS_POSTGRESQL" = 1 ]; then
@@ -970,8 +968,8 @@ if [ `uname -s` == "OpenBSD" ]; then
 
     if [ "$IS_NRPE" = 1 ]; then
         ( pkg info | grep -qE "nagios-plugins-[0-9.]" \
-        && pkg info | grep -q nagios-plugins-ntp \
-        && pkg info | grep -q nrpe ) || failed "IS_NRPE"
+            && pkg info | grep -q nagios-plugins-ntp \
+            && pkg info | grep -q nrpe ) || failed "IS_NRPE"
     fi
 
 # if [ "$IS_NRPEDISKS" = 1 ]; then
@@ -1063,16 +1061,16 @@ fi
 if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
     f=/etc/evomaintenance.cf
     ( test -e $f \
-    && test $(stat -c "%a" $f) = "600" \
-    && grep "^export PGPASSWORD" $f |grep -qv "your-passwd" \
-    && grep "^PGDB" $f |grep -qv "your-db" \
-    && grep "^PGTABLE" $f |grep -qv "your-table" \
-    && grep "^PGHOST" $f |grep -qv "your-pg-host" \
-    && grep "^FROM" $f |grep -qv "jdoe@example.com" \
-    && grep "^FULLFROM" $f |grep -qv "John Doe <jdoe@example.com>" \
-    && grep "^URGENCYFROM" $f |grep -qv "mama.doe@example.com" \
-    && grep "^URGENCYTEL" $f |grep -qv "06.00.00.00.00" \
-    && grep "^REALM" $f |grep -qv "example.com" ) || failed "IS_EVOMAINTENANCECONF"
+        && test $(stat -c "%a" $f) = "600" \
+        && grep "^export PGPASSWORD" $f |grep -qv "your-passwd" \
+        && grep "^PGDB" $f |grep -qv "your-db" \
+        && grep "^PGTABLE" $f |grep -qv "your-table" \
+        && grep "^PGHOST" $f |grep -qv "your-pg-host" \
+        && grep "^FROM" $f |grep -qv "jdoe@example.com" \
+        && grep "^FULLFROM" $f |grep -qv "John Doe <jdoe@example.com>" \
+        && grep "^URGENCYFROM" $f |grep -qv "mama.doe@example.com" \
+        && grep "^URGENCYTEL" $f |grep -qv "06.00.00.00.00" \
+        && grep "^REALM" $f |grep -qv "example.com" ) || failed "IS_EVOMAINTENANCECONF"
 fi
 
 if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then

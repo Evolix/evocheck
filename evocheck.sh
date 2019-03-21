@@ -1058,7 +1058,7 @@ if is_debian; then
             done
         # For Jessie this is quite complicated to verify and we need to use kernel config file
         elif is_debian_jessie; then
-            if grep -q BOOT_IMAGE= /proc/cmdline; then
+            if grep -q "BOOT_IMAGE=" /proc/cmdline; then
                 kernelPath=$(grep -Eo 'BOOT_IMAGE=[^ ]+' /proc/cmdline | cut -d= -f2)
                 kernelVer=${kernelPath##*/vmlinuz-}
                 kernelConfig="config-${kernelVer}"
@@ -1076,8 +1076,8 @@ if is_debian; then
     if [ "$IS_OLD_HOME_DIR" = 1 ]; then
         for dir in /home/*; do
             statResult=$(stat -c "%n has owner %u resolved as %U" "$dir" \
-               | grep -Eve '.bak' -e '\.[0-9]{2}-[0-9]{2}-[0-9]{4}' \
-               | grep UNKNOWN)
+                | grep -Eve '.bak' -e '\.[0-9]{2}-[0-9]{2}-[0-9]{4}' \
+                | grep "UNKNOWN")
             # There is at least one dir matching
             if [[ -n "$statResult" ]]; then
                 failed "IS_OLD_HOME_DIR"
@@ -1129,11 +1129,11 @@ if is_openbsd; then
     fi
 
     if [ "$IS_CUSTOMSYSLOG" = 1 ]; then
-        grep -q Evolix /etc/newsyslog.conf || failed "IS_CUSTOMSYSLOG"
+        grep -q "Evolix" /etc/newsyslog.conf || failed "IS_CUSTOMSYSLOG"
     fi
 
     if [ "$IS_NOINETD" = 1 ]; then
-        grep -q inetd=NO /etc/rc.conf.local 2>/dev/null || failed "IS_NOINETD"
+        grep -q "inetd=NO" /etc/rc.conf.local 2>/dev/null || failed "IS_NOINETD"
     fi
 
     if [ "$IS_SUDOMAINT" = 1 ]; then

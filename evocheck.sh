@@ -495,8 +495,8 @@ if is_debian; then
 
     # Verification de la présence du depot volatile
     if [ "$IS_REPVOLATILE" = 1 ]; then
-        test `cat /etc/debian_version |cut -d "." -f 1` -eq 5 && (grep -qE "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list || failed "IS_REPVOLATILE")
-        test `cat /etc/debian_version |cut -d "." -f 1` -eq 6 && (grep -qE "^deb.*squeeze-updates" /etc/apt/sources.list || failed "IS_REPVOLATILE")
+        is_debian_lenny && (grep -qE "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list || failed "IS_REPVOLATILE")
+        is_debian_squeeze && (grep -qE "^deb.*squeeze-updates" /etc/apt/sources.list || failed "IS_REPVOLATILE")
     fi
 
     # /etc/network/interfaces should be present, we don't manage systemd-network yet

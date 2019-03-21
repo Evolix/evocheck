@@ -125,10 +125,17 @@ IS_NRPEDAEMON=1
 IS_ALERTBOOT=1
 IS_RSYNC=1
 
-# Verbose function
-verbose() {
-    msg="${1:-$(cat /dev/stdin)}"
-    [ "${VERBOSE}" -eq 1 ] && [ -n "${msg}" ] && echo "${msg}"
+# logging function
+failed() {
+    check_name=$1
+    shift
+    check_comments=$@
+
+    if [ -n "${check_comments}" ] && [ "${VERBOSE}" = 1 ]; then
+        printf "%s FAILED! %s\n" "${check_name}" "${check_comments}" 2>&1
+    else
+        printf "%s FAILED!\n" "${check_name}" 2>&1
+    fi
 }
 
 # Source configuration file
@@ -175,68 +182,68 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_DPKGWARNING" = 1 ]; then
         is_debianversion squeeze && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && ( \
             grep -E -i "(Pre-Invoke ..echo Are you sure to have rw on|Post-Invoke ..echo Dont forget to mount -o remount)" \
-            /etc/apt/apt.conf | wc -l | grep -q ^2$ || echo 'IS_DPKGWARNING FAILED!' )
+            /etc/apt/apt.conf | wc -l | grep -q ^2$ || failed "IS_DPKGWARNING" )
         is_debianversion wheezy && ( ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && \
-            ( test -e /etc/apt/apt.conf.d/80evolinux || echo 'IS_DPKGWARNING FAILED!' )
-            test -e /etc/apt/apt.conf && echo 'IS_DPKGWARNING FAILED!' )
-        is_debianversion stretch && (test -e /etc/apt/apt.conf.d/z-evolinux.conf || echo 'IS_DPKGWARNING FAILED!')
+            ( test -e /etc/apt/apt.conf.d/80evolinux || failed "IS_DPKGWARNING" )
+            test -e /etc/apt/apt.conf && failed "IS_DPKGWARNING" )
+        is_debianversion stretch && (test -e /etc/apt/apt.conf.d/z-evolinux.conf || failed "IS_DPKGWARNING")
     fi
 
     if [ "$IS_UMASKSUDOERS" = 1 ]; then
-        is_debianversion squeeze && ( grep -q ^Defaults.*umask=0077 /etc/sudoers || echo 'IS_UMASKSUDOERS FAILED!' )
+        is_debianversion squeeze && ( grep -q ^Defaults.*umask=0077 /etc/sudoers || failed "IS_UMASKSUDOERS" )
     fi
 
     # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
     if [ "$IS_NRPEPOSTFIX" = 1 ]; then
-        is_debianversion squeeze && is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPOSTFIX FAILED!' )
-        is_debianversion squeeze || ( is_installed postfix && ( test -e /etc/nagios/nrpe.cfg && grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* || echo 'IS_NRPEPOSTFIX FAILED!' ) )
+        is_debianversion squeeze && is_installed postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg || failed "IS_NRPEPOSTFIX" )
+        is_debianversion squeeze || ( is_installed postfix && ( test -e /etc/nagios/nrpe.cfg && grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* || failed "IS_NRPEPOSTFIX" ) )
     fi
 
     # Check if mod-security config file is present
     if [ "$IS_MODSECURITY" = 1 ]; then
         is_debianversion squeeze && is_installed libapache-mod-security && \
-            (test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!')
+            (test -e /etc/apache2/conf.d/mod-security2.conf || failed "IS_MODSECURITY")
         is_debianversion wheezy && is_installed libapache2-modsecurity && \
-            (test -e /etc/apache2/conf.d/mod-security2.conf || echo 'IS_MODSECURITY FAILED!')
+            (test -e /etc/apache2/conf.d/mod-security2.conf || failed "IS_MODSECURITY")
     fi
 
     if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
-        grep -E -qr "umask=0077" /etc/sudoers* || echo 'IS_CUSTOMSUDOERS FAILED!'
+        grep -E -qr "umask=0077" /etc/sudoers* || failed "IS_CUSTOMSUDOERS"
     fi
 
     if [ "$IS_VARTMPFS" = 1 ]; then
-        df /var/tmp | grep -q tmpfs || echo 'IS_VARTMPFS FAILED!'
+        df /var/tmp | grep -q tmpfs || failed "IS_VARTMPFS"
     fi
 
     if [ "$IS_SERVEURBASE" = 1 ]; then
-        is_installed serveur-base || echo 'IS_SERVEURBASE FAILED!'
+        is_installed serveur-base || failed "IS_SERVEURBASE"
     fi
 
     if [ "$IS_LOGROTATECONF" = 1 ]; then
-        test -e /etc/logrotate.d/zsyslog || echo 'IS_LOGROTATECONF FAILED!'
+        test -e /etc/logrotate.d/zsyslog || failed "IS_LOGROTATECONF"
     fi
 
     if [ "$IS_SYSLOGCONF" = 1 ]; then
-        grep -q "^# Syslog for Pack Evolix serveur" /etc/*syslog.conf || echo 'IS_SYSLOGCONF FAILED!'
+        grep -q "^# Syslog for Pack Evolix serveur" /etc/*syslog.conf || failed "IS_SYSLOGCONF"
     fi
 
     if [ "$IS_DEBIANSECURITY" = 1 ]; then
-        grep -q "^deb.*security" /etc/apt/sources.list || echo 'IS_DEBIANSECURITY FAILED!'
+        grep -q "^deb.*security" /etc/apt/sources.list || failed "IS_DEBIANSECURITY"
     fi
 
     if [ "$IS_APTITUDEONLY" = 1 ]; then
-        is_debianversion squeeze && test -e /usr/bin/apt-get && echo 'IS_APTITUDEONLY FAILED!'
-        is_debianversion wheezy && test -e /usr/bin/apt-get && echo 'IS_APTITUDEONLY FAILED!'
+        is_debianversion squeeze && test -e /usr/bin/apt-get && failed "IS_APTITUDEONLY"
+        is_debianversion wheezy && test -e /usr/bin/apt-get && failed "IS_APTITUDEONLY"
     fi
 
     if [ "$IS_APTITUDE" = 1 ]; then
-        is_debianversion jessie && test -e /usr/bin/aptitude && echo 'IS_APTITUDE FAILED!'
-        is_debianversion stretch && test -e /usr/bin/aptitude && echo 'IS_APTITUDE FAILED!'
+        is_debianversion jessie && test -e /usr/bin/aptitude && failed "IS_APTITUDE"
+        is_debianversion stretch && test -e /usr/bin/aptitude && failed "IS_APTITUDE"
     fi
 
     if [ "$IS_APTGETBAK" = 1 ]; then
-        is_debianversion jessie && test -e /usr/bin/apt-get.bak && echo 'IS_APTGETBAK FAILED!'
-        is_debianversion stretch && test -e /usr/bin/apt-get.bak && echo 'IS_APTGETBAK FAILED!'
+        is_debianversion jessie && test -e /usr/bin/apt-get.bak && failed "IS_APTGETBAK"
+        is_debianversion stretch && test -e /usr/bin/apt-get.bak && failed "IS_APTGETBAK"
     fi
 
     if [ "$IS_APTICRON" = 1 ]; then
@@ -244,22 +251,22 @@ if [ -e /etc/debian_version ]; then
         test -e /etc/cron.d/apticron || status="fail"
         test -e /etc/cron.daily/apticron && status="fail"
         test "$status" = "fail" || test -e /usr/bin/apt-get.bak || status="fail"
-        ( is_debianversion squeeze || is_debianversion wheezy ) && test "$status" = "fail" && echo 'IS_APTICRON FAILED!'
+        ( is_debianversion squeeze || is_debianversion wheezy ) && test "$status" = "fail" && failed "IS_APTICRON"
     fi
 
     if [ "$IS_USRRO" = 1 ]; then
-        grep /usr /etc/fstab | grep -q ro || echo 'IS_USRRO FAILED!'
+        grep /usr /etc/fstab | grep -q ro || failed "IS_USRRO"
     fi
 
     if [ "$IS_TMPNOEXEC" = 1 ]; then
-        mount | grep "on /tmp" | grep -q noexec || echo 'IS_TMPNOEXEC FAILED!'
+        mount | grep "on /tmp" | grep -q noexec || failed "IS_TMPNOEXEC"
     fi
 
     if [ "$IS_MOUNT_FSTAB" = 1 ]; then
         # Test if lsblk available, if not skip this test...
         if test -x "$(command -v lsblk)"; then
             for mountPoint in $(lsblk -o MOUNTPOINT -l -n | grep '/'); do
-                grep -Eq "$mountPoint\W" /etc/fstab || echo 'IS_MOUNT_FSTAB FAILED!'
+                grep -Eq "$mountPoint\W" /etc/fstab || failed "IS_MOUNT_FSTAB"
             done
         fi
     fi
@@ -267,76 +274,73 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_LISTCHANGESCONF" = 1 ]; then
         if is_debianversion stretch; then
             if is_installed apt-listchanges; then
-                echo 'IS_LISTCHANGESCONF FAILED!'
-                verbose "apt-listchanges must not be installed on Stretch"
+                failed "IS_LISTCHANGESCONF" "apt-listchanges must not be installed on Stretch"
             fi
         else
             if [ -e "/etc/apt/listchanges.conf" ]; then
                 lines=$(grep -cE "(which=both|confirm=1)" /etc/apt/listchanges.conf)
                 if [ $lines != 2 ]; then
-                    echo 'IS_LISTCHANGESCONF FAILED!'
-                    verbose "apt-listchanges config is incorrect"
+                    failed "IS_LISTCHANGESCONF" "apt-listchanges config is incorrect"
                 fi
             else
-                echo 'IS_LISTCHANGESCONF FAILED!'
-                verbose "apt-listchanges config is missing"
+                failed "IS_LISTCHANGESCONF" "apt-listchanges config is missing"
             fi
         fi
     fi
 
     if [ "$IS_CUSTOMCRONTAB" = 1 ]; then
-        grep -E "^(17 \*|25 6|47 6|52 6)" /etc/crontab | wc -l | grep -q ^4$ && echo 'IS_CUSTOMCRONTAB FAILED!'
+        grep -E "^(17 \*|25 6|47 6|52 6)" /etc/crontab | wc -l | grep -q ^4$ && failed "IS_CUSTOMCRONTAB"
     fi
 
     if [ "$IS_SSHALLOWUSERS" = 1 ]; then
-        grep -E -qi "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config || echo 'IS_SSHALLOWUSERS FAILED!'
+        grep -E -qi "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config || failed "IS_SSHALLOWUSERS"
     fi
 
     if [ "$IS_DISKPERF" = 1 ]; then
-        test -e /root/disk-perf.txt || echo 'IS_DISKPERF FAILED!'
+        test -e /root/disk-perf.txt || failed "IS_DISKPERF"
     fi
 
     if [ "$IS_TMOUTPROFILE" = 1 ]; then
-        grep -q TMOUT= /etc/profile /etc/profile.d/evolinux.sh || echo 'IS_TMOUTPROFILE FAILED!'
+        grep -q TMOUT= /etc/profile /etc/profile.d/evolinux.sh || failed "IS_TMOUTPROFILE"
     fi
 
     if [ "$IS_ALERT5BOOT" = 1 ]; then
-        grep -q ^date /etc/rc2.d/S*alert5 || echo 'IS_ALERT5BOOT FAILED!'
+        grep -q ^date /etc/rc2.d/S*alert5 || failed "IS_ALERT5BOOT"
     fi
 
     if [ "$IS_ALERT5MINIFW" = 1 ]; then
-        grep -q ^/etc/init.d/minifirewall /etc/rc2.d/S*alert5 || echo 'IS_ALERT5MINIFW FAILED!'
+        grep -q ^/etc/init.d/minifirewall /etc/rc2.d/S*alert5 || failed "IS_ALERT5MINIFW"
     fi
 
     if [ "$IS_ALERT5MINIFW" = 1 ] && [ "$IS_MINIFW" = 1 ]; then
-        /sbin/iptables -L -n | grep -q -E "^ACCEPT\s*all\s*--\s*31\.170\.8\.4\s*0\.0\.0\.0/0\s*$" || echo 'IS_MINIFW FAILED!'
+        /sbin/iptables -L -n | grep -q -E "^ACCEPT\s*all\s*--\s*31\.170\.8\.4\s*0\.0\.0\.0/0\s*$" || failed "IS_MINIFW"
     fi
 
     if [ "$IS_NRPEPERMS" = 1 ]; then
-        test -d /etc/nagios && ls -ld /etc/nagios | grep -q drwxr-x--- || echo 'IS_NRPEPERMS FAILED!'
+        test -d /etc/nagios && ls -ld /etc/nagios | grep -q drwxr-x--- || failed "IS_NRPEPERMS"
     fi
 
     if [ "$IS_MINIFWPERMS" = 1 ]; then
-        ls -l "$MINIFW_FILE" | grep -q -- -rw------- || echo 'IS_MINIFWPERMS FAILED!'
+        ls -l "$MINIFW_FILE" | grep -q -- -rw------- || failed "IS_MINIFWPERMS"
     fi
 
     if [ "$IS_NRPEDISKS" = 1 ]; then
         NRPEDISKS=$(grep command.check_disk /etc/nagios/nrpe.cfg | grep ^command.check_disk[0-9] | sed -e "s/^command.check_disk\([0-9]\+\).*/\1/" | sort -n | tail -1)
         DFDISKS=$(df -Pl | grep -E -v "(^Filesystem|/lib/init/rw|/dev/shm|udev|rpc_pipefs)" | wc -l)
-        [ "$NRPEDISKS" = "$DFDISKS" ] || echo 'IS_NRPEDISKS FAILED!'
+        [ "$NRPEDISKS" = "$DFDISKS" ] || failed "IS_NRPEDISKS"
     fi
 
     if [ "$IS_NRPEPID" = 1 ]; then
-        is_debianversion squeeze || (test -e /etc/nagios/nrpe.cfg && grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg || echo 'IS_NRPEPID FAILED!')
+        is_debianversion squeeze || (test -e /etc/nagios/nrpe.cfg && grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg || failed "IS_NRPEPID")
     fi
 
     if [ "$IS_GRSECPROCS" = 1 ]; then
-        uname -a | grep -q grsec && ( grep -q ^command.check_total_procs..sudo /etc/nagios/nrpe.cfg && grep -A1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep -q "^user root" || echo 'IS_GRSECPROCS FAILED!' )
+        uname -a | grep -q grsec && ( grep -q ^command.check_total_procs..sudo /etc/nagios/nrpe.cfg && grep -A1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep -q "^user root" || failed "IS_GRSECPROCS" )
     fi
 
     if [ "$IS_APACHEMUNIN" = 1 ]; then
-        test -e /etc/apache2/apache2.conf && ( is_debianversion stretch || ( grep -E -q "^env.url.*/server-status-[[:alnum:]]{4}" /etc/munin/plugin-conf.d/munin-node && grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf || grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf 2>/dev/null || echo 'IS_APACHEMUNIN FAILED!' ) )
-        test -e /etc/apache2/apache2.conf && ( is_debianversion stretch && ( test -h /etc/apache2/mods-enabled/status.load && test -h /etc/munin/plugins/apache_accesses && test -h /etc/munin/plugins/apache_processes && test -h /etc/munin/plugins/apache_accesses || echo 'IS_APACHEMUNIN FAILED!' ) )
+        test -e /etc/apache2/apache2.conf && ( is_debianversion stretch || ( grep -E -q "^env.url.*/server-status-[[:alnum:]]{4}" /etc/munin/plugin-conf.d/munin-node && grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf || grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf 2>/dev/null || failed "IS_APACHEMUNIN" ) )
+        test -e /etc/apache2/apache2.conf && ( is_debianversion stretch && ( test -h /etc/apache2/mods-enabled/status.load && test -h /etc/munin/plugins/apache_accesses && test -h /etc/munin/plugins/apache_processes && test -h /etc/munin/plugins/apache_accesses || failed "IS_APACHEMUNIN" ) )
     fi
 
     # Verification mytop + Munin si MySQL
@@ -345,18 +349,15 @@ if [ -e /etc/debian_version ]; then
         if is_installed mysql-server; then
             # You can configure MYSQL_ADMIN in evocheck.cf
             if ! grep -qs "$MYSQL_ADMIN" /root/.my.cnf; then
-                echo 'IS_MYSQLUTILS FAILED!'
-                verbose 'mysqladmin missing in /root/.my.cnf'
+                failed "IS_MYSQLUTILS" "mysqladmin missing in /root/.my.cnf"
             fi
             if ! test -x /usr/bin/mytop; then
                 if ! test -x /usr/local/bin/mytop; then
-                    echo 'IS_MYSQLUTILS FAILED!'
-                    verbose 'mytop binary missing'
+                    failed "IS_MYSQLUTILS" "mytop binary missing"
                 fi
             fi
             if ! grep -qs debian-sys-maint /root/.mytop; then
-                echo 'IS_MYSQLUTILS FAILED!'
-                verbose 'debian-sys-maint missing in /root/.mytop'
+                failed "IS_MYSQLUTILS" "debian-sys-maint missing in /root/.mytop"
             fi
         fi
     fi
@@ -366,22 +367,22 @@ if [ -e /etc/debian_version ]; then
         test -e /proc/mdstat && grep -q md /proc/mdstat && \
             ( grep -q "^AUTOCHECK=true" /etc/default/mdadm \
         && grep -q "^START_DAEMON=true" /etc/default/mdadm \
-        && grep -qv "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf || echo 'IS_RAIDSOFT FAILED!')
+        && grep -qv "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf || failed "IS_RAIDSOFT")
     fi
 
     # Verification du LogFormat de AWStats
     if [ "$IS_AWSTATSLOGFORMAT" = 1 ]; then
-        is_installed apache2.2-common && ( grep -qE '^LogFormat=1' /etc/awstats/awstats.conf.local || echo 'IS_AWSTATSLOGFORMAT FAILED!' )
+        is_installed apache2.2-common && ( grep -qE '^LogFormat=1' /etc/awstats/awstats.conf.local || failed "IS_AWSTATSLOGFORMAT" )
     fi
 
     # Verification de la présence de la config logrotate pour Munin
     if [ "$IS_MUNINLOGROTATE" = 1 ]; then
-        ( test -e /etc/logrotate.d/munin-node && test -e /etc/logrotate.d/munin ) || echo 'IS_MUNINLOGROTATE FAILED!'
+        ( test -e /etc/logrotate.d/munin-node && test -e /etc/logrotate.d/munin ) || failed "IS_MUNINLOGROTATE"
     fi
 
     # Verification de la présence de metche
     #if [ "$IS_METCHE" = 1 ]; then
-    #	is_installed metche || echo 'IS_METCHE FAILED!'
+    #	is_installed metche || failed "IS_METCHE"
     #fi
 
     # Verification de l'activation de Squid dans le cas d'un pack mail
@@ -392,14 +393,14 @@ if [ -e /etc/debian_version ]; then
         && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $MINIFW_FILE \
         && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $MINIFW_FILE \
         && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" $MINIFW_FILE \
-        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* `grep http_port $squidconffile | cut -f 2 -d " "`" $MINIFW_FILE || echo 'IS_SQUID FAILED!' )
+        && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* `grep http_port $squidconffile | cut -f 2 -d " "`" $MINIFW_FILE || failed "IS_SQUID" )
     fi
 
     if [ "$IS_EVOMAINTENANCE_FW" = 1 ]; then
         if [ -f "$MINIFW_FILE" ]; then
             rulesNumber=$(grep -c "/sbin/iptables -A INPUT -p tcp --sport 5432 --dport 1024:65535 -s .* -m state --state ESTABLISHED,RELATED -j ACCEPT" "$MINIFW_FILE")
             if [ "$rulesNumber" -lt 2 ]; then
-                echo 'IS_EVOMAINTENANCE_FW FAILED!'
+                failed "IS_EVOMAINTENANCE_FW"
             fi
         fi
     fi
@@ -409,7 +410,7 @@ if [ -e /etc/debian_version ]; then
         f=/etc/apache2/mods-enabled/deflate.conf
         is_installed apache2.2 && (test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
         && grep -q "AddOutputFilterByType DEFLATE text/css" $f \
-        && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f || echo 'IS_MODDEFLATE FAILED!')
+        && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f || failed "IS_MODDEFLATE")
     fi
 
     # Verification de la conf log2mail
@@ -422,14 +423,14 @@ if [ -e /etc/debian_version ]; then
         else
             conf=/etc/log2mail/config/default
         fi
-        is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/apache2/error.log" $conf 2>/dev/null || echo 'IS_LOG2MAILAPACHE FAILED!' )
+        is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/apache2/error.log" $conf 2>/dev/null || failed "IS_LOG2MAILAPACHE" )
     fi
     if [ "$IS_LOG2MAILMYSQL" = 1 ]; then
-        is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/syslog" /etc/log2mail/config/{default,mysql,mysql.conf} 2>/dev/null || echo 'IS_LOG2MAILMYSQL FAILED!' )
+        is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/syslog" /etc/log2mail/config/{default,mysql,mysql.conf} 2>/dev/null || failed "IS_LOG2MAILMYSQL" )
     fi
     if [ "$IS_LOG2MAILSQUID" = 1 ]; then
         is_pack_web && ( is_installed log2mail && grep -q "^file = /var/log/squid.*/access.log" \
-            /etc/log2mail/config/* 2>/dev/null || echo 'IS_LOG2MAILSQUID FAILED!' )
+            /etc/log2mail/config/* 2>/dev/null || failed "IS_LOG2MAILSQUID" )
     fi
 
     # Verification si bind est chroote
@@ -437,24 +438,24 @@ if [ -e /etc/debian_version ]; then
         if is_installed bind9 && $(netstat -utpln |grep "/named" |grep :53 |grep -qvE "(127.0.0.1|::1)"); then
             if grep -q '^OPTIONS=".*-t' /etc/default/bind9 && grep -q '^OPTIONS=".*-u' /etc/default/bind9; then
                 if [ "$(md5sum /usr/sbin/named |cut -f 1 -d ' ')" != "$(md5sum /var/chroot-bind/usr/sbin/named |cut -f 1 -d ' ')" ]; then
-                    echo 'IS_BINDCHROOT FAILED!'
+                    failed "IS_BINDCHROOT"
                 fi
             else
-                echo 'IS_BINDCHROOT FAILED!'
+                failed "IS_BINDCHROOT"
             fi
         fi
     fi
 
     # Verification de la présence du depot volatile
     if [ "$IS_REPVOLATILE" = 1 ]; then
-        test `cat /etc/debian_version |cut -d "." -f 1` -eq 5 && (grep -qE "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list || echo 'IS_REPVOLATILE FAILED!')
-            test `cat /etc/debian_version |cut -d "." -f 1` -eq 6 && (grep -qE "^deb.*squeeze-updates" /etc/apt/sources.list || echo 'IS_REPVOLATILE FAILED!')
+        test `cat /etc/debian_version |cut -d "." -f 1` -eq 5 && (grep -qE "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list || failed "IS_REPVOLATILE")
+            test `cat /etc/debian_version |cut -d "." -f 1` -eq 6 && (grep -qE "^deb.*squeeze-updates" /etc/apt/sources.list || failed "IS_REPVOLATILE")
     fi
 
     # /etc/network/interfaces should be present, we don't manage systemd-network yet
     if [ "$IS_NETWORK_INTERFACES" = 1 ]; then
         if ! test -f /etc/network/interfaces; then
-            echo "IS_NETWORK_INTERFACES FAILED!"
+            failed "IS_NETWORK_INTERFACES"
             IS_AUTOIF=0
             IS_INTERFACESGW=0
         fi
@@ -463,48 +464,48 @@ if [ -e /etc/debian_version ]; then
     # Verify if all if are in auto
     if [ "$IS_AUTOIF" = 1 ]; then
         is_debianversion stretch || for interface in `/sbin/ifconfig -s |tail -n +2 |grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" |cut -d " " -f 1 |tr "\n" " "`; do
-                    grep -q "^auto $interface" /etc/network/interfaces || (echo 'IS_AUTOIF FAILED!' && break)
+                    grep -q "^auto $interface" /etc/network/interfaces || (failed "IS_AUTOIF" && break)
             done
         is_debianversion stretch && for interface in `/sbin/ip address show up | grep ^[0-9]*: |grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 |tr -d : |cut -d@ -f1 |tr "\n" " "`; do
-                    grep -q "^auto $interface" /etc/network/interfaces || (echo 'IS_AUTOIF FAILED!' && break)
+                    grep -q "^auto $interface" /etc/network/interfaces || (failed "IS_AUTOIF" && break)
             done
     fi
 
     # Network conf verification
     if [ "$IS_INTERFACESGW" = 1 ]; then
         number=$(grep -Ec "^[^#]*gateway [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" /etc/network/interfaces)
-        test $number -gt 1 && echo 'IS_INTERFACESGW FAILED!'
+        test $number -gt 1 && failed "IS_INTERFACESGW"
         number=$(grep -Ec "^[^#]*gateway [0-9a-fA-F]+:" /etc/network/interfaces)
-        test $number -gt 1 && echo 'IS_INTERFACESGW FAILED!'
+        test $number -gt 1 && failed "IS_INTERFACESGW"
     fi
 
     # Verification de la mise en place d'evobackup
     if [ "$IS_EVOBACKUP" = 1 ]; then
-        ls /etc/cron* |grep -q "evobackup" || echo 'IS_EVOBACKUP FAILED!'
+        ls /etc/cron* |grep -q "evobackup" || failed "IS_EVOBACKUP"
     fi
 
     # Verification de la presence du userlogrotate
     if [ "$IS_USERLOGROTATE" = 1 ]; then
-        is_pack_web && (test -x /etc/cron.weekly/userlogrotate || echo 'IS_USERLOGROTATE FAILED!')
+        is_pack_web && (test -x /etc/cron.weekly/userlogrotate || failed "IS_USERLOGROTATE")
     fi
 
 
     # Verification de la syntaxe de la conf d'Apache
     if [ "$IS_APACHECTL" = 1 ]; then
-        is_installed apache2.2-common && (/usr/sbin/apache2ctl configtest 2>&1 |grep -q "^Syntax OK$" || echo 'IS_APACHECTL FAILED!')
+        is_installed apache2.2-common && (/usr/sbin/apache2ctl configtest 2>&1 |grep -q "^Syntax OK$" || failed "IS_APACHECTL")
     fi
 
     # Check if there is regular files in Apache sites-enabled.
     if [ "$IS_APACHESYMLINK" = 1 ]; then
         is_installed apache2.2-common && \
-            (stat -c %F /etc/apache2/sites-enabled/* | grep -q regular && echo 'IS_APACHESYMLINK FAILED!')
+            (stat -c %F /etc/apache2/sites-enabled/* | grep -q regular && failed "IS_APACHESYMLINK")
     fi
 
     # Check if there is real IP addresses in Allow/Deny directives (no trailing space, inline comments or so).
     if [ "$IS_APACHEIPINALLOW" = 1 ]; then
         # Note: Replace "exit 1" by "print" in Perl code to debug it.
         is_installed apache2.2-common && \
-            (grep -IrE "^[^#] *(Allow|Deny) from" /etc/apache2/ |grep -iv "from all" |grep -iv "env=" |perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)' || echo 'IS_APACHEIPINALLOW FAILED!')
+            (grep -IrE "^[^#] *(Allow|Deny) from" /etc/apache2/ |grep -iv "from all" |grep -iv "env=" |perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)' || failed "IS_APACHEIPINALLOW")
     fi
 
     # Check if default Apache configuration file for munin is absent (or empty or commented).
@@ -514,40 +515,40 @@ if [ -e /etc/debian_version ]; then
         else
             muninconf="/etc/apache2/conf-available/munin.conf"
         fi
-        is_installed apache2.2-common && ([ -e $muninconf ] && grep -vEq "^( |\t)*#" $muninconf && echo 'IS_MUNINAPACHECONF FAILED!')
+        is_installed apache2.2-common && ([ -e $muninconf ] && grep -vEq "^( |\t)*#" $muninconf && failed "IS_MUNINAPACHECONF")
     fi
 
     # Verification de la priorité du package samba si les backports sont utilisés
     if [ "$IS_SAMBAPINPRIORITY" = 1 ]; then
-        is_pack_samba && grep -qrE "^[^#].*backport" /etc/apt/sources.list{,.d} && ( priority=`grep -E -A2 "^Package:.*samba" /etc/apt/preferences |grep -A1 "^Pin: release a=lenny-backports" |grep "^Pin-Priority:" |cut -f2 -d" "` && test $priority -gt 500 || echo 'IS_SAMBAPINPRIORITY FAILED!' )
+        is_pack_samba && grep -qrE "^[^#].*backport" /etc/apt/sources.list{,.d} && ( priority=`grep -E -A2 "^Package:.*samba" /etc/apt/preferences |grep -A1 "^Pin: release a=lenny-backports" |grep "^Pin-Priority:" |cut -f2 -d" "` && test $priority -gt 500 || failed "IS_SAMBAPINPRIORITY" )
     fi
 
     # Verification si le système doit redémarrer suite màj kernel.
     if [ "$IS_KERNELUPTODATE" = 1 ]; then
         if is_installed linux-image* && [ $(date -d $(ls --full-time -lcrt /boot | tail -n1 | tr -s " " | cut -d " " -f 6) +%s) -gt $(($(date +%s) - $(cut -f1 -d '.' /proc/uptime))) ]; then
-            echo 'IS_KERNELUPTODATE FAILED!'
+            failed "IS_KERNELUPTODATE"
         fi
     fi
 
     # Check if the server is running for more than a year.
     if [ "$IS_UPTIME" = 1 ]; then
         if is_installed linux-image* && [ $(date -d "now - 2 year" +%s) -gt $(($(date +%s) - $(cut -f1 -d '.' /proc/uptime))) ]; then
-            echo 'IS_UPTIME FAILED!'
+            failed "IS_UPTIME"
         fi
     fi
 
     # Check if munin-node running and RRD files are up to date.
     if [ "$IS_MUNINRUNNING" = 1 ]; then
-        pgrep munin-node >/dev/null || echo 'IS_MUNINRUNNING FAILED!'
-        [ "$(stat -c "%Y" /var/lib/munin/*/*load-g.rrd |sort |tail -1)" -lt $(date +"%s" -d "now - 10 minutes") ] && echo 'IS_MUNINRUNNING FAILED!'
-        grep -q "^graph_strategy cron" /etc/munin/munin.conf && ([ "$(stat -c "%Y" /var/cache/munin/www/*/*/load-day.png |sort |tail -1)" -lt $(date +"%s" -d "now - 10 minutes") ]) && echo 'IS_MUNINRUNNING FAILED!'
+        pgrep munin-node >/dev/null || failed "IS_MUNINRUNNING"
+        [ "$(stat -c "%Y" /var/lib/munin/*/*load-g.rrd |sort |tail -1)" -lt $(date +"%s" -d "now - 10 minutes") ] && failed "IS_MUNINRUNNING"
+        grep -q "^graph_strategy cron" /etc/munin/munin.conf && ([ "$(stat -c "%Y" /var/cache/munin/www/*/*/load-day.png |sort |tail -1)" -lt $(date +"%s" -d "now - 10 minutes") ]) && failed "IS_MUNINRUNNING"
     fi
 
     # Check if files in /home/backup/ are up-to-date
     if [ "$IS_BACKUPUPTODATE" = 1 ]; then
         [ -d /home/backup/ ] && for file in /home/backup/*; do
             if [ -f $file ] && [ $(stat -c "%Y" $file) -lt $(date +"%s" -d "now - 2 day") ]; then
-                echo 'IS_BACKUPUPTODATE FAILED!'
+                failed "IS_BACKUPUPTODATE"
                 break;
             fi
         done
@@ -555,7 +556,7 @@ if [ -e /etc/debian_version ]; then
 
     # Check if /etc/.git/ has read/write permissions for root only.
     if [ "$IS_GITPERMS" = 1 ]; then
-        test -d /etc/.git && [ "$(stat -c "%a" /etc/.git/)" = "700" ] || echo 'IS_GITPERMS FAILED!'
+        test -d /etc/.git && [ "$(stat -c "%a" /etc/.git/)" = "700" ] || failed "IS_GITPERMS"
     fi
 
     # Check if no package has been upgraded since $limit.
@@ -587,9 +588,9 @@ if [ -e /etc/debian_version ]; then
         fi
         # Check install_date if the system never received an upgrade
         if [ $last_upgrade -eq 0 ]; then
-            [ $install_date -lt $limit ] && echo 'IS_NOTUPGRADED FAILED!'
+            [ $install_date -lt $limit ] && failed "IS_NOTUPGRADED"
         else
-            [ $last_upgrade -lt $limit ] && echo 'IS_NOTUPGRADED FAILED!'
+            [ $last_upgrade -lt $limit ] && failed "IS_NOTUPGRADED"
         fi
     fi
 
@@ -605,8 +606,7 @@ if [ -e /etc/debian_version ]; then
             reservedBlockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Reserved block count:" | grep -Eo "[0-9]+")
             percentage=$(python -c "print(int(round(float(${reservedBlockCount})/${blockCount}*100)))")
             if [ "$percentage" -lt 5 ]; then
-                echo 'IS_TUNE2FS_M5 FAILED!'
-                verbose "Partition $part has less than 5% reserved blocks!"
+                failed "IS_TUNE2FS_M5" "Partition ${part} has less than 5% reserved blocks!"
             fi
         done
     fi
@@ -614,14 +614,14 @@ if [ -e /etc/debian_version ]; then
     if [ "$IS_EVOLINUXSUDOGROUP" = 1 ]; then
         if is_debianversion stretch; then
             (grep -q ^evolinux-sudo: /etc/group \
-                && grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux) || echo 'IS_EVOLINUXSUDOGROUP FAILED!'
+                && grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux) || failed "IS_EVOLINUXSUDOGROUP"
         fi
     fi
 
     if [ "$IS_USERINADMGROUP" = 1 ]; then
         if is_debianversion stretch; then
             for user in $(grep ^evolinux-sudo: /etc/group |awk -F: '{print $4}' |tr ',' ' '); do
-                groups $user |grep -q adm || echo 'IS_USERINADMGROUP FAILED!'
+                groups $user |grep -q adm || failed "IS_USERINADMGROUP"
             done
         fi
     fi
@@ -630,58 +630,58 @@ if [ -e /etc/debian_version ]; then
         if (test -d /etc/apache2 && is_debianversion stretch); then
             (test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
                 && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
-                && test -f /etc/apache2/ipaddr_whitelist.conf) || echo 'IS_APACHE2EVOLINUXCONF FAILED!'
+                && test -f /etc/apache2/ipaddr_whitelist.conf) || failed "IS_APACHE2EVOLINUXCONF"
         fi
     fi
 
     if [ "$IS_BACKPORTSCONF" = 1 ]; then
         if is_debianversion stretch; then
             grep -qsE "^[^#].*backports" /etc/apt/sources.list \
-              && echo 'IS_BACKPORTSCONF FAILED!'
+              && failed "IS_BACKPORTSCONF"
             if grep -qsE "^[^#].*backports" /etc/apt/sources.list.d/*.list; then
                 grep -qsE "^[^#].*backports" /etc/apt/preferences.d/* \
-                  || echo 'IS_BACKPORTSCONF FAILED!'
+                  || failed "IS_BACKPORTSCONF"
             fi
         fi
     fi
 
     if [ "$IS_BIND9MUNIN" = 1 ]; then
         if is_debianversion stretch && is_installed bind9; then
-            (test -L /etc/munin/plugins/bind9 && test -e /etc/munin/plugin-conf.d/bind9) || echo 'IS_BIND9MUNIN FAILED!'
+            (test -L /etc/munin/plugins/bind9 && test -e /etc/munin/plugin-conf.d/bind9) || failed "IS_BIND9MUNIN"
         fi
     fi
 
     if [ "$IS_BIND9LOGROTATE" = 1 ]; then
         if is_debianversion stretch && is_installed bind9; then
-            test -e /etc/logrotate.d/bind9 || echo 'IS_BIND9LOGROTATE FAILED!'
+            test -e /etc/logrotate.d/bind9 || failed "IS_BIND9LOGROTATE"
         fi
     fi
 
     if [ "$IS_BROADCOMFIRMWARE" = 1 ]; then
         if lspci | grep -q 'NetXtreme II'; then
-            (is_installed firmware-bnx2 && grep -q "^deb http://mirror.evolix.org/debian.* non-free" /etc/apt/sources.list) || echo 'IS_BROADCOMFIRMWARE FAILED!'
+            (is_installed firmware-bnx2 && grep -q "^deb http://mirror.evolix.org/debian.* non-free" /etc/apt/sources.list) || failed "IS_BROADCOMFIRMWARE"
         fi
     fi
 
     if [ "$IS_HARDWARERAIDTOOL" = 1 ]; then
-        lspci |grep -q 'MegaRAID SAS' && (is_installed megacli && (is_installed megaclisas-status || is_installed megaraidsas-status) || echo 'IS_HARDWARERAIDTOOL FAILED!')
-        lspci |grep -q 'Hewlett-Packard Company Smart Array' && (is_installed cciss-vol-status || echo 'IS_HARDWARERAIDTOOL FAILED!')
+        lspci |grep -q 'MegaRAID SAS' && (is_installed megacli && (is_installed megaclisas-status || is_installed megaraidsas-status) || failed "IS_HARDWARERAIDTOOL")
+        lspci |grep -q 'Hewlett-Packard Company Smart Array' && (is_installed cciss-vol-status || failed "IS_HARDWARERAIDTOOL")
     fi
 
     if [ "$IS_LOG2MAILSYSTEMDUNIT" = 1 ]; then
         if is_debianversion stretch; then
-            (systemctl -q is-active log2mail.service && test -f /etc/systemd/system/log2mail.service && ! test -f /etc/init.d/log2mail) || echo 'IS_LOG2MAILSYSTEMDUNIT FAILED!'
+            (systemctl -q is-active log2mail.service && test -f /etc/systemd/system/log2mail.service && ! test -f /etc/init.d/log2mail) || failed "IS_LOG2MAILSYSTEMDUNIT"
         fi
     fi
 
     if [ "$IS_LISTUPGRADE" = 1 ]; then
-        (test -f /etc/cron.d/listupgrade && test -x /usr/share/scripts/listupgrade.sh) || echo 'IS_LISTUPGRADE FAILED!'
+        (test -f /etc/cron.d/listupgrade && test -x /usr/share/scripts/listupgrade.sh) || failed "IS_LISTUPGRADE"
     fi
 
     if [ "$IS_MARIADBEVOLINUXCONF" = 1 ]; then
         if is_debianversion stretch && is_installed mariadb-server; then
             (test -f /etc/mysql/mariadb.conf.d/z-evolinux-defaults.cnf \
-                && test -f /etc/mysql/mariadb.conf.d/zzz-evolinux-custom.cnf) || echo 'IS_MARIADBEVOLINUXCONF FAILED!'
+                && test -f /etc/mysql/mariadb.conf.d/zzz-evolinux-custom.cnf) || failed "IS_MARIADBEVOLINUXCONF"
         fi
     fi
 
@@ -689,7 +689,7 @@ if [ -e /etc/debian_version ]; then
         if (is_installed "mysql-server" || is_installed "mariadb-server"); then
             # You could change the default path in /etc/evocheck.cf
             SQL_BACKUP_PATH=${SQL_BACKUP_PATH:-"/home/backup/mysql.bak.gz"}
-            test -f "$SQL_BACKUP_PATH" || echo 'IS_SQL_BACKUP FAILED!'
+            test -f "$SQL_BACKUP_PATH" || failed "IS_SQL_BACKUP"
         fi
     fi
 
@@ -698,7 +698,7 @@ if [ -e /etc/debian_version ]; then
             # If you use something like barman, you should deactivate this check
             # You could change the default path in /etc/evocheck.cf
             POSTGRES_BACKUP_PATH=${POSTGRES_BACKUP_PATH:-"/home/backup/pg.dump.bak"}
-            test -f "$POSTGRES_BACKUP_PATH" || echo 'IS_POSTGRES_BACKUP FAILED!'
+            test -f "$POSTGRES_BACKUP_PATH" || failed "IS_POSTGRES_BACKUP"
         fi
     fi
 
@@ -711,13 +711,13 @@ if [ -e /etc/debian_version ]; then
                     # Skip indexes file.
                     if ! [[ "$file" =~ indexes ]]; then
                         if [ -f $file ] && [ $(stat -c "%Y" $file) -lt $(date +"%s" -d "now - 2 day") ]; then
-                            echo 'IS_MONGO_BACKUP FAILED!'
+                            failed "IS_MONGO_BACKUP"
                             break
                         fi
                     fi
                 done
             else
-                echo 'IS_MONGO_BACKUP FAILED!'
+                failed "IS_MONGO_BACKUP"
             fi
         fi
     fi
@@ -726,7 +726,7 @@ if [ -e /etc/debian_version ]; then
         if is_installed slapd; then
             # You could change the default path in /etc/evocheck.cf
             LDAP_BACKUP_PATH=${LDAP_BACKUP_PATH:-"/home/backup/ldap.bak"}
-            test -f "$LDAP_BACKUP_PATH" || echo 'IS_LDAP_BACKUP FAILED!'
+            test -f "$LDAP_BACKUP_PATH" || failed "IS_LDAP_BACKUP"
         fi
     fi
 
@@ -734,7 +734,7 @@ if [ -e /etc/debian_version ]; then
         if is_installed redis-server; then
             # You could change the default path in /etc/evocheck.cf
             REDIS_BACKUP_PATH=${REDIS_BACKUP_PATH:-"/home/backup/dump.rdb"}
-            test -f "$REDIS_BACKUP_PATH" || echo 'IS_REDIS_BACKUP FAILED!'
+            test -f "$REDIS_BACKUP_PATH" || failed "IS_REDIS_BACKUP"
         fi
     fi
 
@@ -742,13 +742,13 @@ if [ -e /etc/debian_version ]; then
         if is_installed elasticsearch; then
             # You could change the default path in /etc/evocheck.cf
             ELASTIC_BACKUP_PATH=${ELASTIC_BACKUP_PATH:-"/home/backup/elasticsearch"}
-            test -d "$ELASTIC_BACKUP_PATH" || echo 'IS_ELASTIC_BACKUP FAILED!'
+            test -d "$ELASTIC_BACKUP_PATH" || failed "IS_ELASTIC_BACKUP"
         fi
     fi
 
     if [ "$IS_MARIADBSYSTEMDUNIT" = 1 ]; then
         if is_debianversion stretch && is_installed mariadb-server; then
-            (systemctl -q is-active mariadb.service && test -f /etc/systemd/system/mariadb.service.d/evolinux.conf) || echo 'IS_MARIADBSYSTEMDUNIT FAILED!'
+            (systemctl -q is-active mariadb.service && test -f /etc/systemd/system/mariadb.service.d/evolinux.conf) || failed "IS_MARIADBSYSTEMDUNIT"
         fi
     fi
 
@@ -762,7 +762,7 @@ if [ -e /etc/debian_version ]; then
             mysql_sorts mysql_tmp_tables; do
 
                 if [[ ! -L /etc/munin/plugins/$file ]]; then
-                    echo 'IS_MYSQLMUNIN FAILED!'
+                    failed "IS_MYSQLMUNIN"
                     break
                 fi
             done
@@ -774,20 +774,20 @@ if [ -e /etc/debian_version ]; then
             (test -f ~nagios/.my.cnf \
                 && [ $(stat -c %U ~nagios/.my.cnf) = "nagios" ] \
                 && [ $(stat -c %a ~nagios/.my.cnf) = "600" ] \
-                && grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql -H localhost  -f ~nagios/.my.cnf") || echo 'IS_MYSQLNRPE FAILED!'
+                && grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql -H localhost  -f ~nagios/.my.cnf") || failed "IS_MYSQLNRPE"
         fi
     fi
 
     if [ "$IS_PHPEVOLINUXCONF" = 1 ]; then
         if is_debianversion stretch && is_installed php; then
             (test -f /etc/php/7.0/cli/conf.d/z-evolinux-defaults.ini \
-                && test -f /etc/php/7.0/cli/conf.d/zzz-evolinux-custom.ini) || echo 'IS_PHPEVOLINUXCONF FAILED!'
+                && test -f /etc/php/7.0/cli/conf.d/zzz-evolinux-custom.ini) || failed "IS_PHPEVOLINUXCONF"
         fi
     fi
 
     if [ "$IS_SQUIDLOGROTATE" = 1 ]; then
         if is_debianversion stretch && is_installed squid; then
-            grep -q monthly /etc/logrotate.d/squid || echo 'IS_SQUIDLOGROTATE FAILED!'
+            grep -q monthly /etc/logrotate.d/squid || failed "IS_SQUIDLOGROTATE"
         fi
     fi
 
@@ -799,7 +799,7 @@ if [ -e /etc/debian_version ]; then
                 && test -f /etc/squid/evolinux-whitelist-custom.conf \
                 && test -f /etc/squid/evolinux-acl.conf \
                 && test -f /etc/squid/evolinux-httpaccess.conf \
-                && test -f /etc/squid/evolinux-custom.conf) || echo 'IS_SQUIDEVOLINUXCONF FAILED!'
+                && test -f /etc/squid/evolinux-custom.conf) || failed "IS_SQUIDEVOLINUXCONF"
         fi
     fi
 
@@ -816,7 +816,7 @@ if [ -e /etc/debian_version ]; then
             # If there is no duplicate, uniq will have no output
             # So, if $tmpOutput is not null, there is a duplicate
             if [ -n "$tmpOutput" ]; then
-                echo 'IS_DUPLICATE_FS_LABEL FAILED!'
+                failed "IS_DUPLICATE_FS_LABEL"
                 if [ "$VERBOSE" = 1 ]; then
                     echo "Duplicate labels:"
                     echo -e "$tmpOutput\n"
@@ -827,15 +827,15 @@ if [ -e /etc/debian_version ]; then
     fi
 
     if [ "$IS_EVOLIX_USER" = 1 ]; then
-        grep -q "evolix:" /etc/passwd && echo 'IS_EVOLIX_USER FAILED!'
+        grep -q "evolix:" /etc/passwd && failed "IS_EVOLIX_USER"
     fi
 
     if [ "$IS_EVOACME_CRON" = 1 ]; then
         if [ -f "/usr/local/sbin/evoacme" ]; then
             # Old cron file, should be deleted
-            test -f /etc/cron.daily/certbot && echo 'IS_EVOACME_CRON FAILED!'
+            test -f /etc/cron.daily/certbot && failed "IS_EVOACME_CRON"
             # evoacme cron file should be present
-            test -f /etc/cron.daily/evoacme || echo 'IS_EVOACME_CRON FAILED!'
+            test -f /etc/cron.daily/evoacme || failed "IS_EVOACME_CRON"
         fi
     fi
 
@@ -852,7 +852,7 @@ if [ -e /etc/debian_version ]; then
                     lastCertDir=$(stat -c %n ${certDir}/[0-9]* | tail -1)
                     lastCertDate=$(cut -d'/' -f5 <<< $lastCertDir)
                     if [[ "$actualCertDate" != "$lastCertDate" ]]; then
-                        echo 'IS_EVOACME_LIVELINKS FAILED!'
+                        failed "IS_EVOACME_LIVELINKS"
                         break
                     fi
                 done
@@ -866,9 +866,9 @@ if [ -e /etc/debian_version ]; then
         # to conf-enabled/
         if is_debianversion jessie || is_debianversion stretch; then
             if [ -f /etc/apache2/apache2.conf ]; then
-                test -d /etc/apache2/conf.d/ && echo 'IS_APACHE_CONFENABLED FAILED!'
+                test -d /etc/apache2/conf.d/ && failed "IS_APACHE_CONFENABLED"
                 grep -q 'Include conf.d' /etc/apache2/apache2.conf && \
-                  echo 'IS_APACHE_CONFENABLED FAILED!'
+                  failed "IS_APACHE_CONFENABLED"
             fi
         fi
     fi
@@ -878,7 +878,7 @@ if [ -e /etc/debian_version ]; then
         # /sys/devices/system/cpu/vulnerabilities/
         if is_debianversion stretch; then
             for vuln in meltdown spectre_v1 spectre_v2; do
-                test -f /sys/devices/system/cpu/vulnerabilities/$vuln || echo 'IS_MELTDOWN_SPECTRE FAILED!'
+                test -f /sys/devices/system/cpu/vulnerabilities/$vuln || failed "IS_MELTDOWN_SPECTRE"
             done
         # For Jessie this is quite complicated to verify and we need to use kernel config file
         elif is_debianversion jessie; then
@@ -888,8 +888,8 @@ if [ -e /etc/debian_version ]; then
                 kernelConfig="config-${kernelVer}"
                 # Sometimes autodetection of kernel config file fail, so we test if the file really exists.
                 if [ -f /boot/$kernelConfig ]; then
-                    grep -Eq '^CONFIG_PAGE_TABLE_ISOLATION=y' /boot/$kernelConfig || echo 'IS_MELTDOWN_SPECTRE FAILED!'
-                    grep -Eq '^CONFIG_RETPOLINE=y' /boot/$kernelConfig || echo 'IS_MELTDOWN_SPECTRE FAILED!'
+                    grep -Eq '^CONFIG_PAGE_TABLE_ISOLATION=y' /boot/$kernelConfig || failed "IS_MELTDOWN_SPECTRE"
+                    grep -Eq '^CONFIG_RETPOLINE=y' /boot/$kernelConfig || failed "IS_MELTDOWN_SPECTRE"
                 fi
             fi
         fi
@@ -902,7 +902,7 @@ if [ -e /etc/debian_version ]; then
               | grep UNKNOWN)
             # There is at least one dir matching
             if [[ -n "$statResult" ]]; then
-                echo 'IS_OLD_HOME_DIR FAILED!'
+                failed "IS_OLD_HOME_DIR"
                 if [[ "$VERBOSE" == 1 ]]; then
                     echo "$statResult"
                 else
@@ -917,19 +917,19 @@ fi
 if [ `uname -s` == "OpenBSD" ]; then
 
     if [ "$IS_SOFTDEP" = 1 ]; then
-        grep -q "softdep" /etc/fstab || echo 'IS_SOFTDEP FAILED!'
+        grep -q "softdep" /etc/fstab || failed "IS_SOFTDEP"
     fi
 
     if [ "$IS_WHEEL" = 1 ]; then
-        grep -qE "^%wheel.*$" /etc/sudoers || echo 'IS_WHEEL FAILED!'
+        grep -qE "^%wheel.*$" /etc/sudoers || failed "IS_WHEEL"
     fi
 
     if [ "$IS_SUDOADMIN" = 1 ]; then
-    grep -qE "^User_Alias ADMIN=.*$" /etc/sudoers || echo 'IS_SUDOADMIN FAILED!'
+    grep -qE "^User_Alias ADMIN=.*$" /etc/sudoers || failed "IS_SUDOADMIN"
     fi
 
     if [ "$IS_PKGMIRROR" = 1 ]; then
-        grep -qE "^export PKG_PATH=http://ftp\.fr\.openbsd\.org/pub/OpenBSD/[0-9.]+/packages/[a-z0-9]+/$" /root/.profile || echo 'IS_PKGMIRROR FAILED!'
+        grep -qE "^export PKG_PATH=http://ftp\.fr\.openbsd\.org/pub/OpenBSD/[0-9.]+/packages/[a-z0-9]+/$" /root/.profile || failed "IS_PKGMIRROR"
     fi
 
     if [ "$IS_HISTORY" = 1 ]; then
@@ -938,68 +938,68 @@ if [ `uname -s` == "OpenBSD" ]; then
         && grep -q "^export HISTFILE" $f \
         && grep -q "^HISTSIZE=1000" $f \
         && grep -q "^export HISTSIZE" $f \
-        || echo 'IS_HISTORY FAILED!'
+        || failed "IS_HISTORY"
     fi
 
     if [ "$IS_VIM" = 1 ]; then
-        which vim 2>1 >> /dev/null || echo 'IS_VIM FAILED!'
+        which vim 2>1 >> /dev/null || failed "IS_VIM"
     fi
 
     if [ "$IS_TTYC0SECURE" = 1 ]; then
-        grep -Eqv "^ttyC0.*secure$" /etc/ttys || echo 'IS_TTYC0SECURE FAILED!'
+        grep -Eqv "^ttyC0.*secure$" /etc/ttys || failed "IS_TTYC0SECURE"
     fi
 
     if [ "$IS_CUSTOMSYSLOG" = 1 ]; then
-        grep -q Evolix /etc/newsyslog.conf || echo 'IS_CUSTOMSYSLOG FAILED!'
+        grep -q Evolix /etc/newsyslog.conf || failed "IS_CUSTOMSYSLOG"
     fi
 
     if [ "$IS_NOINETD" = 1 ]; then
-        grep -q inetd=NO /etc/rc.conf.local 2>/dev/null || echo 'IS_NOINETD FAILED!'
+        grep -q inetd=NO /etc/rc.conf.local 2>/dev/null || failed "IS_NOINETD"
     fi
 
     if [ "$IS_SUDOMAINT" = 1 ]; then
         f=/etc/sudoers
         grep -q "Cmnd_Alias MAINT = /usr/share/scripts/evomaintenance.sh" $f \
         && grep -q "ADMIN ALL=NOPASSWD: MAINT" $f \
-        || echo 'IS_SUDOMAINT FAILED!'
+        || failed "IS_SUDOMAINT"
     fi
 
     if [ "$IS_POSTGRESQL" = 1 ]; then
-        pkg info | grep -q postgresql-client || echo 'IS_POSTGRESQL FAILED!'
+        pkg info | grep -q postgresql-client || failed "IS_POSTGRESQL"
     fi
 
     if [ "$IS_NRPE" = 1 ]; then
         ( pkg info | grep -qE "nagios-plugins-[0-9.]" \
         && pkg info | grep -q nagios-plugins-ntp \
-        && pkg info | grep -q nrpe ) || echo 'IS_NRPE FAILED!'
+        && pkg info | grep -q nrpe ) || failed "IS_NRPE"
     fi
 
 # if [ "$IS_NRPEDISKS" = 1 ]; then
 #     NRPEDISKS=$(grep command.check_disk /etc/nrpe.cfg 2>/dev/null | grep ^command.check_disk[0-9] | sed -e "s/^command.check_disk\([0-9]\+\).*/\1/" | sort -n | tail -1)
 #     DFDISKS=$(df -Pl | grep -E -v "(^Filesystem|/lib/init/rw|/dev/shm|udev|rpc_pipefs)" | wc -l)
-#     [ "$NRPEDISKS" = "$DFDISKS" ] || echo 'IS_NRPEDISKS FAILED!'
+#     [ "$NRPEDISKS" = "$DFDISKS" ] || failed "IS_NRPEDISKS"
 # fi
 
 # Verification du check_mailq dans nrpe.cfg (celui-ci doit avoir l'option "-M postfix" si le MTA est Postfix)
 #
 # if [ "$IS_NRPEPOSTFIX" = 1 ]; then
-#     pkg info | grep -q postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nrpe.cfg 2>/dev/null || echo 'IS_NRPEPOSTFIX FAILED!' )
+#     pkg info | grep -q postfix && ( grep -q "^command.*check_mailq -M postfix" /etc/nrpe.cfg 2>/dev/null || failed "IS_NRPEPOSTFIX" )
 # fi
 
     if [ "$IS_NRPEDAEMON" = 1 ]; then
-        grep -q "echo -n ' nrpe';        /usr/local/sbin/nrpe -d" /etc/rc.local || echo 'IS_NREPEDAEMON FAILED!'
+        grep -q "echo -n ' nrpe';        /usr/local/sbin/nrpe -d" /etc/rc.local || failed "IS_NREPEDAEMON"
     fi
 
     if [ "$IS_ALERTBOOT" = 1 ]; then
-        grep -qE "^date \| mail -sboot/reboot .*evolix.fr$" /etc/rc.local || echo 'IS_ALERTBOOT FAILED!'
+        grep -qE "^date \| mail -sboot/reboot .*evolix.fr$" /etc/rc.local || failed "IS_ALERTBOOT"
     fi
 
     if [ "$IS_RSYNC" = 1 ]; then
-        pkg info | grep -q rsync || echo 'IS_RSYNC FAILED!'
+        pkg info | grep -q rsync || failed "IS_RSYNC"
     fi
 
     if [ "$IS_CRONPATH" = 1 ]; then
-        grep -q "PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin" /var/cron/tabs/root || echo 'IS_CRONPATH FAILED!'
+        grep -q "PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin" /var/cron/tabs/root || failed "IS_CRONPATH"
     fi
 
     #TODO
@@ -1008,20 +1008,20 @@ if [ `uname -s` == "OpenBSD" ]; then
 fi
 
 if [ "$IS_TMP_1777" = 1 ]; then
-    ls -ld /tmp | grep -q drwxrwxrwt || echo 'IS_TMP_1777 FAILED!'
+    ls -ld /tmp | grep -q drwxrwxrwt || failed "IS_TMP_1777"
 fi
 
 if [ "$IS_ROOT_0700" = 1 ]; then
-    ls -ld /root | grep -q drwx------ || echo 'IS_ROOT_0700 FAILED!'
+    ls -ld /root | grep -q drwx------ || failed "IS_ROOT_0700"
 fi
 
 if [ "$IS_USRSHARESCRIPTS" = 1 ]; then
-    ls -ld /usr/share/scripts | grep -q drwx------ || echo 'IS_USRSHARESCRIPTS FAILED!'
+    ls -ld /usr/share/scripts | grep -q drwx------ || failed "IS_USRSHARESCRIPTS"
 fi
 
 if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
-    is_debianversion stretch || ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
-    is_debianversion stretch && grep -q ^PermitRoot /etc/ssh/sshd_config && ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
+    is_debianversion stretch || ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO" )
+    is_debianversion stretch && grep -q ^PermitRoot /etc/ssh/sshd_config && ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO" )
 fi
 
 if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
@@ -1036,7 +1036,7 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
         for i in $( (grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep ^sudo /etc/group |cut -d: -f 4) | tr "," "\n" |sort -u); do
             grep -qs "^trap.*sudo.*evomaintenance.sh" ${homeDir}/${i}/.*profile
             if [ $? != 0 ]; then
-                echo 'IS_EVOMAINTENANCEUSERS FAILED!'
+                failed "IS_EVOMAINTENANCEUSERS"
                 if [ "$VERBOSE" = 1 ]; then
                     echo "$i doesn't have evomaintenance trap!"
                 else
@@ -1048,7 +1048,7 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
         for i in $(getent group evolinux-sudo | cut -d':' -f4 | tr ',' ' '); do
             grep -qs "^trap.*sudo.*evomaintenance.sh" ${homeDir}/$i/.*profile
             if [ $? != 0 ]; then
-                echo 'IS_EVOMAINTENANCEUSERS FAILED!'
+                failed "IS_EVOMAINTENANCEUSERS"
                 if [ "$VERBOSE" = 1 ]; then
                     echo "$i doesn't have evomaintenance trap!"
                 else
@@ -1072,14 +1072,14 @@ if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
     && grep "^FULLFROM" $f |grep -qv "John Doe <jdoe@example.com>" \
     && grep "^URGENCYFROM" $f |grep -qv "mama.doe@example.com" \
     && grep "^URGENCYTEL" $f |grep -qv "06.00.00.00.00" \
-    && grep "^REALM" $f |grep -qv "example.com" ) || echo 'IS_EVOMAINTENANCECONF FAILED!'
+    && grep "^REALM" $f |grep -qv "example.com" ) || failed "IS_EVOMAINTENANCECONF"
 fi
 
 if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then
     for f in /etc/ssl/private/*; do
         perms=$(stat -L -c "%a" $f)
         if [ ${perms: -1} != "0" ]; then
-            echo 'IS_PRIVKEYWOLRDREADABLE FAILED!'
+            failed "IS_PRIVKEYWOLRDREADABLE"
             break
         fi
     done

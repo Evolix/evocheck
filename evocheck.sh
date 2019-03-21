@@ -229,7 +229,10 @@ if is_debian; then
 
     if [ "$IS_LSBRELEASE" = "1" ]; then
         test -x "${LSB_RELEASE_BIN}" || failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
-        test "$(${LSB_RELEASE_BIN} --release --short)" = "$(cat /etc/debian_version)" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release and /etc/debian_version"
+
+        lhs=$(${LSB_RELEASE_BIN} --release --short)
+        rhs=$(cat /etc/debian_version)
+        test "$lhs" = "$rhs" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release and /etc/debian_version"
     fi
 
     if [ "$IS_DPKGWARNING" = 1 ]; then
@@ -720,7 +723,9 @@ if is_debian; then
     # Check if /etc/.git/ has read/write permissions for root only.
     if [ "$IS_GITPERMS" = 1 ]; then
         if test -d /etc/.git; then
-            [ "$(stat -c "%a" /etc/.git/)" = "700" ] || failed "IS_GITPERMS"
+            expected="700"
+            actual=$(stat -c "%a" /etc/.git/)
+            [ "$expected" = "$actual" ] || failed "IS_GITPERMS"
         fi
     fi
 

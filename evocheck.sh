@@ -214,6 +214,7 @@ is_openbsd() {
   test -n "${OPENBSD_RELEASE}"
 }
 
+is_debian_lenny   && MINIFW_FILE=/etc/firewall.rc
 is_debian_squeeze && MINIFW_FILE=/etc/firewall.rc
 is_debian_wheezy  && MINIFW_FILE=/etc/firewall.rc
 is_debian_jessie  && MINIFW_FILE=/etc/default/minifirewall

@@ -126,11 +126,22 @@ IS_ALERTBOOT=1
 IS_RSYNC=1
 
 DEBIAN_RELEASE=""
+LSB_RELEASE_BIN=$(command -v lsb_release)
 OPENBSD_RELEASE=""
 
 if [ -e /etc/debian_version ]; then
-    DEBIAN_RELEASE=$(lsb_release -c -s)
-    DEBIAN_VERSION=$(cat /etc/debian_version |cut -d "." -f 1)
+    DEBIAN_VERSION=$(cut -d "." -f 1 < /etc/debian_version)
+    if [ -x ${LSB_RELEASE_BIN} ]; then
+        DEBIAN_RELEASE=$(${LSB_RELEASE_BIN} --codename --short)
+    else
+        case ${DEBIAN_VERSION} in
+            5) DEBIAN_RELEASE="lenny";;
+            6) DEBIAN_RELEASE="squeeze";;
+            7) DEBIAN_RELEASE="wheezy";;
+            8) DEBIAN_RELEASE="jessie";;
+            9) DEBIAN_RELEASE="stretch";;
+        esac
+    fi
 elif [ "$(uname -s)" = "OpenBSD" ]; then
     # use a better release name
     OPENBSD_RELEASE="OpenBSD"
@@ -179,7 +190,7 @@ is_debian() {
   test -n "${DEBIAN_RELEASE}"
 }
 is_debian_lenny() {
-    test "${DEBIAN_VERSION}" = "5"
+    test "${DEBIAN_VERSION}" = "lenny"
 }
 is_debian_squeeze() {
     test "${DEBIAN_RELEASE}" = "squeeze"

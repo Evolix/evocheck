@@ -389,11 +389,11 @@ if is_debian; then
     fi
 
     if [ "$IS_ALERT5BOOT" = 1 ]; then
-        grep -q ^date /etc/rc2.d/S*alert5 || failed "IS_ALERT5BOOT"
+        grep -q "^date" /etc/rc2.d/S*alert5 || failed "IS_ALERT5BOOT"
     fi
 
     if [ "$IS_ALERT5MINIFW" = 1 ]; then
-        grep -q ^/etc/init.d/minifirewall /etc/rc2.d/S*alert5 \
+        grep -q "^/etc/init.d/minifirewall" /etc/rc2.d/S*alert5 \
             || failed "IS_ALERT5MINIFW"
     fi
 
@@ -426,7 +426,7 @@ if is_debian; then
     fi
 
     if [ "$IS_GRSECPROCS" = 1 ]; then
-        uname -a | grep -q grsec && ( grep -q ^command.check_total_procs..sudo /etc/nagios/nrpe.cfg && grep -A1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep -q "^user root" || failed "IS_GRSECPROCS" )
+        uname -a | grep -q grsec && ( grep -q "^command.check_total_procs..sudo" /etc/nagios/nrpe.cfg && grep -A1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep -q "^user root" || failed "IS_GRSECPROCS" )
     fi
 
     if [ "$IS_APACHEMUNIN" = 1 ]; then
@@ -774,7 +774,7 @@ if is_debian; then
 
     if [ "$IS_EVOLINUXSUDOGROUP" = 1 ]; then
         if is_debian_stretch; then
-            (grep -q ^evolinux-sudo: /etc/group \
+            (grep -q "^evolinux-sudo:" /etc/group \
                 && grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux) || failed "IS_EVOLINUXSUDOGROUP"
         fi
     fi

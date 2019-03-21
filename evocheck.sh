@@ -372,7 +372,8 @@ if is_debian; then
     fi
 
     if [ "$IS_CUSTOMCRONTAB" = 1 ]; then
-        grep -E "^(17 \*|25 6|47 6|52 6)" /etc/crontab | wc -l | grep -q ^4$ && failed "IS_CUSTOMCRONTAB"
+        found_lines=$(grep -c -E "^(17 \*|25 6|47 6|52 6)" /etc/crontab)
+        test "$found_lines" = "4" && failed "IS_CUSTOMCRONTAB"
     fi
 
     if [ "$IS_SSHALLOWUSERS" = 1 ]; then

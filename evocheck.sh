@@ -444,9 +444,9 @@ if is_debian; then
         is_debian_stretch && squidconffile=/etc/squid/evolinux-custom.conf
         is_pack_web && ( is_installed squid || is_installed squid3 \
             && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $MINIFW_FILE \
-            && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d `hostname -i` -j ACCEPT" $MINIFW_FILE \
+            && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d $(hostname -i) -j ACCEPT" $MINIFW_FILE \
             && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" $MINIFW_FILE \
-            && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* `grep http_port $squidconffile | cut -f 2 -d " "`" $MINIFW_FILE || failed "IS_SQUID" )
+            && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* $(grep http_port $squidconffile | cut -f 2 -d " ")" $MINIFW_FILE || failed "IS_SQUID" )
     fi
 
     if [ "$IS_EVOMAINTENANCE_FW" = 1 ]; then
@@ -516,10 +516,10 @@ if is_debian; then
 
     # Verify if all if are in auto
     if [ "$IS_AUTOIF" = 1 ]; then
-        is_debian_stretch || for interface in `/sbin/ifconfig -s |tail -n +2 |grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" |cut -d " " -f 1 |tr "\n" " "`; do
+        is_debian_stretch || for interface in $(/sbin/ifconfig -s |tail -n +2 |grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" |cut -d " " -f 1 |tr "\n" " "); do
             grep -q "^auto $interface" /etc/network/interfaces || (failed "IS_AUTOIF" && break)
         done
-        is_debian_stretch && for interface in `/sbin/ip address show up | grep ^[0-9]*: |grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 |tr -d : |cut -d@ -f1 |tr "\n" " "`; do
+        is_debian_stretch && for interface in $(/sbin/ip address show up | grep ^[0-9]*: |grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 |tr -d : |cut -d@ -f1 |tr "\n" " "); do
             grep -q "^auto $interface" /etc/network/interfaces || (failed "IS_AUTOIF" && break)
         done
     fi
@@ -573,7 +573,7 @@ if is_debian; then
 
     # Verification de la priorité du package samba si les backports sont utilisés
     if [ "$IS_SAMBAPINPRIORITY" = 1 ]; then
-        is_pack_samba && grep -qrE "^[^#].*backport" /etc/apt/sources.list{,.d} && ( priority=`grep -E -A2 "^Package:.*samba" /etc/apt/preferences |grep -A1 "^Pin: release a=lenny-backports" |grep "^Pin-Priority:" |cut -f2 -d" "` && test $priority -gt 500 || failed "IS_SAMBAPINPRIORITY" )
+        is_pack_samba && grep -qrE "^[^#].*backport" /etc/apt/sources.list{,.d} && ( priority=$(grep -E -A2 "^Package:.*samba" /etc/apt/preferences |grep -A1 "^Pin: release a=lenny-backports" |grep "^Pin-Priority:" |cut -f2 -d" ") && test $priority -gt 500 || failed "IS_SAMBAPINPRIORITY" )
     fi
 
     # Verification si le système doit redémarrer suite màj kernel.

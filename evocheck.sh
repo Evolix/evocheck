@@ -403,13 +403,17 @@ if is_debian; then
     fi
 
     if [ "$IS_NRPEPERMS" = 1 ]; then
-        test -d /etc/nagios && ls -ld /etc/nagios | grep -q "drwxr-x---" \
-            || failed "IS_NRPEPERMS"
+        if test -d /etc/nagios; then
+            actual=$(stat --format "%A" /etc/nagios)
+            expected="drwxr-x---"
+            test "$expected" = "$actual" || failed "IS_NRPEPERMS"
+        fi
     fi
 
     if [ "$IS_MINIFWPERMS" = 1 ]; then
-        ls -l "$MINIFW_FILE" | grep -q -- "-rw-------" \
-            || failed "IS_MINIFWPERMS"
+        actual=$(stat --format "%A" $MINIFW_FILE)
+        expected="-rw-------"
+        test "$expected" = "$actual" || failed "IS_MINIFWPERMS"
     fi
 
     if [ "$IS_NRPEDISKS" = 1 ]; then

@@ -797,10 +797,10 @@ if is_debian; then
     if [ "$IS_BACKPORTSCONF" = 1 ]; then
         if is_debian_stretch; then
             grep -qsE "^[^#].*backports" /etc/apt/sources.list \
-                && failed "IS_BACKPORTSCONF"
+                && failed "IS_BACKPORTSCONF" "backports can't be in main sources list"
             if grep -qsE "^[^#].*backports" /etc/apt/sources.list.d/*.list; then
                 grep -qsE "^[^#].*backports" /etc/apt/preferences.d/* \
-                    || failed "IS_BACKPORTSCONF"
+                    || failed "IS_BACKPORTSCONF" "backports must have preferences"
             fi
         fi
     fi

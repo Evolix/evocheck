@@ -1203,7 +1203,7 @@ fi
 
 if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
     if is_debian_stretch; then
-        grep -q ^PermitRoot /etc/ssh/sshd_config && grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config \
+        grep -q "^PermitRoot" /etc/ssh/sshd_config && grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config \
             || failed "IS_SSHPERMITROOTNO"
     else
         grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO"

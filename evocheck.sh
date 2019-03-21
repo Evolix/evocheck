@@ -256,13 +256,11 @@ if is_debian; then
 
     # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
     if [ "$IS_NRPEPOSTFIX" = 1 ]; then
-        if is_debian_squeeze; then
-            if is_installed postfix; then
+        if is_installed postfix; then
+            if is_debian_squeeze; then
                 grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg \
                     || failed "IS_NRPEPOSTFIX"
-            fi
-        else
-            if is_installed postfix; then
+            else
                 test -e /etc/nagios/nrpe.cfg && grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* \
                     || failed "IS_NRPEPOSTFIX"
             fi

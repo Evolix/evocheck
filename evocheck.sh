@@ -1190,15 +1190,21 @@ if is_openbsd; then
 fi
 
 if [ "$IS_TMP_1777" = 1 ]; then
-    ls -ld /tmp | grep -q "drwxrwxrwt" || failed "IS_TMP_1777"
+    actual=$(stat --format "%A" /tmp)
+    expected="drwxrwxrwt"
+    test "$expected" = "$actual" || failed "IS_TMP_1777"
 fi
 
 if [ "$IS_ROOT_0700" = 1 ]; then
-    ls -ld /root | grep -q "drwx------" || failed "IS_ROOT_0700"
+    actual=$(stat --format "%A" /root)
+    expected="drwx------"
+    test "$expected" = "$actual" || failed "IS_ROOT_0700"
 fi
 
 if [ "$IS_USRSHARESCRIPTS" = 1 ]; then
-    ls -ld /usr/share/scripts | grep -q "drwx------" || failed "IS_USRSHARESCRIPTS"
+    actual=$(stat --format "%A" /usr/share/scripts)
+    expected="drwx------"
+    test "$expected" = "$actual" || failed "IS_USRSHARESCRIPTS"
 fi
 
 if [ "$IS_SSHPERMITROOTNO" = 1 ]; then

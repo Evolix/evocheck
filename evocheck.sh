@@ -439,11 +439,18 @@ if is_debian; then
     if [ "$IS_APACHEMUNIN" = 1 ]; then
         if is_debian_stretch; then
             if test -e /etc/apache2/apache2.conf; then
-                ( test -h /etc/apache2/mods-enabled/status.load && test -h /etc/munin/plugins/apache_accesses && test -h /etc/munin/plugins/apache_processes && test -h /etc/munin/plugins/apache_accesses || failed "IS_APACHEMUNIN" )
+                (test -h /etc/apache2/mods-enabled/status.load \
+                    && test -h /etc/munin/plugins/apache_accesses \
+                    && test -h /etc/munin/plugins/apache_processes \
+                    && test -h /etc/munin/plugins/apache_volume) \
+                    || failed "IS_APACHEMUNIN" "mising munin plugins for Apache"
             fi
         else
             if test -e /etc/apache2/apache2.conf; then
-                ( grep -E -q "^env.url.*/server-status-[[:alnum:]]{4}" /etc/munin/plugin-conf.d/munin-node && grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf || grep -E -q "/server-status-[[:alnum:]]{4}" /etc/apache2/apache2.conf /etc/apache2/mods-enabled/status.conf 2>/dev/null || failed "IS_APACHEMUNIN" )
+                (grep --quiet --no-messages --extended-regexp "^env.url.*/server-status-[[:alnum:]]{4,}" /etc/munin/plugin-conf.d/munin-node \
+                    && (grep --quiet --no-messages --extended-regexp "/server-status-[[:alnum:]]{4,}" /etc/apache2/apache2.conf \
+                        || grep --quiet --no-messages --extended-regexp "/server-status-[[:alnum:]]{4,}" /etc/apache2/mods-enabled/status.conf)) \
+                    || failed "IS_APACHEMUNIN" "server status is not properly configured"
             fi
         fi
     fi
@@ -469,11 +476,12 @@ if is_debian; then
 
     # Verification de la configuration du raid soft (mdadm)
     if [ "$IS_RAIDSOFT" = 1 ]; then
-        test -e /proc/mdstat && grep -q md /proc/mdstat && \
-            ( grep -q "^AUTOCHECK=true" /etc/default/mdadm \
-            && grep -q "^START_DAEMON=true" /etc/default/mdadm \
-            && grep -qv "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf \
-            || failed "IS_RAIDSOFT")
+        if test -e /proc/mdstat && grep -q md /proc/mdstat; then
+            (grep -q "^AUTOCHECK=true" /etc/default/mdadm \
+                && grep -q "^START_DAEMON=true" /etc/default/mdadm \
+                && grep -qv "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf) \
+                || failed "IS_RAIDSOFT"
+        fi
     fi
 
     # Verification du LogFormat de AWStats
@@ -486,7 +494,7 @@ if is_debian; then
 
     # Verification de la présence de la config logrotate pour Munin
     if [ "$IS_MUNINLOGROTATE" = 1 ]; then
-        ( test -e /etc/logrotate.d/munin-node && test -e /etc/logrotate.d/munin ) \
+        (test -e /etc/logrotate.d/munin-node && test -e /etc/logrotate.d/munin) \
             || failed "IS_MUNINLOGROTATE"
     fi
 
@@ -503,10 +511,10 @@ if is_debian; then
         if is_pack_web && (is_installed squid || is_installed squid3); then
             host=$(hostname -i)
             http_port=$(grep http_port $squidconffile | cut -f 2 -d " ")
-            grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $MINIFW_FILE \
+            (grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $MINIFW_FILE \
                 && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d $host -j ACCEPT" $MINIFW_FILE \
                 && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" $MINIFW_FILE \
-                && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* $http_port" $MINIFW_FILE \
+                && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* $http_port" $MINIFW_FILE) \
                 || failed "IS_SQUID"
         fi
     fi
@@ -524,9 +532,9 @@ if is_debian; then
     if [ "$IS_MODDEFLATE" = 1 ]; then
         f=/etc/apache2/mods-enabled/deflate.conf
         if is_installed apache2.2; then
-            test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
+            (test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
                 && grep -q "AddOutputFilterByType DEFLATE text/css" $f \
-                && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f \
+                && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f) \
                 || failed "IS_MODDEFLATE"
         fi
     fi
@@ -634,7 +642,7 @@ if is_debian; then
     # Verification de la syntaxe de la conf d'Apache
     if [ "$IS_APACHECTL" = 1 ]; then
         if is_installed apache2.2-common; then
-            /usr/sbin/apache2ctl configtest 2>&1 |grep -q "^Syntax OK$" || failed "IS_APACHECTL"
+            /usr/sbin/apache2ctl configtest 2>&1 | grep -q "^Syntax OK$" || failed "IS_APACHECTL"
         fi
     fi
 
@@ -649,7 +657,8 @@ if is_debian; then
     if [ "$IS_APACHEIPINALLOW" = 1 ]; then
         # Note: Replace "exit 1" by "print" in Perl code to debug it.
         if is_installed apache2.2-common; then
-            grep -IrE "^[^#] *(Allow|Deny) from" /etc/apache2/ | grep -iv "from all" | grep -iv "env=" | perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)' || failed "IS_APACHEIPINALLOW"
+            (grep -IrE "^[^#] *(Allow|Deny) from" /etc/apache2/ | grep -iv "from all" | grep -iv "env=" | perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)') \
+                || failed "IS_APACHEIPINALLOW"
         fi
     fi
 
@@ -784,14 +793,15 @@ if is_debian; then
     if [ "$IS_EVOLINUXSUDOGROUP" = 1 ]; then
         if is_debian_stretch; then
             (grep -q "^evolinux-sudo:" /etc/group \
-                && grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux) || failed "IS_EVOLINUXSUDOGROUP"
+                && grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux) \
+                || failed "IS_EVOLINUXSUDOGROUP"
         fi
     fi
 
     if [ "$IS_USERINADMGROUP" = 1 ]; then
         if is_debian_stretch; then
             for user in $(grep "^evolinux-sudo:" /etc/group |awk -F: '{print $4}' |tr ',' ' '); do
-                groups $user |grep -q adm || failed "IS_USERINADMGROUP"
+                groups $user | grep -q adm || failed "IS_USERINADMGROUP"
             done
         fi
     fi
@@ -800,7 +810,8 @@ if is_debian; then
         if is_debian_stretch && test -d /etc/apache2; then
             (test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
                 && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
-                && test -f /etc/apache2/ipaddr_whitelist.conf) || failed "IS_APACHE2EVOLINUXCONF"
+                && test -f /etc/apache2/ipaddr_whitelist.conf) \
+                || failed "IS_APACHE2EVOLINUXCONF"
         fi
     fi
 
@@ -817,7 +828,8 @@ if is_debian; then
 
     if [ "$IS_BIND9MUNIN" = 1 ]; then
         if is_debian_stretch && is_installed bind9; then
-            (test -L /etc/munin/plugins/bind9 && test -e /etc/munin/plugin-conf.d/bind9) || failed "IS_BIND9MUNIN"
+            (test -L /etc/munin/plugins/bind9 && test -e /etc/munin/plugin-conf.d/bind9) \
+                || failed "IS_BIND9MUNIN"
         fi
     fi
 
@@ -835,10 +847,14 @@ if is_debian; then
     fi
 
     if [ "$IS_HARDWARERAIDTOOL" = 1 ]; then
-        lspci | grep -q 'MegaRAID SAS' && (is_installed megacli && (is_installed megaclisas-status || is_installed megaraidsas-status) \
-            || failed "IS_HARDWARERAIDTOOL")
-        lspci | grep -q 'Hewlett-Packard Company Smart Array' && (is_installed cciss-vol-status \
-            || failed "IS_HARDWARERAIDTOOL")
+        if lspci | grep -q 'MegaRAID SAS'; then
+            is_installed megacli && (is_installed megaclisas-status || is_installed megaraidsas-status) \
+                || failed "IS_HARDWARERAIDTOOL"
+        fi
+        if lspci | grep -q 'Hewlett-Packard Company Smart Array'; then
+            is_installed cciss-vol-status \
+                || failed "IS_HARDWARERAIDTOOL"
+        fi
     fi
 
     if [ "$IS_LOG2MAILSYSTEMDUNIT" = 1 ]; then
@@ -1219,8 +1235,9 @@ fi
 
 if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
     if is_debian_stretch; then
-        grep -q "^PermitRoot" /etc/ssh/sshd_config && grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config \
-            || failed "IS_SSHPERMITROOTNO"
+        if grep -q "^PermitRoot" /etc/ssh/sshd_config; then
+            grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO"
+        fi
     else
         grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO"
     fi

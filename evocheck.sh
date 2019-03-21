@@ -107,6 +107,7 @@ IS_EVOACME_LIVELINKS=1
 IS_APACHE_CONFENABLED=1
 IS_MELTDOWN_SPECTRE=1
 IS_OLD_HOME_DIR=1
+IS_LSBRELEASE=1
 
 #Proper to OpenBSD
 IS_SOFTDEP=1
@@ -225,6 +226,11 @@ is_debian_stretch && MINIFW_FILE=/etc/default/minifirewall
 #-----------------------------------------------------------
 
 if is_debian; then
+
+    if [ "$IS_LSBRELEASE" = "1" ]; then
+        test -x "${LSB_RELEASE_BIN}" || failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
+        test "$(${LSB_RELEASE_BIN} --release --short)" = "$(cat /etc/debian_version)" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release and /etc/debian_version"
+    fi
 
     if [ "$IS_DPKGWARNING" = 1 ]; then
         is_debian_squeeze && ( [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ] ) && ( \

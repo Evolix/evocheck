@@ -430,7 +430,9 @@ if is_debian; then
     fi
 
     if [ "$IS_GRSECPROCS" = 1 ]; then
-        uname -a | grep -q grsec && ( grep -q "^command.check_total_procs..sudo" /etc/nagios/nrpe.cfg && grep -A1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep -q "^user root" || failed "IS_GRSECPROCS" )
+        if uname -a | grep -q grsec; then
+            grep -q "^command.check_total_procs..sudo" /etc/nagios/nrpe.cfg && grep -A1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep -q "^user root" || failed "IS_GRSECPROCS"
+        fi
     fi
 
     if [ "$IS_APACHEMUNIN" = 1 ]; then

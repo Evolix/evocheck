@@ -228,7 +228,7 @@ if is_debian; then
 
     if [ "$IS_LSBRELEASE" = "1" ]; then
         test -x "${LSB_RELEASE_BIN}" || failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
-
+        ## only the major version matters
         lhs=$(${LSB_RELEASE_BIN} --release --short | cut -d "." -f 1)
         rhs=$(cat /etc/debian_version | cut -d "." -f 1)
         test "$lhs" = "$rhs" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release and /etc/debian_version"
@@ -238,21 +238,25 @@ if is_debian; then
         if is_debian_squeeze; then
             if [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ]; then
                 count=$(grep -c -E -i "(Pre-Invoke ..echo Are you sure to have rw on|Post-Invoke ..echo Dont forget to mount -o remount)" /etc/apt/apt.conf)
-                [ "$count" = "2" ] || failed "IS_DPKGWARNING"
+                [ "$count" = "2" ] || failed "IS_DPKGWARNING" "Pre/Post-Invoke are missing."
             fi
         elif is_debian_wheezy; then
             if [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ]; then
-                test -e /etc/apt/apt.conf.d/80evolinux || failed "IS_DPKGWARNING"
-                test -e /etc/apt/apt.conf && failed "IS_DPKGWARNING"
+                test -e /etc/apt/apt.conf.d/80evolinux \
+                    || failed "IS_DPKGWARNING" "/etc/apt/apt.conf.d/80evolinux is missing"
+                test -e /etc/apt/apt.conf \
+                    && failed "IS_DPKGWARNING" "/etc/apt/apt.conf is missing"
             fi
         elif is_debian_stretch; then
-            test -e /etc/apt/apt.conf.d/z-evolinux.conf || failed "IS_DPKGWARNING"
+            test -e /etc/apt/apt.conf.d/z-evolinux.conf \
+                || failed "IS_DPKGWARNING" "/etc/apt/apt.conf.d/z-evolinux.conf is missing"
         fi
     fi
 
     if [ "$IS_UMASKSUDOERS" = 1 ]; then
         if is_debian_squeeze; then
-            grep -q "^Defaults.*umask=0077" /etc/sudoers || failed "IS_UMASKSUDOERS"
+            grep -q "^Defaults.*umask=0077" /etc/sudoers \
+                || failed "IS_UMASKSUDOERS" "sudoers must set umask to 0077"
         fi
     fi
 
@@ -261,10 +265,10 @@ if is_debian; then
         if is_installed postfix; then
             if is_debian_squeeze; then
                 grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg \
-                    || failed "IS_NRPEPOSTFIX"
+                    || failed "IS_NRPEPOSTFIX" "NRPE \"check_mailq\" for postfix is missing"
             else
                 test -e /etc/nagios/nrpe.cfg && grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* \
-                    || failed "IS_NRPEPOSTFIX"
+                    || failed "IS_NRPEPOSTFIX" "NRPE \"check_mailq\" for postfix is missing"
             fi
         fi
     fi
@@ -273,11 +277,11 @@ if is_debian; then
     if [ "$IS_MODSECURITY" = 1 ]; then
         if is_debian_squeeze; then
             if is_installed libapache-mod-security; then
-                test -e /etc/apache2/conf.d/mod-security2.conf || failed "IS_MODSECURITY"
+                test -e /etc/apache2/conf.d/mod-security2.conf || failed "IS_MODSECURITY" "missing configuration file"
             fi
         elif is_debian_wheezy; then
             if is_installed libapache2-modsecurity; then
-                test -e /etc/apache2/conf.d/mod-security2.conf || failed "IS_MODSECURITY"
+                test -e /etc/apache2/conf.d/mod-security2.conf || failed "IS_MODSECURITY" "missing configuration file"
             fi
         fi
     fi
@@ -287,11 +291,11 @@ if is_debian; then
     fi
 
     if [ "$IS_VARTMPFS" = 1 ]; then
-        df /var/tmp | grep -q tmpfs || failed "IS_VARTMPFS"
+        df /var/tmp | grep -q tmpfs || failed "IS_VARTMPFS" "/var/tmp is not a tmpfs"
     fi
 
     if [ "$IS_SERVEURBASE" = 1 ]; then
-        is_installed serveur-base || failed "IS_SERVEURBASE"
+        is_installed serveur-base || failed "IS_SERVEURBASE" "serveur-base package is not installed"
     fi
 
     if [ "$IS_LOGROTATECONF" = 1 ]; then
@@ -777,9 +781,9 @@ if is_debian; then
         fi
         # Check install_date if the system never received an upgrade
         if [ $last_upgrade -eq 0 ]; then
-            [ $install_date -lt $limit ] && failed "IS_NOTUPGRADED"
+            [ $install_date -lt $limit ] && failed "IS_NOTUPGRADED" "The system has never been updated"
         else
-            [ $last_upgrade -lt $limit ] && failed "IS_NOTUPGRADED"
+            [ $last_upgrade -lt $limit ] && failed "IS_NOTUPGRADED" "The system hasn't been updated for too long"
         fi
     fi
 
@@ -803,7 +807,8 @@ if is_debian; then
     if [ "$IS_EVOLINUXSUDOGROUP" = 1 ]; then
         if is_debian_stretch; then
             if grep -q "^evolinux-sudo:" /etc/group; then
-                grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux || failed "IS_EVOLINUXSUDOGROUP"
+                grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux \
+                    || failed "IS_EVOLINUXSUDOGROUP"
             fi
         fi
     fi
@@ -812,7 +817,7 @@ if is_debian; then
         if is_debian_stretch; then
             users=$(grep "^evolinux-sudo:" /etc/group | awk -F: '{print $4}' | tr ',' ' ')
             for user in $users; do
-                groups $user | grep -q adm || failed "IS_USERINADMGROUP"
+                groups $user | grep -q adm || failed "IS_USERINADMGROUP" "User $user doesn't belong to \`adm' group"
             done
         fi
     fi
@@ -898,7 +903,7 @@ if is_debian; then
         if (is_installed "mysql-server" || is_installed "mariadb-server"); then
             # You could change the default path in /etc/evocheck.cf
             SQL_BACKUP_PATH=${SQL_BACKUP_PATH:-"/home/backup/mysql.bak.gz"}
-            test -f "$SQL_BACKUP_PATH" || failed "IS_SQL_BACKUP"
+            test -f "$SQL_BACKUP_PATH" || failed "IS_SQL_BACKUP" "MySQL dump is missing (${SQL_BACKUP_PATH})"
         fi
     fi
 
@@ -907,7 +912,7 @@ if is_debian; then
             # If you use something like barman, you should disable this check
             # You could change the default path in /etc/evocheck.cf
             POSTGRES_BACKUP_PATH=${POSTGRES_BACKUP_PATH:-"/home/backup/pg.dump.bak"}
-            test -f "$POSTGRES_BACKUP_PATH" || failed "IS_POSTGRES_BACKUP"
+            test -f "$POSTGRES_BACKUP_PATH" || failed "IS_POSTGRES_BACKUP" "PostgreSQL dump is missing (${POSTGRES_BACKUP_PATH})"
         fi
     fi
 
@@ -922,13 +927,13 @@ if is_debian; then
                         limit=$(date +"%s" -d "now - 2 day")
                         updated_at=$(stat -c "%Y" $file)
                         if [ -f "$file" ] && [ $limit -gt $updated_at  ]; then
-                            failed "IS_MONGO_BACKUP"
+                            failed "IS_MONGO_BACKUP" "MongoDB hasn't been dumped for more than 2 days"
                             break
                         fi
                     fi
                 done
             else
-                failed "IS_MONGO_BACKUP"
+                failed "IS_MONGO_BACKUP" "MongoDB dump directory is missing (${MONGO_BACKUP_PATH})"
             fi
         fi
     fi
@@ -937,7 +942,7 @@ if is_debian; then
         if is_installed slapd; then
             # You could change the default path in /etc/evocheck.cf
             LDAP_BACKUP_PATH=${LDAP_BACKUP_PATH:-"/home/backup/ldap.bak"}
-            test -f "$LDAP_BACKUP_PATH" || failed "IS_LDAP_BACKUP"
+            test -f "$LDAP_BACKUP_PATH" || failed "IS_LDAP_BACKUP" "LDAP dump is missing (${LDAP_BACKUP_PATH})"
         fi
     fi
 
@@ -945,7 +950,7 @@ if is_debian; then
         if is_installed redis-server; then
             # You could change the default path in /etc/evocheck.cf
             REDIS_BACKUP_PATH=${REDIS_BACKUP_PATH:-"/home/backup/dump.rdb"}
-            test -f "$REDIS_BACKUP_PATH" || failed "IS_REDIS_BACKUP"
+            test -f "$REDIS_BACKUP_PATH" || failed "IS_REDIS_BACKUP" "Redis dump is missing (${REDIS_BACKUP_PATH})"
         fi
     fi
 
@@ -953,7 +958,7 @@ if is_debian; then
         if is_installed elasticsearch; then
             # You could change the default path in /etc/evocheck.cf
             ELASTIC_BACKUP_PATH=${ELASTIC_BACKUP_PATH:-"/home/backup/elasticsearch"}
-            test -d "$ELASTIC_BACKUP_PATH" || failed "IS_ELASTIC_BACKUP"
+            test -d "$ELASTIC_BACKUP_PATH" || failed "IS_ELASTIC_BACKUP" "Elastic snapshot is missing (${ELASTIC_BACKUP_PATH})"
         fi
     fi
 
@@ -975,7 +980,7 @@ if is_debian; then
                 mysql_sorts mysql_tmp_tables; do
 
                 if [[ ! -L /etc/munin/plugins/$file ]]; then
-                    failed "IS_MYSQLMUNIN"
+                    failed "IS_MYSQLMUNIN" "Munin plugin '$file' is missing"
                     break
                 fi
             done
@@ -1047,9 +1052,9 @@ if is_debian; then
     if [ "$IS_EVOACME_CRON" = 1 ]; then
         if [ -f "/usr/local/sbin/evoacme" ]; then
             # Old cron file, should be deleted
-            test -f /etc/cron.daily/certbot && failed "IS_EVOACME_CRON"
+            test -f /etc/cron.daily/certbot && failed "IS_EVOACME_CRON" "certbot cron is incompatible with evoacme"
             # evoacme cron file should be present
-            test -f /etc/cron.daily/evoacme || failed "IS_EVOACME_CRON"
+            test -f /etc/cron.daily/evoacme || failed "IS_EVOACME_CRON" "evoacme cron is missing"
         fi
     fi
 
@@ -1067,7 +1072,7 @@ if is_debian; then
                     lastCertDir=$(stat -c %n ${certDir}/[0-9]* | tail -1)
                     lastCertDate=$(cut -d'/' -f5 <<< $lastCertDir)
                     if [[ "$actualCertDate" != "$lastCertDate" ]]; then
-                        failed "IS_EVOACME_LIVELINKS"
+                        failed "IS_EVOACME_LIVELINKS" "Certificate '$liveDir' hasn't been updated"
                         break
                     fi
                 done
@@ -1104,27 +1109,24 @@ if is_debian; then
                 # Sometimes autodetection of kernel config file fail, so we test if the file really exists.
                 if [ -f /boot/$kernelConfig ]; then
                     grep -Eq '^CONFIG_PAGE_TABLE_ISOLATION=y' /boot/$kernelConfig \
-                        || failed "IS_MELTDOWN_SPECTRE"
+                        || failed "IS_MELTDOWN_SPECTRE" "PAGE_TABLE_ISOLATION vulnerability is not patched"
                     grep -Eq '^CONFIG_RETPOLINE=y' /boot/$kernelConfig \
-                        || failed "IS_MELTDOWN_SPECTRE"
+                        || failed "IS_MELTDOWN_SPECTRE" "RETPOLINE vulnerability is not patched"
                 fi
             fi
         fi
     fi
 
     if [ "$IS_OLD_HOME_DIR" = 1 ]; then
-        for dir in /home/*; do
+        homeDir=${homeDir:-/home}
+        for dir in $homeDir/*; do
             statResult=$(stat -c "%n has owner %u resolved as %U" "$dir" \
                 | grep -Eve '.bak' -e '\.[0-9]{2}-[0-9]{2}-[0-9]{4}' \
                 | grep "UNKNOWN")
             # There is at least one dir matching
             if [[ -n "$statResult" ]]; then
-                failed "IS_OLD_HOME_DIR"
-                if [[ "$VERBOSE" == 1 ]]; then
-                    echo "$statResult"
-                else
-                    break
-                fi
+                failed "IS_OLD_HOME_DIR" "$statResult"
+                break
             fi
         done
     fi
@@ -1183,14 +1185,14 @@ if is_openbsd; then
     fi
 
     if [ "$IS_POSTGRESQL" = 1 ]; then
-        pkg info | grep -q postgresql-client || failed "IS_POSTGRESQL"
+        pkg info | grep -q postgresql-client || failed "IS_POSTGRESQL" "postgresql-client is not installed"
     fi
 
     if [ "$IS_NRPE" = 1 ]; then
         { pkg info | grep -qE "nagios-plugins-[0-9.]" \
             && pkg info | grep -q nagios-plugins-ntp \
             && pkg info | grep -q nrpe;
-        } || failed "IS_NRPE"
+        } || failed "IS_NRPE" "NRPE is not installed"
     fi
 
 # if [ "$IS_NRPEDISKS" = 1 ]; then
@@ -1295,15 +1297,16 @@ if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
         && grep "^URGENCYFROM" $f | grep -qv "mama.doe@example.com" \
         && grep "^URGENCYTEL" $f | grep -qv "06.00.00.00.00" \
         && grep "^REALM" $f | grep -qv "example.com";
-    } || failed "IS_EVOMAINTENANCECONF"
+    } || failed "IS_EVOMAINTENANCECONF" "evomaintenance is not correctly configured"
 fi
 
 if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then
     for f in /etc/ssl/private/*; do
         perms=$(stat -L -c "%a" $f)
         if [ "${perms: -1}" != "0" ]; then
-            failed "IS_PRIVKEYWOLRDREADABLE"
-            break
+            failed "IS_PRIVKEYWOLRDREADABLE" "$f is world-readable"
+            ## let's print an error for each key
+            # break
         fi
     done
 fi

@@ -177,6 +177,11 @@ if [ "$IS_EVOBACKUP" = 1 ]; then
     fi
 fi
 
+# Check whether the system should be restarted (after a kernel update)
+#if [ "$IS_KERNELUPTODATE" = 1 ]; then
+# TODO
+#fi
+
 # Check if the server is running for more than a year.
 if [ "$IS_UPTIME" = 1 ]; then
         echo 'IS_UPTIME FAILED!'

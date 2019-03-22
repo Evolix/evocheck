@@ -148,6 +148,9 @@ fi
 
 if [ "$IS_TMPNOEXEC" = 1 ]; then
     mount | grep "on /tmp" | grep -q noexec || echo 'IS_TMPNOEXEC FAILED!'
+    if [[ "$VERBOSE" == 1 ]]; then
+        echo "/tmp should be mounted with the noexec option"
+    fi
 fi
 
 if [ "$IS_TMOUTPROFILE" = 1 ]; then

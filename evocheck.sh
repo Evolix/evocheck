@@ -268,8 +268,9 @@ if is_debian; then
                 grep -q "^command.*check_mailq -M postfix" /etc/nagios/nrpe.cfg \
                     || failed "IS_NRPEPOSTFIX" "NRPE \"check_mailq\" for postfix is missing"
             else
-                test -e /etc/nagios/nrpe.cfg && grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.* \
-                    || failed "IS_NRPEPOSTFIX" "NRPE \"check_mailq\" for postfix is missing"
+                { test -e /etc/nagios/nrpe.cfg \
+                    && grep -qr "^command.*check_mailq -M postfix" /etc/nagios/nrpe.*;
+                } || failed "IS_NRPEPOSTFIX" "NRPE \"check_mailq\" for postfix is missing"
             fi
         fi
     fi
@@ -429,14 +430,17 @@ if is_debian; then
 
     if [ "$IS_NRPEPID" = 1 ]; then
         if ! is_debian_squeeze; then
-            test -e /etc/nagios/nrpe.cfg && grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg \
-                || failed "IS_NRPEPID"
+            { test -e /etc/nagios/nrpe.cfg \
+                && grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
+            } || failed "IS_NRPEPID"
         fi
     fi
 
     if [ "$IS_GRSECPROCS" = 1 ]; then
         if uname -a | grep -q grsec; then
-            grep -q "^command.check_total_procs..sudo" /etc/nagios/nrpe.cfg && grep -A1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep -q "^user root" || failed "IS_GRSECPROCS"
+            { grep -q "^command.check_total_procs..sudo" /etc/nagios/nrpe.cfg \
+                && grep -A1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep -q "^user root";
+            } || failed "IS_GRSECPROCS"
         fi
     fi
 
@@ -517,11 +521,11 @@ if is_debian; then
         fi
         if is_pack_web && (is_installed squid || is_installed squid3); then
             host=$(hostname -i)
-            http_port=$(grep "http_port" $squidconffile | cut -f 2 -d " ")
-            { grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $MINIFW_FILE \
-                && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d $host -j ACCEPT" $MINIFW_FILE \
-                && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" $MINIFW_FILE \
-                && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* $http_port" $MINIFW_FILE;
+            http_port=$(grep "http_port" "$squidconffile" | cut -f 2 -d " ")
+            { grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" "$MINIFW_FILE" \
+                && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d $host -j ACCEPT" "$MINIFW_FILE" \
+                && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" "$MINIFW_FILE" \
+                && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* $http_port" "$MINIFW_FILE";
             } || failed "IS_SQUID"
         fi
     fi
@@ -578,15 +582,17 @@ if is_debian; then
 
     # Verification si bind est chroote
     if [ "$IS_BINDCHROOT" = 1 ]; then
-        if is_installed bind9 && netstat -utpln | grep "/named" | grep :53 | grep -qvE "(127.0.0.1|::1)"; then
-            if grep -q '^OPTIONS=".*-t' /etc/default/bind9 && grep -q '^OPTIONS=".*-u' /etc/default/bind9; then
-                md5_original=$(md5sum /usr/sbin/named | cut -f 1 -d ' ')
-                md5_chrooted=$(md5sum /var/chroot-bind/usr/sbin/named | cut -f 1 -d ' ')
-                if [ "$md5_original" != "$md5_chrooted" ]; then
-                    failed "IS_BINDCHROOT"
+        if is_installed bind9; then
+            if netstat -utpln | grep "/named" | grep :53 | grep -qvE "(127.0.0.1|::1)"; then
+                if grep -q '^OPTIONS=".*-t' /etc/default/bind9 && grep -q '^OPTIONS=".*-u' /etc/default/bind9; then
+                    md5_original=$(md5sum /usr/sbin/named | cut -f 1 -d ' ')
+                    md5_chrooted=$(md5sum /var/chroot-bind/usr/sbin/named | cut -f 1 -d ' ')
+                    if [ "$md5_original" != "$md5_chrooted" ]; then
+                        failed "IS_BINDCHROOT" "The chrooted bind binary is differet than the original binary"
+                    fi
+                else
+                    failed "IS_BINDCHROOT" "bind process is not chrooted"
                 fi
-            else
-                failed "IS_BINDCHROOT"
             fi
         fi
     fi
@@ -871,7 +877,7 @@ if is_debian; then
 
     if [ "$IS_HARDWARERAIDTOOL" = 1 ]; then
         if lspci | grep -q 'MegaRAID SAS'; then
-            is_installed megacli && (is_installed megaclisas-status || is_installed megaraidsas-status) \
+            is_installed megacli && { is_installed megaclisas-status || is_installed megaraidsas-status; } \
                 || failed "IS_HARDWARERAIDTOOL" "Mega tools not found"
         fi
         if lspci | grep -q 'Hewlett-Packard Company Smart Array'; then

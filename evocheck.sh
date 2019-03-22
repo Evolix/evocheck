@@ -921,12 +921,12 @@ if is_debian; then
             # You could change the default path in /etc/evocheck.cf
             MONGO_BACKUP_PATH=${MONGO_BACKUP_PATH:-"/home/backup/mongodump"}
             if [ -d "$MONGO_BACKUP_PATH" ]; then
-                for file in "${MONGO_BACKUP_PATH}/*/*.{json,bson}"; do
+                for file in "${MONGO_BACKUP_PATH}"/*/*.{json,bson}; do
                     # Skip indexes file.
                     if ! [[ "$file" =~ indexes ]]; then
                         limit=$(date +"%s" -d "now - 2 day")
-                        updated_at=$(stat -c "%Y" $file)
-                        if [ -f "$file" ] && [ $limit -gt $updated_at  ]; then
+                        updated_at=$(stat -c "%Y" "$file")
+                        if [ -f "$file" ] && [ "$limit" -gt "$updated_at"  ]; then
                             failed "IS_MONGO_BACKUP" "MongoDB hasn't been dumped for more than 2 days"
                             break
                         fi

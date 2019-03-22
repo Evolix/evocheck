@@ -706,7 +706,7 @@ if is_debian; then
     # Verification si le système doit redémarrer suite màj kernel.
     if [ "$IS_KERNELUPTODATE" = 1 ]; then
         if is_installed linux-image*; then
-            kernel_installed_at=$(date -d "$(ls --full-time -lcrt /boot | tail -n1 | tr -s " " | cut -d " " -f 6)" +%s)
+            kernel_installed_at=$(date -d "$(ls --full-time -lcrt /boot | tail -n1 | awk '{print $6}')" +%s)
             last_reboot_at=$(($(date +%s) - $(cut -f1 -d '.' /proc/uptime)))
             if [ "$kernel_installed_at" -gt "$last_reboot_at" ]; then
                 failed "IS_KERNELUPTODATE"

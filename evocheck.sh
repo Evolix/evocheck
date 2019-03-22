@@ -437,20 +437,20 @@ if is_debian; then
     fi
 
     if [ "$IS_APACHEMUNIN" = 1 ]; then
-        if is_debian_stretch; then
-            if test -e /etc/apache2/apache2.conf; then
-                (test -h /etc/apache2/mods-enabled/status.load \
+        if test -e /etc/apache2/apache2.conf; then
+            if is_debian_stretch; then
+                { test -h /etc/apache2/mods-enabled/status.load \
                     && test -h /etc/munin/plugins/apache_accesses \
                     && test -h /etc/munin/plugins/apache_processes \
-                    && test -h /etc/munin/plugins/apache_volume) \
+                    && test -h /etc/munin/plugins/apache_volume; } \
                     || failed "IS_APACHEMUNIN" "mising munin plugins for Apache"
-            fi
-        else
-            if test -e /etc/apache2/apache2.conf; then
-                (grep --quiet --no-messages --extended-regexp "^env.url.*/server-status-[[:alnum:]]{4,}" /etc/munin/plugin-conf.d/munin-node \
-                    && (grep --quiet --no-messages --extended-regexp "/server-status-[[:alnum:]]{4,}" /etc/apache2/apache2.conf \
-                        || grep --quiet --no-messages --extended-regexp "/server-status-[[:alnum:]]{4,}" /etc/apache2/mods-enabled/status.conf)) \
-                    || failed "IS_APACHEMUNIN" "server status is not properly configured"
+            else
+                pattern="/server-status-[[:alnum:]]{4,}"
+                { grep -q -s -E "^env.url.*${pattern}" /etc/munin/plugin-conf.d/munin-node \
+                    && { grep -q -s -E "${pattern}" /etc/apache2/apache2.conf \
+                        || grep -q -s -E "${pattern}" /etc/apache2/mods-enabled/status.conf;
+                    };
+                } || failed "IS_APACHEMUNIN" "server status is not properly configured"
             fi
         fi
     fi

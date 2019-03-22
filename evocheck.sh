@@ -505,9 +505,11 @@ if is_debian; then
 
     # Verification de l'activation de Squid dans le cas d'un pack mail
     if [ "$IS_SQUID" = 1 ]; then
-        squidconffile="/etc/squid*/squid.conf"
-        is_debian_stretch && squidconffile=/etc/squid/evolinux-custom.conf
-
+        if is_debian_stretch; then
+            squidconffile="/etc/squid/evolinux-custom.conf"
+        else
+            squidconffile="/etc/squid*/squid.conf"
+        fi
         if is_pack_web && (is_installed squid || is_installed squid3); then
             host=$(hostname -i)
             http_port=$(grep "http_port" $squidconffile | cut -f 2 -d " ")
@@ -1018,8 +1020,7 @@ if is_debian; then
         BLKID_BIN=$(command -v blkid)
         if [ -x "$BLKID_BIN" ]; then
             tmpFile=$(mktemp -p /tmp)
-            parts=$($BLKID_BIN | grep -ve raid_member -e EFI_SYSPART \
-              | grep -Eo ' LABEL=".*"' | cut -d'"' -f2)
+            parts=$($BLKID_BIN | grep -ve raid_member -e EFI_SYSPART | grep -Eo ' LABEL=".*"' | cut -d'"' -f2)
             for part in $parts; do
                 echo "$part" >> "$tmpFile"
             done

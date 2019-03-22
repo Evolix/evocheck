@@ -144,7 +144,7 @@ if [ -e /etc/debian_version ]; then
     fi
 elif [ "$(uname -s)" = "OpenBSD" ]; then
     # use a better release name
-    OPENBSD_RELEASE="OpenBSD"
+    OPENBSD_RELEASE=$(uname -r)
 fi
 
 # Source configuration file

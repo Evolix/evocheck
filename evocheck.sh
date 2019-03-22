@@ -283,6 +283,9 @@ fi
 
 if [ "$IS_TTYC0SECURE" = 1 ]; then
     grep -Eqv "^ttyC0.*secure$" /etc/ttys || echo 'IS_TTYC0SECURE FAILED!'
+    if [[ "$VERBOSE" == 1 ]]; then
+        echo "First tty should be secured"
+    fi
 fi
 
 if [ "$IS_CUSTOMSYSLOG" = 1 ]; then

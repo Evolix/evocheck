@@ -132,7 +132,7 @@ OPENBSD_RELEASE=""
 
 if [ -e /etc/debian_version ]; then
     DEBIAN_VERSION=$(cut -d "." -f 1 < /etc/debian_version)
-    if [ -x ${LSB_RELEASE_BIN} ]; then
+    if [ -x "${LSB_RELEASE_BIN}" ]; then
         DEBIAN_RELEASE=$(${LSB_RELEASE_BIN} --codename --short)
     else
         case ${DEBIAN_VERSION} in
@@ -163,7 +163,7 @@ fi
 failed() {
     check_name=$1
     shift
-    check_comments=$@
+    check_comments=$*
 
     if [ -n "${check_comments}" ] && [ "${VERBOSE}" = 1 ]; then
         printf "%s FAILED! %s\n" "${check_name}" "${check_comments}" 2>&1
@@ -182,8 +182,8 @@ is_pack_samba(){
 }
 
 is_installed(){
-    for pkg in $*; do
-            dpkg -l $pkg 2>/dev/null | grep -q -E '^(i|h)i' || return 1
+    for pkg in "$@"; do
+        dpkg -l "$pkg" 2> /dev/null | grep -q -E '^(i|h)i' || return 1
     done
 }
 
@@ -227,7 +227,7 @@ is_debian_stretch && MINIFW_FILE=/etc/default/minifirewall
 
 if is_debian; then
 
-    if [ "$IS_LSBRELEASE" = "1" ]; then
+    if [ "$IS_LSBRELEASE" = 1 ]; then
         test -x "${LSB_RELEASE_BIN}" || failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
         ## only the major version matters
         lhs=$(${LSB_RELEASE_BIN} --release --short | cut -d "." -f 1)
@@ -239,7 +239,7 @@ if is_debian; then
         if is_debian_squeeze; then
             if [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ]; then
                 count=$(grep -c -E -i "(Pre-Invoke ..echo Are you sure to have rw on|Post-Invoke ..echo Dont forget to mount -o remount)" /etc/apt/apt.conf)
-                [ "$count" = "2" ] || failed "IS_DPKGWARNING" "Pre/Post-Invoke are missing."
+                test "$count" = 2 || failed "IS_DPKGWARNING" "Pre/Post-Invoke are missing."
             fi
         elif is_debian_wheezy; then
             if [ "$IS_USRRO" = 1 ] || [ "$IS_TMPNOEXEC" = 1 ]; then
@@ -367,7 +367,7 @@ if is_debian; then
         else
             if [ -e "/etc/apt/listchanges.conf" ]; then
                 lines=$(grep -cE "(which=both|confirm=1)" /etc/apt/listchanges.conf)
-                if [ $lines != 2 ]; then
+                if [ "$lines" != 2 ]; then
                     failed "IS_LISTCHANGESCONF" "apt-listchanges config is incorrect"
                 fi
             else
@@ -378,7 +378,7 @@ if is_debian; then
 
     if [ "$IS_CUSTOMCRONTAB" = 1 ]; then
         found_lines=$(grep -c -E "^(17 \*|25 6|47 6|52 6)" /etc/crontab)
-        test "$found_lines" = "4" && failed "IS_CUSTOMCRONTAB"
+        test "$found_lines" = 4 && failed "IS_CUSTOMCRONTAB"
     fi
 
     if [ "$IS_SSHALLOWUSERS" = 1 ]; then
@@ -630,14 +630,14 @@ if is_debian; then
     # Network conf verification
     if [ "$IS_INTERFACESGW" = 1 ]; then
         number=$(grep -Ec "^[^#]*gateway [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" /etc/network/interfaces)
-        test $number -gt 1 && failed "IS_INTERFACESGW"
+        test "$number" -gt 1 && failed "IS_INTERFACESGW" "there is more than 1 IPv4 gateway"
         number=$(grep -Ec "^[^#]*gateway [0-9a-fA-F]+:" /etc/network/interfaces)
-        test $number -gt 1 && failed "IS_INTERFACESGW"
+        test "$number" -gt 1 && failed "IS_INTERFACESGW" "there is more than 1 IPv6 gateway"
     fi
 
     # Verification de la mise en place d'evobackup
     if [ "$IS_EVOBACKUP" = 1 ]; then
-        ls /etc/cron* |grep -q "evobackup" || failed "IS_EVOBACKUP"
+        find /etc/cron* -name '*evobackup*' > /dev/null || failed "IS_EVOBACKUP"
     fi
 
     # Verification de la presence du userlogrotate
@@ -682,7 +682,7 @@ if is_debian; then
             muninconf="/etc/apache2/conf-available/munin.conf"
         fi
         if is_installed apache2.2-common; then
-            test -e $muninconf && grep -vEq "^( |\t)*#" $muninconf && failed "IS_MUNINAPACHECONF"
+            test -e $muninconf && grep -vEq "^( |\t)*#" "$muninconf" && failed "IS_MUNINAPACHECONF"
         fi
     fi
 
@@ -691,7 +691,7 @@ if is_debian; then
         if is_pack_samba; then
             if grep -qrE "^[^#].*backport" /etc/apt/sources.list{,.d}; then
                 priority=$(grep -E -A2 "^Package:.*samba" /etc/apt/preferences | grep -A1 "^Pin: release a=.*-backports" | grep "^Pin-Priority:" | cut -f2 -d" ")
-                test $priority -gt 500 || failed "IS_SAMBAPINPRIORITY"
+                test "$priority" -gt 500 || failed "IS_SAMBAPINPRIORITY"
             fi
         fi
     fi
@@ -701,7 +701,7 @@ if is_debian; then
         if is_installed linux-image*; then
             kernel_installed_at=$(date -d "$(ls --full-time -lcrt /boot | tail -n1 | tr -s " " | cut -d " " -f 6)" +%s)
             last_reboot_at=$(($(date +%s) - $(cut -f1 -d '.' /proc/uptime)))
-            if [ $kernel_installed_at -gt $last_reboot_at ]; then
+            if [ "$kernel_installed_at" -gt "$last_reboot_at" ]; then
                 failed "IS_KERNELUPTODATE"
             fi
         fi
@@ -712,7 +712,7 @@ if is_debian; then
         if is_installed linux-image*; then
             limit=$(date -d "now - 2 year" +%s)
             last_reboot_at=$(($(date +%s) - $(cut -f1 -d '.' /proc/uptime)))
-            if [ $limit -gt $last_reboot_at ]; then
+            if [ "$limit" -gt "$last_reboot_at" ]; then
                 failed "IS_UPTIME"
             fi
         fi
@@ -724,10 +724,10 @@ if is_debian; then
 
         limit=$(date +"%s" -d "now - 10 minutes")
         updated_at=$(stat -c "%Y" /var/lib/munin/*/*load-g.rrd |sort |tail -1)
-        [ $limit -gt $updated_at ] && failed "IS_MUNINRUNNING"
+        [ "$limit" -gt "$updated_at" ] && failed "IS_MUNINRUNNING"
 
         updated_at=$(stat -c "%Y" /var/cache/munin/www/*/*/load-day.png |sort |tail -1)
-        grep -q "^graph_strategy cron" /etc/munin/munin.conf && [ $limit -gt $updated_at ] && failed "IS_MUNINRUNNING"
+        grep -q "^graph_strategy cron" /etc/munin/munin.conf && [ "$limit" -gt "$updated_at" ] && failed "IS_MUNINRUNNING"
     fi
 
     # Check if files in /home/backup/ are up-to-date
@@ -735,8 +735,8 @@ if is_debian; then
         if [ -d /home/backup/ ]; then
             for file in /home/backup/*; do
                 limit=$(date +"%s" -d "now - 2 day")
-                updated_at=$(stat -c "%Y" $file)
-                if [ -f "$file" ] && [ $limit -gt $updated_at ]; then
+                updated_at=$(stat -c "%Y" "$file")
+                if [ -f "$file" ] && [ "$limit" -gt "$updated_at" ]; then
                     failed "IS_BACKUPUPTODATE" "$file has not been backed up"
                     break;
                 fi
@@ -784,10 +784,10 @@ if is_debian; then
             install_date=$(stat -c %Z /var/log/installer)
         fi
         # Check install_date if the system never received an upgrade
-        if [ $last_upgrade -eq 0 ]; then
-            [ $install_date -lt $limit ] && failed "IS_NOTUPGRADED" "The system has never been updated"
+        if [ "$last_upgrade" -eq 0 ]; then
+            [ "$install_date" -lt "$limit" ] && failed "IS_NOTUPGRADED" "The system has never been updated"
         else
-            [ $last_upgrade -lt $limit ] && failed "IS_NOTUPGRADED" "The system hasn't been updated for too long"
+            [ "$last_upgrade" -lt "$limit" ] && failed "IS_NOTUPGRADED" "The system hasn't been updated for too long"
         fi
     fi
 
@@ -797,13 +797,13 @@ if is_debian; then
         for part in $parts; do
             blockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Block count:" | grep -Eo "[0-9]+")
             # If buggy partition, skip it.
-            if [ -z $blockCount ]; then
+            if [ -z "$blockCount" ]; then
                 continue
             fi
             reservedBlockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Reserved block count:" | grep -Eo "[0-9]+")
             # Use bc to have a rounded percentage
             percentage=$(echo "scale=0; ${reservedBlockCount} * 100 / ${blockCount}" | bc)
-            if [ "$percentage" -lt "5" ]; then
+            if [ "$percentage" -lt 5 ]; then
                 failed "IS_TUNE2FS_M5" "Partition ${part} has less than 5% reserved blocks!"
             fi
         done
@@ -822,7 +822,7 @@ if is_debian; then
         if is_debian_stretch; then
             users=$(grep "^evolinux-sudo:" /etc/group | awk -F: '{print $4}' | tr ',' ' ')
             for user in $users; do
-                groups $user | grep -q adm || failed "IS_USERINADMGROUP" "User $user doesn't belong to \`adm' group"
+                groups "$user" | grep -q adm || failed "IS_USERINADMGROUP" "User $user doesn't belong to \`adm' group"
             done
         fi
     fi
@@ -1046,7 +1046,7 @@ if is_debian; then
                 labels=$(echo -n $tmpOutput | tr '\n' ' ')
                 failed "IS_DUPLICATE_FS_LABEL" "Duplicate labels: $labels"
             fi
-            rm $tmpFile
+            rm "$tmpFile"
         fi
     fi
 
@@ -1068,7 +1068,7 @@ if is_debian; then
         if [ -x "$EVOACME_BIN" ]; then
             # Sometimes evoacme is installed but no certificates has been generated
             numberOfLinks=$(find /etc/letsencrypt/ -type l | wc -l)
-            if [ "$numberOfLinks" -gt "0" ]; then
+            if [ "$numberOfLinks" -gt 0 ]; then
                 for live in /etc/letsencrypt/*/live; do
                     actualLink=$(readlink -f "$live")
                     actualVersion=$(basename "$actualLink")
@@ -1309,7 +1309,7 @@ fi
 if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then
     for f in /etc/ssl/private/*; do
         perms=$(stat -L -c "%a" "$f")
-        if [ "${perms: -1}" != "0" ]; then
+        if [ "${perms: -1}" != 0 ]; then
             failed "IS_PRIVKEYWOLRDREADABLE" "$f is world-readable"
             ## let's print an error for each key
             # break

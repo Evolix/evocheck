@@ -275,7 +275,10 @@ if [ "$IS_HISTORY" = 1 ]; then
 fi
 
 if [ "$IS_VIM" = 1 ]; then
-    command -v vim 2>1 >> /dev/null || echo 'IS_VIM FAILED!'
+    pkg_info | grep -q vim || echo 'IS_VIM FAILED!'
+    if [[ "$VERBOSE" == 1 ]]; then
+        echo "vim is not installed! Please add with pkg_add vim"
+    fi
 fi
 
 if [ "$IS_TTYC0SECURE" = 1 ]; then
@@ -298,7 +301,10 @@ if [ "$IS_SUDOMAINT" = 1 ]; then
 fi
 
 if [ "$IS_POSTGRESQL" = 1 ]; then
-    pkg info | grep -q postgresql-client || echo 'IS_POSTGRESQL FAILED!'
+    pkg_info | grep -q postgresql-client || echo 'IS_POSTGRESQL FAILED!'
+    if [[ "$VERBOSE" == 1 ]]; then
+        echo "postgresql-client is not installed! Please add with pkg_add postgresql-client"
+    fi
 fi
 
 if [ "$IS_NRPE" = 1 ]; then

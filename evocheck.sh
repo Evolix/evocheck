@@ -69,6 +69,7 @@ IS_KERNELUPTODATE=1
 IS_UPTIME=1
 IS_MUNINRUNNING=1
 IS_BACKUPUPTODATE=1
+IS_ETCGIT=1
 IS_GITPERMS=1
 IS_NOTUPGRADED=1
 IS_TUNE2FS_M5=1
@@ -741,6 +742,10 @@ if is_debian; then
                 fi
             done
         fi
+    fi
+
+    if [ "$IS_ETCGIT" = 1 ]; then
+        (cd /etc; git rev-parse --is-inside-work-tree > /dev/null 2>&1) || failed "IS_ETCGIT" "/etc is not a Git repository"
     fi
 
     # Check if /etc/.git/ has read/write permissions for root only.

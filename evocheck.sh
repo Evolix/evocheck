@@ -1063,17 +1063,20 @@ if is_debian; then
         if [ -x "$EVOACME_BIN" ]; then
             # Sometimes evoacme is installed but no certificates has been generated
             numberOfLinks=$(find /etc/letsencrypt/ -type l | wc -l)
-            if [ $numberOfLinks -gt 0 ]; then
+            if [ "$numberOfLinks" -gt "0" ]; then
                 for live in /etc/letsencrypt/*/live; do
-                    actualLink=$(ls -lhad $live | tr -s ' ' | cut -d' ' -f 11)
-                    actualCertDate=$(cut -d'/' -f5 <<< $actualLink)
-                    liveDir=$(ls -lhad $live | tr -s ' ' | cut -d' ' -f 9)
-                    certDir=${liveDir%%/live}
-                    lastCertDir=$(stat -c %n ${certDir}/[0-9]* | tail -1)
-                    lastCertDate=$(cut -d'/' -f5 <<< $lastCertDir)
-                    if [[ "$actualCertDate" != "$lastCertDate" ]]; then
-                        failed "IS_EVOACME_LIVELINKS" "Certificate '$liveDir' hasn't been updated"
-                        break
+                    actualLink=$(readlink -f "$live")
+                    actualVersion=$(basename "$actualLink")
+
+                    certDir=$(dirname "$live")
+                    certName=$(basename "$certDir")
+                    lastCertDir=$(ls -ds "${certDir}"/[0-9]* | tail -1)
+                    lastVersion=$(basename "$lastCertDir")
+
+                    if [[ "$lastVersion" != "$actualVersion" ]]; then
+                        failed "IS_EVOACME_LIVELINKS" "Certificate \`$certName' hasn't been updated"
+                        ## let's print an error for each certificate
+                        # break
                     fi
                 done
             fi

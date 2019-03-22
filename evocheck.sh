@@ -721,8 +721,8 @@ if is_debian; then
             for file in /home/backup/*; do
                 limit=$(date +"%s" -d "now - 2 day")
                 updated_at=$(stat -c "%Y" $file)
-                if [ $limit -gt $updated_at ]; then
-                    failed "IS_BACKUPUPTODATE"
+                if [ -f "$file" ] && [ $limit -gt $updated_at ]; then
+                    failed "IS_BACKUPUPTODATE" "$file has not been backed up"
                     break;
                 fi
             done

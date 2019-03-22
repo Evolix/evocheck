@@ -4,6 +4,8 @@
 # Script to verify compliance of a Debian/OpenBSD server
 # powered by Evolix
 
+VERSION="0.14.0.beta1"
+
 # Disable LANG*
 export LANG=C
 export LANGUAGE=C
@@ -126,6 +128,14 @@ IS_NRPEDAEMON=1
 IS_ALERTBOOT=1
 IS_RSYNC=1
 
+# Default return code : 0 = no error
+RC=0
+
+# Source configuration file
+# shellcheck disable=SC1091
+test -f /etc/evocheck.cf && . /etc/evocheck.cf
+
+# OS detection
 DEBIAN_RELEASE=""
 LSB_RELEASE_BIN=$(command -v lsb_release)
 OPENBSD_RELEASE=""
@@ -148,44 +158,42 @@ elif [ "$(uname -s)" = "OpenBSD" ]; then
     OPENBSD_RELEASE=$(uname -r)
 fi
 
-# Source configuration file
-# shellcheck disable=SC1091
-test -f /etc/evocheck.cf && . /etc/evocheck.cf
-
-VERBOSE="${VERBOSE:-0}"
-
-# If --cron is passed, ignore some checks.
-if [ "$1" = "--cron" ]; then
-    IS_KERNELUPTODATE=0
-    IS_UPTIME=0
-fi
-
-# logging function
-failed() {
-    check_name=$1
-    shift
-    check_comments=$*
-
-    if [ -n "${check_comments}" ] && [ "${VERBOSE}" = 1 ]; then
-        printf "%s FAILED! %s\n" "${check_name}" "${check_comments}" 2>&1
-    else
-        printf "%s FAILED!\n" "${check_name}" 2>&1
-    fi
-}
-
 # Functions
-is_pack_web(){
-    test -e /usr/share/scripts/web-add.sh || test -e /usr/share/scripts/evoadmin/web-add.sh
-}
 
-is_pack_samba(){
-    test -e /usr/share/scripts/add.pl
-}
+show_version() {
+    cat <<END
+evocheck version ${VERSION}
 
-is_installed(){
-    for pkg in "$@"; do
-        dpkg -l "$pkg" 2> /dev/null | grep -q -E '^(i|h)i' || return 1
-    done
+Copyright 2009-2019 Evolix <info@evolix.fr>,
+                    Romain Dessort <rdessort@evolix.fr>,
+                    Benoit Série <bserie@evolix.fr>,
+                    Gregory Colpart <reg@evolix.fr>,
+                    Jérémy Lecour <jlecour@evolix.fr>,
+                    Tristan Pilat <tpilat@evolix.fr>,
+                    Victor Laborie <vlaborie@evolix.fr>
+                    and others.
+
+evocheck comes with ABSOLUTELY NO WARRANTY.  This is free software,
+and you are welcome to redistribute it under certain conditions.
+See the GNU General Public License v3.0 for details.
+END
+}
+show_help() {
+    cat <<END
+evocheck is a script that verifies Evolix conventions on Debian/OpenBSD servers.
+
+Usage: evocheck
+  or   evocheck --cron
+  or   evocheck --quiet
+  or   evocheck --verbose
+
+Options
+     --cron                  disable a few checks
+ -v, --verbose               increase verbosity of checks
+ -q, --quiet                 nothing is printed on stadard outputs
+     --help                  print this message and exit
+     --version               print version and exit
+END
 }
 
 is_debian() {
@@ -216,17 +224,86 @@ is_openbsd() {
   test -n "${OPENBSD_RELEASE}"
 }
 
-is_debian_lenny   && MINIFW_FILE=/etc/firewall.rc
-is_debian_squeeze && MINIFW_FILE=/etc/firewall.rc
-is_debian_wheezy  && MINIFW_FILE=/etc/firewall.rc
-is_debian_jessie  && MINIFW_FILE=/etc/default/minifirewall
-is_debian_stretch && MINIFW_FILE=/etc/default/minifirewall
+is_pack_web(){
+    test -e /usr/share/scripts/web-add.sh || test -e /usr/share/scripts/evoadmin/web-add.sh
+}
+is_pack_samba(){
+    test -e /usr/share/scripts/add.pl
+}
+is_installed(){
+    for pkg in "$@"; do
+        dpkg -l "$pkg" 2> /dev/null | grep -q -E '^(i|h)i' || return 1
+    done
+}
+
+# logging
+failed() {
+    check_name=$1
+    shift
+    check_comments=$*
+
+    RC=1
+    if [ "${QUIET}" = 0 ]; then
+        if [ -n "${check_comments}" ] && [ "${VERBOSE}" = 1 ]; then
+            printf "%s FAILED! %s\n" "${check_name}" "${check_comments}" 2>&1
+        else
+            printf "%s FAILED!\n" "${check_name}" 2>&1
+        fi
+    fi
+}
+
+# Parse options
+# based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
+while :; do
+    case $1 in
+        -h|-\?|--help)
+            show_help
+            exit 0
+            ;;
+        --version)
+            show_version
+            exit 0
+            ;;
+        --cron)
+            IS_KERNELUPTODATE=0
+            IS_UPTIME=0
+            ;;
+        -v|--verbose)
+            VERBOSE=1
+            ;;
+        -q|--quiet)
+            QUIET=1
+            VERBOSE=0
+            ;;
+        --)
+            # End of all options.
+            shift
+            break
+            ;;
+        -?*|[[:alnum:]]*)
+            # ignore unknown options
+            printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+            ;;
+        *)
+            # Default case: If no more options then break out of the loop.
+            break
+            ;;
+    esac
+
+    shift
+done
 
 #-----------------------------------------------------------
 #Vérifie si c'est une debian et fait les tests appropriés.
 #-----------------------------------------------------------
 
 if is_debian; then
+
+    is_debian_lenny   && MINIFW_FILE=/etc/firewall.rc
+    is_debian_squeeze && MINIFW_FILE=/etc/firewall.rc
+    is_debian_wheezy  && MINIFW_FILE=/etc/firewall.rc
+    is_debian_jessie  && MINIFW_FILE=/etc/default/minifirewall
+    is_debian_stretch && MINIFW_FILE=/etc/default/minifirewall
 
     if [ "$IS_LSBRELEASE" = 1 ]; then
         test -x "${LSB_RELEASE_BIN}" || failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
@@ -1329,3 +1406,5 @@ if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then
         fi
     done
 fi
+
+exit ${RC}

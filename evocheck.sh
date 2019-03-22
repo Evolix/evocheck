@@ -353,8 +353,9 @@ if is_debian; then
 
     if [ "$IS_MOUNT_FSTAB" = 1 ]; then
         # Test if lsblk available, if not skip this test...
-        if test -x "$(command -v lsblk)"; then
-            for mountPoint in $(lsblk -o MOUNTPOINT -l -n | grep '/'); do
+        LSBLK_BIN=$(command -v lsblk)
+        if test -x "${LSBLK_BIN}"; then
+            for mountPoint in $(${LSBLK_BIN} -o MOUNTPOINT -l -n | grep '/'); do
                 grep -Eq "$mountPoint\W" /etc/fstab || failed "IS_MOUNT_FSTAB"
             done
         fi

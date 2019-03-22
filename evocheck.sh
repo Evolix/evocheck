@@ -802,9 +802,9 @@ if is_debian; then
 
     if [ "$IS_EVOLINUXSUDOGROUP" = 1 ]; then
         if is_debian_stretch; then
-            { grep -q "^evolinux-sudo:" /etc/group \
-                && grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux;
-            } || failed "IS_EVOLINUXSUDOGROUP"
+            if grep -q "^evolinux-sudo:" /etc/group; then
+                grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux || failed "IS_EVOLINUXSUDOGROUP"
+            fi
         fi
     fi
 

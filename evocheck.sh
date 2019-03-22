@@ -810,7 +810,8 @@ if is_debian; then
 
     if [ "$IS_USERINADMGROUP" = 1 ]; then
         if is_debian_stretch; then
-            for user in $(grep "^evolinux-sudo:" /etc/group |awk -F: '{print $4}' |tr ',' ' '); do
+            users=$(grep "^evolinux-sudo:" /etc/group | awk -F: '{print $4}' | tr ',' ' ')
+            for user in $users; do
                 groups $user | grep -q adm || failed "IS_USERINADMGROUP"
             done
         fi

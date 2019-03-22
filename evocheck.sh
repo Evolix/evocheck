@@ -155,6 +155,9 @@ fi
 
 if [ "$IS_TMOUTPROFILE" = 1 ]; then
     grep -q TMOUT= /etc/skel/.profile /root/.profile || echo 'IS_TMOUTPROFILE FAILED!'
+    if [[ "$VERBOSE" == 1 ]]; then
+        echo "In order to fix, add 'export TMOUT=36000' to both /etc/skel/.profile and /root/.profile files"
+    fi
 fi
 
 

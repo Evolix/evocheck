@@ -165,7 +165,15 @@ fi
 # TODO
 #fi
 
+# Check Evoackup installation
 if [ "$IS_EVOBACKUP" = 1 ]; then
+    if [ -f /etc/daily.local ]; then
+        grep -qE "^sh /usr/share/scripts/zzz_evobackup" /etc/daily.local || echo 'IS_EVOBACKUP FAILED!'
+    else
+        echo 'IS_EVOBACKUP FAILED!'
+        if [[ "$VERBOSE" == 1 ]]; then
+            echo "Make sure /etc/daily.local exist and 'sh /usr/share/scripts/zzz_evobackup' is present and activated in /etc/daily.local"
+        fi
     fi
 fi
 

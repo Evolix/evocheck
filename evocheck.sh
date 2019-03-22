@@ -1261,17 +1261,7 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
     # Can be changed in evocheck.cf
     homeDir=${homeDir:-/home}
     if is_debian_stretch; then
-        for i in $(getent group evolinux-sudo | cut -d':' -f4 | tr ',' ' '); do
-            grep -qs "^trap.*sudo.*evomaintenance.sh" ${homeDir}/$i/.*profile
-            if [ $? != 0 ]; then
-                failed "IS_EVOMAINTENANCEUSERS"
-                if [ "$VERBOSE" = 1 ]; then
-                    echo "$i doesn't have evomaintenance trap!"
-                else
-                    break
-                fi
-            fi
-        done
+        users=$(getent group evolinux-sudo | cut -d':' -f4 | tr ',' ' ')
     else
         if [ -f /etc/sudoers.d/evolinux ]; then
             sudoers="/etc/sudoers.d/evolinux"
@@ -1279,18 +1269,15 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
             sudoers="/etc/sudoers"
         fi
         users=$( (grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep "^sudo" /etc/group | cut -d: -f 4) | tr "," "\n" | sort -u)
-        for i in $users; do
-            grep -qs "^trap.*sudo.*evomaintenance.sh" ${homeDir}/${i}/.*profile
-            if [ $? != 0 ]; then
-                failed "IS_EVOMAINTENANCEUSERS"
-                if [ "$VERBOSE" = 1 ]; then
-                    echo "$i doesn't have evomaintenance trap!"
-                else
-                    break
-                fi
-            fi
-        done
     fi
+    for user in $users; do
+        grep -qs "^trap.*sudo.*evomaintenance.sh" ${homeDir}/${user}/.*profile
+        if [ $? != 0 ]; then
+            failed "IS_EVOMAINTENANCEUSERS" "${user} doesn't have evomaintenance trap"
+            ## let's print an error for each user
+            # break
+        fi
+    done
 fi
 
 # Verification de la configuration d'evomaintenance

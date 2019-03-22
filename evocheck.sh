@@ -554,19 +554,19 @@ if is_debian; then
             conf=/etc/log2mail/config/default
         fi
         if is_pack_web && is_installed log2mail; then
-            grep -q "^file = /var/log/apache2/error.log" $conf 2>/dev/null \
+            grep -s -q "^file = /var/log/apache2/error.log" $conf \
                 || failed "IS_LOG2MAILAPACHE"
         fi
     fi
     if [ "$IS_LOG2MAILMYSQL" = 1 ]; then
         if is_pack_web && is_installed log2mail; then
-            grep -q "^file = /var/log/syslog" /etc/log2mail/config/{default,mysql,mysql.conf} 2>/dev/null \
+            grep -s -q "^file = /var/log/syslog" /etc/log2mail/config/{default,mysql,mysql.conf} \
                 || failed "IS_LOG2MAILMYSQL"
         fi
     fi
     if [ "$IS_LOG2MAILSQUID" = 1 ]; then
         if is_pack_web && is_installed log2mail; then
-            grep -q "^file = /var/log/squid.*/access.log" /etc/log2mail/config/* 2>/dev/null \
+            grep -s -q "^file = /var/log/squid.*/access.log" /etc/log2mail/config/* \
                 || failed "IS_LOG2MAILSQUID"
         fi
     fi

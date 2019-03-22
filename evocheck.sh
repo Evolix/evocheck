@@ -1271,7 +1271,8 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
         else
             sudoers="/etc/sudoers"
         fi
-        users=$( (grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep "^sudo" /etc/group | cut -d: -f 4) | tr "," "\n" | sort -u)
+        # combine users from User_Alias and sudo group
+        users=$({ grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep "^sudo" /etc/group | cut -d: -f 4; } | tr "," "\n" | sort -u)
     fi
     for user in $users; do
         if ! grep -qs "^trap.*sudo.*evomaintenance.sh" ~${user}/.*profile; then

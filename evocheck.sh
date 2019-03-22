@@ -851,11 +851,10 @@ if is_debian; then
     if [ "$IS_HARDWARERAIDTOOL" = 1 ]; then
         if lspci | grep -q 'MegaRAID SAS'; then
             is_installed megacli && (is_installed megaclisas-status || is_installed megaraidsas-status) \
-                || failed "IS_HARDWARERAIDTOOL"
+                || failed "IS_HARDWARERAIDTOOL" "Mega tools not found"
         fi
         if lspci | grep -q 'Hewlett-Packard Company Smart Array'; then
-            is_installed cciss-vol-status \
-                || failed "IS_HARDWARERAIDTOOL"
+            is_installed cciss-vol-status || failed "IS_HARDWARERAIDTOOL" "cciss-vol-status not installed"
         fi
     fi
 

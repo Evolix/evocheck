@@ -149,6 +149,7 @@ elif [ "$(uname -s)" = "OpenBSD" ]; then
 fi
 
 # Source configuration file
+# shellcheck disable=SC1091
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
 
 VERBOSE="${VERBOSE:-0}"
@@ -706,6 +707,7 @@ if is_debian; then
     # Verification si le système doit redémarrer suite màj kernel.
     if [ "$IS_KERNELUPTODATE" = 1 ]; then
         if is_installed linux-image*; then
+            # shellcheck disable=SC2012
             kernel_installed_at=$(date -d "$(ls --full-time -lcrt /boot | tail -n1 | awk '{print $6}')" +%s)
             last_reboot_at=$(($(date +%s) - $(cut -f1 -d '.' /proc/uptime)))
             if [ "$kernel_installed_at" -gt "$last_reboot_at" ]; then
@@ -878,6 +880,7 @@ if is_debian; then
 
     if [ "$IS_HARDWARERAIDTOOL" = 1 ]; then
         if lspci | grep -q 'MegaRAID SAS'; then
+            # shellcheck disable=SC2015
             is_installed megacli && { is_installed megaclisas-status || is_installed megaraidsas-status; } \
                 || failed "IS_HARDWARERAIDTOOL" "Mega tools not found"
         fi
@@ -1050,6 +1053,7 @@ if is_debian; then
             # If there is no duplicate, uniq will have no output
             # So, if $tmpOutput is not null, there is a duplicate
             if [ -n "$tmpOutput" ]; then
+                # shellcheck disable=SC2086
                 labels=$(echo -n $tmpOutput | tr '\n' ' ')
                 failed "IS_DUPLICATE_FS_LABEL" "Duplicate labels: $labels"
             fi
@@ -1082,6 +1086,7 @@ if is_debian; then
 
                     certDir=$(dirname "$live")
                     certName=$(basename "$certDir")
+                    # shellcheck disable=SC2012
                     lastCertDir=$(ls -ds "${certDir}"/[0-9]* | tail -1)
                     lastVersion=$(basename "$lastCertDir")
 
@@ -1287,6 +1292,7 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
         users=$({ grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep "^sudo" /etc/group | cut -d: -f 4; } | tr "," "\n" | sort -u)
     fi
     for user in $users; do
+        # shellcheck disable=SC2086
         if ! grep -qs "^trap.*sudo.*evomaintenance.sh" ~${user}/.*profile; then
             failed "IS_EVOMAINTENANCEUSERS" "${user} doesn't have an evomaintenance trap"
             ## let's print an error for each user

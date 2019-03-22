@@ -762,8 +762,7 @@ if is_debian; then
         last_upgrade=0
         upgraded=false
         for log in /var/log/dpkg.log*; do
-            zgrep -qsm1 upgrade "$log"
-            if [ $? -eq 0 ]; then
+            if zgrep -qsm1 upgrade "$log"; then
                 # There is at least one upgrade
                 upgraded=true
                 break

@@ -984,10 +984,11 @@ if is_debian; then
 
     if [ "$IS_MYSQLNRPE" = 1 ]; then
         if is_debian_stretch && is_installed mariadb-server; then
-            { test -f ~nagios/.my.cnf \
-                && [ "$(stat -c %U ~nagios/.my.cnf)" = "nagios" ] \
-                && [ "$(stat -c %a ~nagios/.my.cnf)" = "600" ] \
-                && grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql -H localhost  -f ~nagios/.my.cnf";
+            nagios_file="~nagios/.my.cnf"
+            { test -f $nagios_file \
+                && [ "$(stat -c %U $nagios_file)" = "nagios" ] \
+                && [ "$(stat -c %a $nagios_file)" = "600" ] \
+                && grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql -H localhost  -f $nagios_file";
             } || failed "IS_MYSQLNRPE"
         fi
     fi

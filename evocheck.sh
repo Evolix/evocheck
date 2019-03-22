@@ -196,6 +196,9 @@ fi
 
 # Check if /etc/.git/ has read/write permissions for root only.
 if [ "$IS_GITPERMS" = 1 ]; then
+    test -d /etc/.git && [ "$(stat -f %p /etc/.git/)" = "40700" ] || echo 'IS_GITPERMS FAILED!'
+    if [[ "$VERBOSE" == 1 ]]; then
+        echo "The directiry /etc/.git sould be in 700"
     fi
 fi
 

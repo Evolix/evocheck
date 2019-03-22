@@ -202,6 +202,8 @@ if [ "$IS_GITPERMS" = 1 ]; then
     fi
 fi
 
+#if [ "$IS_OLD_HOME_DIR" = 1 ]; then
+#fi
 
 if [ "$IS_ADVBASE" = 1 ]; then
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then

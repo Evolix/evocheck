@@ -184,6 +184,7 @@ fi
 
 # Check if the server is running for more than a year.
 if [ "$IS_UPTIME" = 1 ]; then
+    if [ $(uptime | cut -d" " -f 4) -gt 365 ]; then
         echo 'IS_UPTIME FAILED!'
     fi
 fi

@@ -685,7 +685,7 @@ if is_debian; then
     if [ "$IS_SAMBAPINPRIORITY" = 1 ]; then
         if is_pack_samba; then
             if grep -qrE "^[^#].*backport" /etc/apt/sources.list{,.d}; then
-                priority=$(grep -E -A2 "^Package:.*samba" /etc/apt/preferences | grep -A1 "^Pin: release a=lenny-backports" | grep "^Pin-Priority:" | cut -f2 -d" ")
+                priority=$(grep -E -A2 "^Package:.*samba" /etc/apt/preferences | grep -A1 "^Pin: release a=.*-backports" | grep "^Pin-Priority:" | cut -f2 -d" ")
                 test $priority -gt 500 || failed "IS_SAMBAPINPRIORITY"
             fi
         fi

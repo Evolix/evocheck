@@ -425,8 +425,8 @@ if is_debian; then
 
     if [ "$IS_NRPEDISKS" = 1 ]; then
         NRPEDISKS=$(grep command.check_disk /etc/nagios/nrpe.cfg | grep "^command.check_disk[0-9]" | sed -e "s/^command.check_disk\([0-9]\+\).*/\1/" | sort -n | tail -1)
-        DFDISKS=$(df -Pl | grep -E -v "(^Filesystem|/lib/init/rw|/dev/shm|udev|rpc_pipefs)" | wc -l)
-        [ "$NRPEDISKS" = "$DFDISKS" ] || failed "IS_NRPEDISKS"
+        DFDISKS=$(df -Pl | grep -c -E -v "(^Filesystem|/lib/init/rw|/dev/shm|udev|rpc_pipefs)")
+        test "$NRPEDISKS" = "$DFDISKS" || failed "IS_NRPEDISKS"
     fi
 
     if [ "$IS_NRPEPID" = 1 ]; then

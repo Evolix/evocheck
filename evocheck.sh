@@ -292,10 +292,6 @@ if [ "$IS_CUSTOMSYSLOG" = 1 ]; then
     grep -q Evolix /etc/newsyslog.conf || echo 'IS_CUSTOMSYSLOG FAILED!'
 fi
 
-if [ "$IS_NOINETD" = 1 ]; then
-    grep -q inetd=NO /etc/rc.conf.local 2>/dev/null || echo 'IS_NOINETD FAILED!'
-fi
-
 if [ "$IS_SUDOMAINT" = 1 ]; then
     f=/etc/sudoers
     grep -q "Cmnd_Alias MAINT = /usr/share/scripts/evomaintenance.sh" $f \

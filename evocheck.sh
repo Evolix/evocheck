@@ -1017,7 +1017,8 @@ if is_debian; then
             # If there is no duplicate, uniq will have no output
             # So, if $tmpOutput is not null, there is a duplicate
             if [ -n "$tmpOutput" ]; then
-                failed "IS_DUPLICATE_FS_LABEL" "Duplicate labels: $tmpOutput"
+                labels=$(echo -n $tmpOutput | tr '\n' ' ')
+                failed "IS_DUPLICATE_FS_LABEL" "Duplicate labels: $labels"
             fi
             rm $tmpFile
         fi

@@ -252,6 +252,11 @@ fi
 #if [ "$IS_PFENABLED" = 1 ]; then
 # TODO
 #fi
+
+#if [ "$IS_PFCUSTOM" = 1 ]; then
+# TODO
+#fi
+
 if [ "$IS_SOFTDEP" = 1 ]; then
     grep -q "softdep" /etc/fstab || echo 'IS_SOFTDEP FAILED!'
 fi

@@ -243,7 +243,7 @@ failed() {
     check_comments=$*
 
     RC=1
-    if [ "${QUIET}" = 0 ]; then
+    if [ "${QUIET}" != 1 ]; then
         if [ -n "${check_comments}" ] && [ "${VERBOSE}" = 1 ]; then
             printf "%s FAILED! %s\n" "${check_name}" "${check_comments}" 2>&1
         else

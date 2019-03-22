@@ -446,7 +446,7 @@ if is_debian; then
                     || failed "IS_APACHEMUNIN" "mising munin plugins for Apache"
             else
                 pattern="/server-status-[[:alnum:]]{4,}"
-                { grep -q -s -E "^env.url.*${pattern}" /etc/munin/plugin-conf.d/munin-node \
+                { grep -r -q -s -E "^env.url.*${pattern}" /etc/munin/plugin-conf.d \
                     && { grep -q -s -E "${pattern}" /etc/apache2/apache2.conf \
                         || grep -q -s -E "${pattern}" /etc/apache2/mods-enabled/status.conf;
                     };

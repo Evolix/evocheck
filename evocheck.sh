@@ -265,12 +265,11 @@ if [ "$IS_PKGMIRROR" = 1 ]; then
 fi
 
 if [ "$IS_HISTORY" = 1 ]; then
-    f=/root/.profile
-    grep -q "^HISTFILE=\$HOME/.histfile" $f \
-    && grep -q "^export HISTFILE" $f \
-    && grep -q "^HISTSIZE=1000" $f \
-    && grep -q "^export HISTSIZE" $f \
-    || echo 'IS_HISTORY FAILED!'
+    file=/root/.profile
+    grep -qE "^HISTFILE=\$HOME/.histfile" $file && grep -qE "^export HISTSIZE=10000" $file || echo 'IS_HISTORY FAILED!'
+    if [[ "$VERBOSE" == 1 ]]; then
+        echo "Make sure both 'HISTFILE=$HOME/.histfile' and 'export HISTSIZE=10000' are present in /root/.profile"
+    fi
 fi
 
 if [ "$IS_VIM" = 1 ]; then

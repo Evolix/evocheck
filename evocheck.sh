@@ -904,7 +904,7 @@ if is_debian; then
 
     if [ "$IS_POSTGRES_BACKUP" = 1 ]; then
         if is_installed "postgresql-9*"; then
-            # If you use something like barman, you should deactivate this check
+            # If you use something like barman, you should disable this check
             # You could change the default path in /etc/evocheck.cf
             POSTGRES_BACKUP_PATH=${POSTGRES_BACKUP_PATH:-"/home/backup/pg.dump.bak"}
             test -f "$POSTGRES_BACKUP_PATH" || failed "IS_POSTGRES_BACKUP"

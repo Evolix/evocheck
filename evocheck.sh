@@ -398,13 +398,3 @@ if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
     && grep "^URGENCYTEL" $f |grep -qv "06.00.00.00.00" \
     && grep "^REALM" $f |grep -qv "example.com" ) || echo 'IS_EVOMAINTENANCECONF FAILED!'
 fi
-
-if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then
-    for f in /etc/ssl/private/*; do
-        perms=$(stat -L -c "%a" $f)
-        if [ ${perms: -1} != "0" ]; then
-            echo 'IS_PRIVKEYWOLRDREADABLE FAILED!'
-            break
-        fi
-    done
-fi

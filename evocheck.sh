@@ -1100,7 +1100,7 @@ if is_debian; then
         # /sys/devices/system/cpu/vulnerabilities/
         if is_debian_stretch; then
             for vuln in meltdown spectre_v1 spectre_v2; do
-                test -f /sys/devices/system/cpu/vulnerabilities/$vuln \
+                test -f "/sys/devices/system/cpu/vulnerabilities/$vuln" \
                     || failed "IS_MELTDOWN_SPECTRE"
             done
         # For Jessie this is quite complicated to verify and we need to use kernel config file
@@ -1110,10 +1110,10 @@ if is_debian; then
                 kernelVer=${kernelPath##*/vmlinuz-}
                 kernelConfig="config-${kernelVer}"
                 # Sometimes autodetection of kernel config file fail, so we test if the file really exists.
-                if [ -f /boot/$kernelConfig ]; then
-                    grep -Eq '^CONFIG_PAGE_TABLE_ISOLATION=y' /boot/$kernelConfig \
+                if [ -f "/boot/${kernelConfig}" ]; then
+                    grep -Eq '^CONFIG_PAGE_TABLE_ISOLATION=y' "/boot/$kernelConfig" \
                         || failed "IS_MELTDOWN_SPECTRE" "PAGE_TABLE_ISOLATION vulnerability is not patched"
-                    grep -Eq '^CONFIG_RETPOLINE=y' /boot/$kernelConfig \
+                    grep -Eq '^CONFIG_RETPOLINE=y' "/boot/$kernelConfig" \
                         || failed "IS_MELTDOWN_SPECTRE" "RETPOLINE vulnerability is not patched"
                 fi
             fi
@@ -1122,7 +1122,7 @@ if is_debian; then
 
     if [ "$IS_OLD_HOME_DIR" = 1 ]; then
         homeDir=${homeDir:-/home}
-        for dir in $homeDir/*; do
+        for dir in "$homeDir"/*; do
             statResult=$(stat -c "%n has owner %u resolved as %U" "$dir" \
                 | grep -Eve '.bak' -e '\.[0-9]{2}-[0-9]{2}-[0-9]{4}' \
                 | grep "UNKNOWN")
@@ -1302,7 +1302,7 @@ fi
 
 if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then
     for f in /etc/ssl/private/*; do
-        perms=$(stat -L -c "%a" $f)
+        perms=$(stat -L -c "%a" "$f")
         if [ "${perms: -1}" != "0" ]; then
             failed "IS_PRIVKEYWOLRDREADABLE" "$f is world-readable"
             ## let's print an error for each key

@@ -160,6 +160,10 @@ if [ "$IS_TMOUTPROFILE" = 1 ]; then
     fi
 fi
 
+# Check RAID state (bioctl)
+#if [ "$IS_RAIDOK" = 1 ]; then
+# TODO
+#fi
 
 if [ "$IS_EVOBACKUP" = 1 ]; then
     fi

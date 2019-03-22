@@ -230,8 +230,8 @@ if is_debian; then
     if [ "$IS_LSBRELEASE" = "1" ]; then
         test -x "${LSB_RELEASE_BIN}" || failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
 
-        lhs=$(${LSB_RELEASE_BIN} --release --short)
-        rhs=$(cat /etc/debian_version)
+        lhs=$(${LSB_RELEASE_BIN} --release --short | cut -d "." -f 1)
+        rhs=$(cat /etc/debian_version | cut -d "." -f 1)
         test "$lhs" = "$rhs" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release and /etc/debian_version"
     fi
 

@@ -315,6 +315,9 @@ fi
 
 if [ "$IS_RSYNC" = 1 ]; then
     pkg info | grep -q rsync || echo 'IS_RSYNC FAILED!'
+    if [[ "$VERBOSE" == 1 ]]; then
+        echo "rsync is not installed! Please add with pkg_add rsync"
+    fi
 fi
 
 if [ "$IS_CRONPATH" = 1 ]; then

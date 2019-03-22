@@ -246,13 +246,13 @@ if is_debian; then
                 test -e /etc/apt/apt.conf && failed "IS_DPKGWARNING"
             fi
         elif is_debian_stretch; then
-            (test -e /etc/apt/apt.conf.d/z-evolinux.conf || failed "IS_DPKGWARNING")
+            test -e /etc/apt/apt.conf.d/z-evolinux.conf || failed "IS_DPKGWARNING"
         fi
     fi
 
     if [ "$IS_UMASKSUDOERS" = 1 ]; then
         if is_debian_squeeze; then
-            ( grep -q "^Defaults.*umask=0077" /etc/sudoers || failed "IS_UMASKSUDOERS" )
+            grep -q "^Defaults.*umask=0077" /etc/sudoers || failed "IS_UMASKSUDOERS"
         fi
     fi
 
@@ -476,10 +476,10 @@ if is_debian; then
     # Verification de la configuration du raid soft (mdadm)
     if [ "$IS_RAIDSOFT" = 1 ]; then
         if test -e /proc/mdstat && grep -q md /proc/mdstat; then
-            (grep -q "^AUTOCHECK=true" /etc/default/mdadm \
+            { grep -q "^AUTOCHECK=true" /etc/default/mdadm \
                 && grep -q "^START_DAEMON=true" /etc/default/mdadm \
-                && grep -qv "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf) \
-                || failed "IS_RAIDSOFT"
+                && grep -qv "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf;
+            } || failed "IS_RAIDSOFT"
         fi
     fi
 
@@ -493,8 +493,9 @@ if is_debian; then
 
     # Verification de la présence de la config logrotate pour Munin
     if [ "$IS_MUNINLOGROTATE" = 1 ]; then
-        (test -e /etc/logrotate.d/munin-node && test -e /etc/logrotate.d/munin) \
-            || failed "IS_MUNINLOGROTATE"
+        { test -e /etc/logrotate.d/munin-node \
+            && test -e /etc/logrotate.d/munin;
+        } || failed "IS_MUNINLOGROTATE"
     fi
 
     # Verification de la présence de metche
@@ -509,12 +510,12 @@ if is_debian; then
 
         if is_pack_web && (is_installed squid || is_installed squid3); then
             host=$(hostname -i)
-            http_port=$(grep http_port $squidconffile | cut -f 2 -d " ")
-            (grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $MINIFW_FILE \
+            http_port=$(grep "http_port" $squidconffile | cut -f 2 -d " ")
+            { grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" $MINIFW_FILE \
                 && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d $host -j ACCEPT" $MINIFW_FILE \
                 && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" $MINIFW_FILE \
-                && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* $http_port" $MINIFW_FILE) \
-                || failed "IS_SQUID"
+                && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* $http_port" $MINIFW_FILE;
+            } || failed "IS_SQUID"
         fi
     fi
 
@@ -531,10 +532,10 @@ if is_debian; then
     if [ "$IS_MODDEFLATE" = 1 ]; then
         f=/etc/apache2/mods-enabled/deflate.conf
         if is_installed apache2.2; then
-            (test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
+            { test -e $f && grep -q "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
                 && grep -q "AddOutputFilterByType DEFLATE text/css" $f \
-                && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f) \
-                || failed "IS_MODDEFLATE"
+                && grep -q "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f;
+            } || failed "IS_MODDEFLATE"
         fi
     fi
 
@@ -658,7 +659,10 @@ if is_debian; then
     if [ "$IS_APACHEIPINALLOW" = 1 ]; then
         # Note: Replace "exit 1" by "print" in Perl code to debug it.
         if is_installed apache2.2-common; then
-            (grep -IrE "^[^#] *(Allow|Deny) from" /etc/apache2/ | grep -iv "from all" | grep -iv "env=" | perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)') \
+            grep -IrE "^[^#] *(Allow|Deny) from" /etc/apache2/ \
+                | grep -iv "from all" \
+                | grep -iv "env=" \
+                | perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)' \
                 || failed "IS_APACHEIPINALLOW"
         fi
     fi
@@ -793,9 +797,9 @@ if is_debian; then
 
     if [ "$IS_EVOLINUXSUDOGROUP" = 1 ]; then
         if is_debian_stretch; then
-            (grep -q "^evolinux-sudo:" /etc/group \
-                && grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux) \
-                || failed "IS_EVOLINUXSUDOGROUP"
+            { grep -q "^evolinux-sudo:" /etc/group \
+                && grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux;
+            } || failed "IS_EVOLINUXSUDOGROUP"
         fi
     fi
 
@@ -809,10 +813,10 @@ if is_debian; then
 
     if [ "$IS_APACHE2EVOLINUXCONF" = 1 ]; then
         if is_debian_stretch && test -d /etc/apache2; then
-            (test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
+            { test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
                 && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
-                && test -f /etc/apache2/ipaddr_whitelist.conf) \
-                || failed "IS_APACHE2EVOLINUXCONF"
+                && test -f /etc/apache2/ipaddr_whitelist.conf;
+            } || failed "IS_APACHE2EVOLINUXCONF"
         fi
     fi
 
@@ -829,8 +833,9 @@ if is_debian; then
 
     if [ "$IS_BIND9MUNIN" = 1 ]; then
         if is_debian_stretch && is_installed bind9; then
-            (test -L /etc/munin/plugins/bind9 && test -e /etc/munin/plugin-conf.d/bind9) \
-                || failed "IS_BIND9MUNIN"
+            { test -L /etc/munin/plugins/bind9 \
+                && test -e /etc/munin/plugin-conf.d/bind9;
+            } || failed "IS_BIND9MUNIN"
         fi
     fi
 
@@ -842,8 +847,9 @@ if is_debian; then
 
     if [ "$IS_BROADCOMFIRMWARE" = 1 ]; then
         if lspci | grep -q 'NetXtreme II'; then
-            (is_installed firmware-bnx2 && grep -q "^deb http://mirror.evolix.org/debian.* non-free" /etc/apt/sources.list) \
-                || failed "IS_BROADCOMFIRMWARE"
+            { is_installed firmware-bnx2 \
+                && grep -q "^deb http://mirror.evolix.org/debian.* non-free" /etc/apt/sources.list;
+            } || failed "IS_BROADCOMFIRMWARE"
         fi
     fi
 
@@ -859,22 +865,25 @@ if is_debian; then
 
     if [ "$IS_LOG2MAILSYSTEMDUNIT" = 1 ]; then
         if is_debian_stretch; then
-            (systemctl -q is-active log2mail.service && test -f /etc/systemd/system/log2mail.service && ! test -f /etc/init.d/log2mail) \
-                || failed "IS_LOG2MAILSYSTEMDUNIT"
+            { systemctl -q is-active log2mail.service \
+                && test -f /etc/systemd/system/log2mail.service \
+                && ! test -f /etc/init.d/log2mail;
+            } || failed "IS_LOG2MAILSYSTEMDUNIT"
         fi
     fi
 
     if [ "$IS_LISTUPGRADE" = 1 ]; then
-        (test -f /etc/cron.d/listupgrade && test -x /usr/share/scripts/listupgrade.sh) \
-            || failed "IS_LISTUPGRADE"
+        { test -f /etc/cron.d/listupgrade \
+            && test -x /usr/share/scripts/listupgrade.sh;
+        } || failed "IS_LISTUPGRADE"
     fi
 
     if [ "$IS_MARIADBEVOLINUXCONF" = 1 ]; then
         if is_debian_stretch; then
             if is_installed mariadb-server; then
-                (test -f /etc/mysql/mariadb.conf.d/z-evolinux-defaults.cnf \
-                    && test -f /etc/mysql/mariadb.conf.d/zzz-evolinux-custom.cnf) \
-                    || failed "IS_MARIADBEVOLINUXCONF"
+                { test -f /etc/mysql/mariadb.conf.d/z-evolinux-defaults.cnf \
+                    && test -f /etc/mysql/mariadb.conf.d/zzz-evolinux-custom.cnf;
+                } || failed "IS_MARIADBEVOLINUXCONF"
             fi
         fi
     fi
@@ -944,8 +953,9 @@ if is_debian; then
 
     if [ "$IS_MARIADBSYSTEMDUNIT" = 1 ]; then
         if is_debian_stretch && is_installed mariadb-server; then
-            (systemctl -q is-active mariadb.service && test -f /etc/systemd/system/mariadb.service.d/evolinux.conf) \
-                || failed "IS_MARIADBSYSTEMDUNIT"
+            { systemctl -q is-active mariadb.service \
+                && test -f /etc/systemd/system/mariadb.service.d/evolinux.conf;
+            } || failed "IS_MARIADBSYSTEMDUNIT"
         fi
     fi
 
@@ -968,19 +978,19 @@ if is_debian; then
 
     if [ "$IS_MYSQLNRPE" = 1 ]; then
         if is_debian_stretch && is_installed mariadb-server; then
-            (test -f ~nagios/.my.cnf \
+            { test -f ~nagios/.my.cnf \
                 && [ "$(stat -c %U ~nagios/.my.cnf)" = "nagios" ] \
                 && [ "$(stat -c %a ~nagios/.my.cnf)" = "600" ] \
-                && grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql -H localhost  -f ~nagios/.my.cnf") \
-                || failed "IS_MYSQLNRPE"
+                && grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql -H localhost  -f ~nagios/.my.cnf";
+            } || failed "IS_MYSQLNRPE"
         fi
     fi
 
     if [ "$IS_PHPEVOLINUXCONF" = 1 ]; then
         if is_debian_stretch && is_installed php; then
-            (test -f /etc/php/7.0/cli/conf.d/z-evolinux-defaults.ini \
-                && test -f /etc/php/7.0/cli/conf.d/zzz-evolinux-custom.ini) \
-                || failed "IS_PHPEVOLINUXCONF"
+            { test -f /etc/php/7.0/cli/conf.d/z-evolinux-defaults.ini \
+                && test -f /etc/php/7.0/cli/conf.d/zzz-evolinux-custom.ini;
+            } || failed "IS_PHPEVOLINUXCONF"
         fi
     fi
 
@@ -992,14 +1002,14 @@ if is_debian; then
 
     if [ "$IS_SQUIDEVOLINUXCONF" = 1 ]; then
         if is_debian_stretch && is_installed squid; then
-            (grep -qs "^CONFIG=/etc/squid/evolinux-defaults.conf$" /etc/default/squid \
+            { grep -qs "^CONFIG=/etc/squid/evolinux-defaults.conf$" /etc/default/squid \
                 && test -f /etc/squid/evolinux-defaults.conf \
                 && test -f /etc/squid/evolinux-whitelist-defaults.conf \
                 && test -f /etc/squid/evolinux-whitelist-custom.conf \
                 && test -f /etc/squid/evolinux-acl.conf \
                 && test -f /etc/squid/evolinux-httpaccess.conf \
-                && test -f /etc/squid/evolinux-custom.conf) \
-                || failed "IS_SQUIDEVOLINUXCONF"
+                && test -f /etc/squid/evolinux-custom.conf;
+            } || failed "IS_SQUIDEVOLINUXCONF"
         fi
     fi
 
@@ -1136,11 +1146,11 @@ if is_openbsd; then
 
     if [ "$IS_HISTORY" = 1 ]; then
         f=/root/.profile
-        grep -q "^HISTFILE=\$HOME/.histfile" $f \
+        { grep -q "^HISTFILE=\$HOME/.histfile" $f \
             && grep -q "^export HISTFILE" $f \
             && grep -q "^HISTSIZE=1000" $f \
-            && grep -q "^export HISTSIZE" $f \
-            || failed "IS_HISTORY"
+            && grep -q "^export HISTSIZE" $f;
+        } || failed "IS_HISTORY"
     fi
 
     if [ "$IS_VIM" = 1 ]; then
@@ -1161,9 +1171,9 @@ if is_openbsd; then
 
     if [ "$IS_SUDOMAINT" = 1 ]; then
         f=/etc/sudoers
-        grep -q "Cmnd_Alias MAINT = /usr/share/scripts/evomaintenance.sh" $f \
-            && grep -q "ADMIN ALL=NOPASSWD: MAINT" $f \
-            || failed "IS_SUDOMAINT"
+        { grep -q "Cmnd_Alias MAINT = /usr/share/scripts/evomaintenance.sh" $f \
+            && grep -q "ADMIN ALL=NOPASSWD: MAINT" $f;
+        } || failed "IS_SUDOMAINT"
     fi
 
     if [ "$IS_POSTGRESQL" = 1 ]; then
@@ -1171,9 +1181,10 @@ if is_openbsd; then
     fi
 
     if [ "$IS_NRPE" = 1 ]; then
-        ( pkg info | grep -qE "nagios-plugins-[0-9.]" \
+        { pkg info | grep -qE "nagios-plugins-[0-9.]" \
             && pkg info | grep -q nagios-plugins-ntp \
-            && pkg info | grep -q nrpe ) || failed "IS_NRPE"
+            && pkg info | grep -q nrpe;
+        } || failed "IS_NRPE"
     fi
 
 # if [ "$IS_NRPEDISKS" = 1 ]; then
@@ -1280,7 +1291,7 @@ fi
 if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
     f=/etc/evomaintenance.cf
     perms=$(stat -c "%a" $f)
-    ( test -e $f \
+    { test -e $f \
         && test "$perms" = "600" \
         && grep "^export PGPASSWORD" $f | grep -qv "your-passwd" \
         && grep "^PGDB" $f | grep -qv "your-db" \
@@ -1290,8 +1301,8 @@ if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
         && grep "^FULLFROM" $f | grep -qv "John Doe <jdoe@example.com>" \
         && grep "^URGENCYFROM" $f | grep -qv "mama.doe@example.com" \
         && grep "^URGENCYTEL" $f | grep -qv "06.00.00.00.00" \
-        && grep "^REALM" $f | grep -qv "example.com" ) \
-        || failed "IS_EVOMAINTENANCECONF"
+        && grep "^REALM" $f | grep -qv "example.com";
+    } || failed "IS_EVOMAINTENANCECONF"
 fi
 
 if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then

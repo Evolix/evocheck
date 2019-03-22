@@ -337,8 +337,7 @@ if [ "$IS_USRSHARESCRIPTS" = 1 ]; then
 fi
 
 if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
-    is_debianversion stretch || ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
-    is_debianversion stretch && grep -q ^PermitRoot /etc/ssh/sshd_config && ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
+    grep -qE ^PermitRoot /etc/ssh/sshd_config && ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
 fi
 
 if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then

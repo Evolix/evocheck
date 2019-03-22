@@ -313,8 +313,6 @@ if [ "$IS_NRPEDAEMON" = 1 ]; then
     grep -q "echo -n ' nrpe';        /usr/local/sbin/nrpe -d" /etc/rc.local || echo 'IS_NREPEDAEMON FAILED!'
 fi
 
-if [ "$IS_ALERTBOOT" = 1 ]; then
-    grep -qE "^date \| mail -sboot/reboot .*evolix.fr$" /etc/rc.local || echo 'IS_ALERTBOOT FAILED!'
     ( pkg_info | grep -q monitoring-plugins && pkg_info | grep -q nrpe ) || echo 'IS_NRPE FAILED!'
     if [[ "$VERBOSE" == 1 ]]; then
         echo "nrpe and/or monitoring-plugins are not installed! Please add with pkg_add nrpe monitoring-plugins"

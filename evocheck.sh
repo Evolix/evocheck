@@ -150,87 +150,28 @@ if [ "$IS_TMPNOEXEC" = 1 ]; then
     mount | grep "on /tmp" | grep -q noexec || echo 'IS_TMPNOEXEC FAILED!'
 fi
 
-if [ "$IS_SSHALLOWUSERS" = 1 ]; then
-    grep -E -qi "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config || echo 'IS_SSHALLOWUSERS FAILED!'
-fi
-
 if [ "$IS_TMOUTPROFILE" = 1 ]; then
-    grep -q TMOUT= /etc/profile /etc/profile.d/evolinux.sh || echo 'IS_TMOUTPROFILE FAILED!'
+    grep -q TMOUT= /etc/skel/.profile /root/.profile || echo 'IS_TMOUTPROFILE FAILED!'
 fi
 
-# Verification de la configuration du raid soft (mdadm)
-if [ "$IS_RAIDSOFT" = 1 ]; then
-    test -e /proc/mdstat && grep -q md /proc/mdstat && \
-        ( grep -q "^AUTOCHECK=true" /etc/default/mdadm \
-    && grep -q "^START_DAEMON=true" /etc/default/mdadm \
-    && grep -qv "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf || echo 'IS_RAIDSOFT FAILED!')
-fi
 
-# Verification de la mise en place d'evobackup
 if [ "$IS_EVOBACKUP" = 1 ]; then
-    ls /etc/cron* |grep -q "evobackup" || echo 'IS_EVOBACKUP FAILED!'
-fi
-
-# Verification si le système doit redémarrer suite màj kernel.
-if [ "$IS_KERNELUPTODATE" = 1 ]; then
-    if is_installed linux-image* && [ $(date -d $(ls --full-time -lcrt /boot | tail -n1 | tr -s " " | cut -d " " -f 6) +%s) -gt $(($(date +%s) - $(cut -f1 -d '.' /proc/uptime))) ]; then
-        echo 'IS_KERNELUPTODATE FAILED!'
     fi
 fi
 
 # Check if the server is running for more than a year.
 if [ "$IS_UPTIME" = 1 ]; then
-    if is_installed linux-image* && [ $(date -d "now - 2 year" +%s) -gt $(($(date +%s) - $(cut -f1 -d '.' /proc/uptime))) ]; then
         echo 'IS_UPTIME FAILED!'
     fi
 fi
 
 # Check if files in /home/backup/ are up-to-date
-if [ "$IS_BACKUPUPTODATE" = 1 ]; then
-    [ -d /home/backup/ ] && for file in /home/backup/*; do
-        if [ -f $file ] && [ $(stat -c "%Y" $file) -lt $(date +"%s" -d "now - 2 day") ]; then
-            echo 'IS_BACKUPUPTODATE FAILED!'
-            break;
-        fi
-    done
-fi
 
 # Check if /etc/.git/ has read/write permissions for root only.
 if [ "$IS_GITPERMS" = 1 ]; then
-    test -d /etc/.git && [ "$(stat -c "%a" /etc/.git/)" = "700" ] || echo 'IS_GITPERMS FAILED!'
-fi
-
-if [ "$IS_EVOLINUXSUDOGROUP" = 1 ]; then
-    if is_debianversion stretch; then
-        (grep -q ^evolinux-sudo: /etc/group \
-            && grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux) || echo 'IS_EVOLINUXSUDOGROUP FAILED!'
     fi
 fi
 
-if [ "$IS_USERINADMGROUP" = 1 ]; then
-    if is_debianversion stretch; then
-        for user in $(grep ^evolinux-sudo: /etc/group |awk -F: '{print $4}' |tr ',' ' '); do
-            groups $user |grep -q adm || echo 'IS_USERINADMGROUP FAILED!'
-        done
-    fi
-fi
-
-if [ "$IS_OLD_HOME_DIR" = 1 ]; then
-    for dir in /home/*; do
-        statResult=$(stat -c "%n has owner %u resolved as %U" "$dir" \
-          | grep -Eve '.bak' -e '\.[0-9]{2}-[0-9]{2}-[0-9]{4}' \
-          | grep UNKNOWN)
-        # There is at least one dir matching
-        if [[ -n "$statResult" ]]; then
-            echo 'IS_OLD_HOME_DIR FAILED!'
-            if [[ "$VERBOSE" == 1 ]]; then
-                echo "$statResult"
-            else
-                break
-            fi
-        fi
-    done
-fi
 
 if [ "$IS_ADVBASE" = 1 ]; then
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then

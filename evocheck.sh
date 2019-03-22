@@ -587,10 +587,12 @@ if is_debian; then
     # Verification de la présence du depot volatile
     if [ "$IS_REPVOLATILE" = 1 ]; then
         if is_debian_lenny; then
-            (grep -qE "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list || failed "IS_REPVOLATILE")
+            grep -qE "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list \
+                || failed "IS_REPVOLATILE"
         fi
         if is_debian_squeeze; then
-            (grep -qE "^deb.*squeeze-updates" /etc/apt/sources.list || failed "IS_REPVOLATILE")
+            grep -qE "^deb.*squeeze-updates" /etc/apt/sources.list \
+                || failed "IS_REPVOLATILE"
         fi
     fi
 

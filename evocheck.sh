@@ -190,6 +190,9 @@ if [ "$IS_UPTIME" = 1 ]; then
 fi
 
 # Check if files in /home/backup/ are up-to-date
+#if [ "$IS_BACKUPUPTODATE" = 1 ]; then
+# TODO
+#fi
 
 # Check if /etc/.git/ has read/write permissions for root only.
 if [ "$IS_GITPERMS" = 1 ]; then

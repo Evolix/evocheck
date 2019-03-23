@@ -888,9 +888,9 @@ if is_debian; then
             fi
             reservedBlockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Reserved block count:" | grep -Eo "[0-9]+")
             # Use bc to have a rounded percentage
-            percentage=$(echo "scale=0; ${reservedBlockCount} * 100 / ${blockCount}" | bc)
+            percentage=$(echo "(${reservedBlockCount} * 100 / ${blockCount}) + 1" | bc)
             if [ "$percentage" -lt 5 ]; then
-                failed "IS_TUNE2FS_M5" "Partition ${part} has less than 5% reserved blocks!"
+                failed "IS_TUNE2FS_M5" "Partition ${part} has less than 5% reserved blocks (${percentage}%)"
             fi
         done
     fi

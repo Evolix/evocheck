@@ -824,7 +824,7 @@ if is_debian; then
                 updated_at=$(stat -c "%Y" "$file")
                 if [ -f "$file" ] && [ "$limit" -gt "$updated_at" ]; then
                     failed "IS_BACKUPUPTODATE" "$file has not been backed up"
-                    break;
+                    test "${VERBOSE}" = 1 || break;
                 fi
             done
         fi
@@ -1073,7 +1073,7 @@ if is_debian; then
 
                 if [[ ! -L /etc/munin/plugins/$file ]]; then
                     failed "IS_MYSQLMUNIN" "Munin plugin '$file' is missing"
-                    break
+                    test "${VERBOSE}" = 1 || break
                 fi
             done
         fi
@@ -1169,8 +1169,7 @@ if is_debian; then
 
                     if [[ "$lastVersion" != "$actualVersion" ]]; then
                         failed "IS_EVOACME_LIVELINKS" "Certificate \`$certName' hasn't been updated"
-                        ## let's print an error for each certificate
-                        # break
+                        test "${VERBOSE}" = 1 || break
                     fi
                 done
             fi
@@ -1223,7 +1222,7 @@ if is_debian; then
             # There is at least one dir matching
             if [[ -n "$statResult" ]]; then
                 failed "IS_OLD_HOME_DIR" "$statResult"
-                break
+                test "${VERBOSE}" = 1 || break
             fi
         done
     fi
@@ -1372,8 +1371,7 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
         user_home=$(getent passwd "$user" | cut -d: -f6)
         if ! grep -qs "^trap.*sudo.*evomaintenance.sh" "${user_home}"/.*profile; then
             failed "IS_EVOMAINTENANCEUSERS" "${user} doesn't have an evomaintenance trap"
-            ## let's print an error for each user
-            # break
+            test "${VERBOSE}" = 1 || break
         fi
     done
 fi
@@ -1401,8 +1399,7 @@ if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then
         perms=$(stat -L -c "%a" "$f")
         if [ "${perms: -1}" != 0 ]; then
             failed "IS_PRIVKEYWOLRDREADABLE" "$f is world-readable"
-            ## let's print an error for each key
-            # break
+            test "${VERBOSE}" = 1 || break
         fi
     done
 fi

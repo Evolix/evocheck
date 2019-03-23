@@ -306,11 +306,14 @@ if is_debian; then
     is_debian_stretch && MINIFW_FILE=/etc/default/minifirewall
 
     if [ "$IS_LSBRELEASE" = 1 ]; then
-        test -x "${LSB_RELEASE_BIN}" || failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
-        ## only the major version matters
-        lhs=$(${LSB_RELEASE_BIN} --release --short | cut -d "." -f 1)
-        rhs=$(cut -d "." -f 1 < /etc/debian_version)
-        test "$lhs" = "$rhs" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release and /etc/debian_version"
+        if [ -x "${LSB_RELEASE_BIN}" ]; then
+            ## only the major version matters
+            lhs=$(${LSB_RELEASE_BIN} --release --short | cut -d "." -f 1)
+            rhs=$(cut -d "." -f 1 < /etc/debian_version)
+            test "$lhs" = "$rhs" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release and /etc/debian_version"
+        else
+            failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
+        fi
     fi
 
     if [ "$IS_DPKGWARNING" = 1 ]; then
@@ -470,16 +473,24 @@ if is_debian; then
     fi
 
     if [ "$IS_TMOUTPROFILE" = 1 ]; then
-        grep -q TMOUT= /etc/profile /etc/profile.d/evolinux.sh || failed "IS_TMOUTPROFILE"
+        grep -sq "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || failed "IS_TMOUTPROFILE" "TMOUT is not set"
     fi
 
     if [ "$IS_ALERT5BOOT" = 1 ]; then
-        grep -q "^date" /etc/rc2.d/S*alert5 || failed "IS_ALERT5BOOT"
+        if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
+            grep -q "^date" /etc/rc2.d/S*alert5 || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 init script"
+        else
+            failed "IS_ALERT5BOOT" "alert5 init script is missing"
+        fi
     fi
 
     if [ "$IS_ALERT5MINIFW" = 1 ]; then
-        grep -q "^/etc/init.d/minifirewall" /etc/rc2.d/S*alert5 \
-            || failed "IS_ALERT5MINIFW"
+        if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
+            grep -q "^/etc/init.d/minifirewall" /etc/rc2.d/S*alert5 \
+                || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 init script"
+        else
+            failed "IS_ALERT5MINIFW" "alert5 init script is missing"
+        fi
     fi
 
     if [ "$IS_ALERT5MINIFW" = 1 ] && [ "$IS_MINIFW" = 1 ]; then
@@ -488,7 +499,7 @@ if is_debian; then
     fi
 
     if [ "$IS_NRPEPERMS" = 1 ]; then
-        if test -d /etc/nagios; then
+        if [ -d /etc/nagios ]; then
             actual=$(stat --format "%A" /etc/nagios)
             expected="drwxr-x---"
             test "$expected" = "$actual" || failed "IS_NRPEPERMS"
@@ -496,9 +507,11 @@ if is_debian; then
     fi
 
     if [ "$IS_MINIFWPERMS" = 1 ]; then
-        actual=$(stat --format "%A" $MINIFW_FILE)
-        expected="-rw-------"
-        test "$expected" = "$actual" || failed "IS_MINIFWPERMS"
+        if [ -f "$MINIFW_FILE" ]; then
+            actual=$(stat --format "%A" $MINIFW_FILE)
+            expected="-rw-------"
+            test "$expected" = "$actual" || failed "IS_MINIFWPERMS"
+        fi
     fi
 
     if [ "$IS_NRPEDISKS" = 1 ]; then
@@ -808,14 +821,27 @@ if is_debian; then
 
     # Check if munin-node running and RRD files are up to date.
     if [ "$IS_MUNINRUNNING" = 1 ]; then
-        pgrep munin-node >/dev/null || failed "IS_MUNINRUNNING"
+        if ! pgrep munin-node >/dev/null; then
+            failed "IS_MUNINRUNNING" "Munin is not running"
+        elif [ -d "/var/lib/munin/" ] && [ -d "/var/cache/munin/" ]; then
+            limit=$(date +"%s" -d "now - 10 minutes")
 
-        limit=$(date +"%s" -d "now - 10 minutes")
-        updated_at=$(stat -c "%Y" /var/lib/munin/*/*load-g.rrd |sort |tail -1)
-        [ "$limit" -gt "$updated_at" ] && failed "IS_MUNINRUNNING"
+            if [ -n "$(find /var/lib/munin/ -name '*load-g.rrd')" ]; then
+                updated_at=$(stat -c "%Y" /var/lib/munin/*/*load-g.rrd |sort |tail -1)
+                [ "$limit" -gt "$updated_at" ] && failed "IS_MUNINRUNNING" "Munin load RRD has not been updated in the last 10 minutes"
+            else
+                failed "IS_MUNINRUNNING" "Munin is not installed properly (load RRD not found)"
+            fi
 
-        updated_at=$(stat -c "%Y" /var/cache/munin/www/*/*/load-day.png |sort |tail -1)
-        grep -q "^graph_strategy cron" /etc/munin/munin.conf && [ "$limit" -gt "$updated_at" ] && failed "IS_MUNINRUNNING"
+            if [ -n "$(find  /var/cache/munin/www/ -name 'load-day.png')" ]; then
+                updated_at=$(stat -c "%Y" /var/cache/munin/www/*/*/load-day.png |sort |tail -1)
+                grep -q "^graph_strategy cron" /etc/munin/munin.conf && [ "$limit" -gt "$updated_at" ] && failed "IS_MUNINRUNNING" "Munin load PNG has not been updated in the last 10 minutes"
+            else
+                failed "IS_MUNINRUNNING" "Munin is not installed properly (load PNG not found)"
+            fi
+        else
+            failed "IS_MUNINRUNNING" "Munin is not installed properly (main directories are missing)"
+        fi
     fi
 
     # Check if files in /home/backup/ are up-to-date
@@ -1403,13 +1429,16 @@ if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
 fi
 
 if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then
-    for f in /etc/ssl/private/*; do
-        perms=$(stat -L -c "%a" "$f")
-        if [ "${perms: -1}" != 0 ]; then
-            failed "IS_PRIVKEYWOLRDREADABLE" "$f is world-readable"
-            test "${VERBOSE}" = 1 || break
-        fi
-    done
+    # a simple globbing fails if directory is empty
+    if [ -n "$(ls -A /etc/ssl/private/)" ]; then
+        for f in /etc/ssl/private/*; do
+            perms=$(stat -L -c "%a" "$f")
+            if [ "${perms: -1}" != 0 ]; then
+                failed "IS_PRIVKEYWOLRDREADABLE" "$f is world-readable"
+                test "${VERBOSE}" = 1 || break
+            fi
+        done
+    fi
 fi
 
 exit ${RC}

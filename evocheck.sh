@@ -1380,19 +1380,23 @@ fi
 # Verification de la configuration d'evomaintenance
 if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
     f=/etc/evomaintenance.cf
-    perms=$(stat -c "%a" $f)
-    { test -e $f \
-        && test "$perms" = "600" \
-        && grep "^export PGPASSWORD" $f | grep -qv "your-passwd" \
-        && grep "^PGDB" $f | grep -qv "your-db" \
-        && grep "^PGTABLE" $f | grep -qv "your-table" \
-        && grep "^PGHOST" $f | grep -qv "your-pg-host" \
-        && grep "^FROM" $f | grep -qv "jdoe@example.com" \
-        && grep "^FULLFROM" $f | grep -qv "John Doe <jdoe@example.com>" \
-        && grep "^URGENCYFROM" $f | grep -qv "mama.doe@example.com" \
-        && grep "^URGENCYTEL" $f | grep -qv "06.00.00.00.00" \
-        && grep "^REALM" $f | grep -qv "example.com";
-    } || failed "IS_EVOMAINTENANCECONF" "evomaintenance is not correctly configured"
+    if [ -e "$f" ]; then
+        perms=$(stat -c "%a" $f)
+        test "$perms" = "600" || failed "IS_EVOMAINTENANCECONF" "Wrong permissions on \`$f' ($perms instead of 600)"
+
+        { grep "^export PGPASSWORD" $f | grep -qv "your-passwd" \
+            && grep "^PGDB" $f | grep -qv "your-db" \
+            && grep "^PGTABLE" $f | grep -qv "your-table" \
+            && grep "^PGHOST" $f | grep -qv "your-pg-host" \
+            && grep "^FROM" $f | grep -qv "jdoe@example.com" \
+            && grep "^FULLFROM" $f | grep -qv "John Doe <jdoe@example.com>" \
+            && grep "^URGENCYFROM" $f | grep -qv "mama.doe@example.com" \
+            && grep "^URGENCYTEL" $f | grep -qv "06.00.00.00.00" \
+            && grep "^REALM" $f | grep -qv "example.com";
+        } || failed "IS_EVOMAINTENANCECONF" "evomaintenance is not correctly configured"
+    else
+        failed "IS_EVOMAINTENANCECONF" "Configuration file \`$f' is missing"
+    fi
 fi
 
 if [ "$IS_PRIVKEYWOLRDREADABLE" = 1 ]; then

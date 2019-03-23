@@ -600,7 +600,8 @@ if is_debian; then
         fi
         if is_pack_web && (is_installed squid || is_installed squid3); then
             host=$(hostname -i)
-            http_port=$(grep "http_port" "$squidconffile" | cut -f 2 -d " ")
+            # shellcheck disable=SC2086
+            http_port=$(grep "http_port" $squidconffile | cut -f 2 -d " ")
             { grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -m owner --uid-owner proxy -j ACCEPT" "$MINIFW_FILE" \
                 && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d $host -j ACCEPT" "$MINIFW_FILE" \
                 && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" "$MINIFW_FILE" \

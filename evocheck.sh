@@ -983,21 +983,31 @@ if is_debian; then
     fi
 
     if [ "$IS_BROADCOMFIRMWARE" = 1 ]; then
-        if lspci | grep -q 'NetXtreme II'; then
-            { is_installed firmware-bnx2 \
-                && grep -q "^deb http://mirror.evolix.org/debian.* non-free" /etc/apt/sources.list;
-            } || failed "IS_BROADCOMFIRMWARE"
+        LSPCI_BIN=$(command -v lspci)
+        if [ -x "${LSPCI_BIN}" ]; then
+            if ${LSPCI_BIN} | grep -q 'NetXtreme II'; then
+                { is_installed firmware-bnx2 \
+                    && grep -q "^deb http://mirror.evolix.org/debian.* non-free" /etc/apt/sources.list;
+                } || failed "IS_BROADCOMFIRMWARE"
+            fi
+        else
+            failed "IS_BROADCOMFIRMWARE" "lspci is missing"
         fi
     fi
 
     if [ "$IS_HARDWARERAIDTOOL" = 1 ]; then
-        if lspci | grep -q 'MegaRAID SAS'; then
-            # shellcheck disable=SC2015
-            is_installed megacli && { is_installed megaclisas-status || is_installed megaraidsas-status; } \
-                || failed "IS_HARDWARERAIDTOOL" "Mega tools not found"
-        fi
-        if lspci | grep -q 'Hewlett-Packard Company Smart Array'; then
-            is_installed cciss-vol-status || failed "IS_HARDWARERAIDTOOL" "cciss-vol-status not installed"
+        LSPCI_BIN=$(command -v lspci)
+        if [ -x "${LSPCI_BIN}" ]; then
+            if ${LSPCI_BIN} | grep -q 'MegaRAID SAS'; then
+                # shellcheck disable=SC2015
+                is_installed megacli && { is_installed megaclisas-status || is_installed megaraidsas-status; } \
+                    || failed "IS_HARDWARERAIDTOOL" "Mega tools not found"
+            fi
+            if ${LSPCI_BIN} | grep -q 'Hewlett-Packard Company Smart Array'; then
+                is_installed cciss-vol-status || failed "IS_HARDWARERAIDTOOL" "cciss-vol-status not installed"
+            fi
+        else
+            failed "IS_HARDWARERAIDTOOL" "lspci is missing"
         fi
     fi
 

@@ -1369,8 +1369,8 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
         users=$({ grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep "^sudo" /etc/group | cut -d: -f 4; } | tr "," "\n" | sort -u)
     fi
     for user in $users; do
-        # shellcheck disable=SC2086
-        if ! grep -qs "^trap.*sudo.*evomaintenance.sh" ~${user}/.*profile; then
+        user_home=$(getent passwd "$user" | cut -d: -f6)
+        if ! grep -qs "^trap.*sudo.*evomaintenance.sh" "${user_home}"/.*profile; then
             failed "IS_EVOMAINTENANCEUSERS" "${user} doesn't have an evomaintenance trap"
             ## let's print an error for each user
             # break

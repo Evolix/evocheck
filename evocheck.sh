@@ -722,7 +722,8 @@ if is_debian; then
 
     # Verification de la mise en place d'evobackup
     if [ "$IS_EVOBACKUP" = 1 ]; then
-        find /etc/cron* -name '*evobackup*' > /dev/null || failed "IS_EVOBACKUP"
+        evobackup_found=$(find /etc/cron* -name '*evobackup*' | wc -l)
+        test "$evobackup_found" -gt 0 || failed "IS_EVOBACKUP"
     fi
 
     # Verification de la presence du userlogrotate

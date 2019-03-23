@@ -914,6 +914,7 @@ if is_debian; then
 
     # Check if reserved blocks for root is at least 5% on every mounted partitions.
     if [ "$IS_TUNE2FS_M5" = 1 ]; then
+        BC_BIN=$(command -v bc)
         parts=$(grep -E "ext(3|4)" /proc/mounts | cut -d ' ' -f1 | tr -s '\n' ' ')
         for part in $parts; do
             blockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Block count:" | grep -Eo "[0-9]+")
@@ -922,8 +923,13 @@ if is_debian; then
                 continue
             fi
             reservedBlockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Reserved block count:" | grep -Eo "[0-9]+")
-            # Use bc to have a rounded percentage
-            percentage=$(echo "(${reservedBlockCount} * 100 / ${blockCount}) + 1" | bc)
+            if [ -x "$BC_BIN" ]; then
+                # Use bc to have a rounded percentage
+                percentage=$(echo "(${reservedBlockCount} * 100 / ${blockCount}) + 1" | $BC_BIN)
+            else
+                # fallback to python
+                percentage=$(python -c "print(int(round(float(${reservedBlockCount})/${blockCount}*100)))")
+            fi
             if [ "$percentage" -lt 5 ]; then
                 failed "IS_TUNE2FS_M5" "Partition ${part} has less than 5% reserved blocks (${percentage}%)"
             fi

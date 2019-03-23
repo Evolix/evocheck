@@ -847,14 +847,21 @@ if is_debian; then
     # Check if files in /home/backup/ are up-to-date
     if [ "$IS_BACKUPUPTODATE" = 1 ]; then
         if [ -d /home/backup/ ]; then
-            for file in /home/backup/*; do
-                limit=$(date +"%s" -d "now - 2 day")
-                updated_at=$(stat -c "%Y" "$file")
-                if [ -f "$file" ] && [ "$limit" -gt "$updated_at" ]; then
-                    failed "IS_BACKUPUPTODATE" "$file has not been backed up"
-                    test "${VERBOSE}" = 1 || break;
-                fi
-            done
+            if [ -n "$(ls -A /home/backup/)" ]; then
+                for file in /home/backup/*; do
+                    limit=$(date +"%s" -d "now - 2 day")
+                    updated_at=$(stat -c "%Y" "$file")
+
+                    if [ -f "$file" ] && [ "$limit" -gt "$updated_at" ]; then
+                        failed "IS_BACKUPUPTODATE" "$file has not been backed up"
+                        test "${VERBOSE}" = 1 || break;
+                    fi
+                done
+            else
+                failed "IS_BACKUPUPTODATE" "/home/backup/ is empty"
+            fi
+        else
+            failed "IS_BACKUPUPTODATE" "/home/backup/ is missing"
         fi
     fi
 

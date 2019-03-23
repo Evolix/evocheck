@@ -1370,9 +1370,11 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
     fi
     for user in $users; do
         user_home=$(getent passwd "$user" | cut -d: -f6)
-        if ! grep -qs "^trap.*sudo.*evomaintenance.sh" "${user_home}"/.*profile; then
-            failed "IS_EVOMAINTENANCEUSERS" "${user} doesn't have an evomaintenance trap"
-            test "${VERBOSE}" = 1 || break
+        if [ -n "$user_home" ] && [ -d "$user_home" ]; then
+            if ! grep -qs "^trap.*sudo.*evomaintenance.sh" "${user_home}"/.*profile; then
+                failed "IS_EVOMAINTENANCEUSERS" "${user} doesn't have an evomaintenance trap"
+                test "${VERBOSE}" = 1 || break
+            fi
         fi
     done
 fi

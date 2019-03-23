@@ -191,7 +191,7 @@ Options
      --cron                  disable a few checks
  -v, --verbose               increase verbosity of checks
  -q, --quiet                 nothing is printed on stdout nor stderr
-     --help                  print this message and exit
+ -h, --help                  print this message and exit
      --version               print version and exit
 END
 }

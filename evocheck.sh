@@ -914,7 +914,7 @@ if is_debian; then
 
     # Check if reserved blocks for root is at least 5% on every mounted partitions.
     if [ "$IS_TUNE2FS_M5" = 1 ]; then
-        BC_BIN=$(command -v bc)
+        min=5
         parts=$(grep -E "ext(3|4)" /proc/mounts | cut -d ' ' -f1 | tr -s '\n' ' ')
         for part in $parts; do
             blockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Block count:" | grep -Eo "[0-9]+")
@@ -923,15 +923,12 @@ if is_debian; then
                 continue
             fi
             reservedBlockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Reserved block count:" | grep -Eo "[0-9]+")
-            if [ -x "$BC_BIN" ]; then
-                # Use bc to have a rounded percentage
-                percentage=$(echo "(${reservedBlockCount} * 100 / ${blockCount}) + 1" | $BC_BIN)
-            else
-                # fallback to python
-                percentage=$(python -c "print(int(round(float(${reservedBlockCount})/${blockCount}*100)))")
-            fi
-            if [ "$percentage" -lt 5 ]; then
-                failed "IS_TUNE2FS_M5" "Partition ${part} has less than 5% reserved blocks (${percentage}%)"
+            # Use awk to have a rounded percentage
+            # python is slow, bash is unable and bc rounds weirdly
+            percentage=$(awk "BEGIN { pc=100*${reservedBlockCount}/${blockCount}; i=int(pc); print (pc-i<0.5)?i:i+1 }")
+
+            if [ "$percentage" -lt "${min}" ]; then
+                failed "IS_TUNE2FS_M5" "Partition ${part} has less than ${min}% reserved blocks (${percentage}%)"
             fi
         done
     fi

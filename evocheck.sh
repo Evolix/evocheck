@@ -835,7 +835,7 @@ if is_debian; then
 
             if [ -n "$(find  /var/cache/munin/www/ -name 'load-day.png')" ]; then
                 updated_at=$(stat -c "%Y" /var/cache/munin/www/*/*/load-day.png |sort |tail -1)
-                grep -q "^graph_strategy cron" /etc/munin/munin.conf && [ "$limit" -gt "$updated_at" ] && failed "IS_MUNINRUNNING" "Munin load PNG has not been updated in the last 10 minutes"
+                grep -sq "^graph_strategy cron" /etc/munin/munin.conf && [ "$limit" -gt "$updated_at" ] && failed "IS_MUNINRUNNING" "Munin load PNG has not been updated in the last 10 minutes"
             else
                 failed "IS_MUNINRUNNING" "Munin is not installed properly (load PNG not found)"
             fi

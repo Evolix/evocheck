@@ -707,7 +707,7 @@ if is_debian; then
         if ! test -f /etc/network/interfaces; then
             IS_AUTOIF=0
             IS_INTERFACESGW=0
-            failed "IS_NETWORK_INTERFACES"
+            failed "IS_NETWORK_INTERFACES" "systemd network configuration is not supported yet"
         fi
     fi
 

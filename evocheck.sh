@@ -4,7 +4,7 @@
 # Script to verify compliance of a Debian/OpenBSD server
 # powered by Evolix
 
-VERSION="0.14.0.beta1"
+VERSION="0.14.0.beta2"
 
 # Disable LANG*
 export LANG=C

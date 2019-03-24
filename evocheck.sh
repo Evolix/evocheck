@@ -586,7 +586,7 @@ if is_debian; then
 
     # Verification du LogFormat de AWStats
     if [ "$IS_AWSTATSLOGFORMAT" = 1 ]; then
-        if is_installed apache2.2-common; then
+        if is_installed apache2.2-common awstats; then
             grep -qE '^LogFormat=1' /etc/awstats/awstats.conf.local \
                 || failed "IS_AWSTATSLOGFORMAT"
         fi

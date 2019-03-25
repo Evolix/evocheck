@@ -10,7 +10,7 @@ export LANGUAGE=C
 
 # Default configuration values
 
-IS_CUSTOMSUDOERS=1
+IS_UMASKSUDOERS=1
 IS_TMPNOEXEC=1
 IS_TMOUTPROFILE=1
 IS_RAIDOK=1
@@ -164,22 +164,16 @@ if [ "$1" = "--cron" ]; then
     IS_UPTIME=0
 fi
 
-if [ "$IS_CUSTOMSUDOERS" = 1 ]; then
-    grep -E -qr "umask=0077" /etc/sudoers* || echo 'IS_CUSTOMSUDOERS FAILED!'
+if [ "$IS_UMASKSUDOERS" = 1 ]; then
+    grep -E -qr "umask=0077" /etc/sudoers* || failed "IS_UMASKSUDOERS" "sudoers must set umask to 0077"
 fi
 
 if [ "$IS_TMPNOEXEC" = 1 ]; then
-    mount | grep "on /tmp" | grep -q noexec || echo 'IS_TMPNOEXEC FAILED!'
-    if [[ "$VERBOSE" == 1 ]]; then
-        echo "/tmp should be mounted with the noexec option"
-    fi
+    mount | grep "on /tmp" | grep -q noexec || failed "IS_TMPNOEXEC" "/tmp should be mounted with the noexec option"
 fi
 
 if [ "$IS_TMOUTPROFILE" = 1 ]; then
-    grep -q TMOUT= /etc/skel/.profile /root/.profile || echo 'IS_TMOUTPROFILE FAILED!'
-    if [[ "$VERBOSE" == 1 ]]; then
-        echo "In order to fix, add 'export TMOUT=36000' to both /etc/skel/.profile and /root/.profile files"
-    fi
+    grep -q TMOUT= /etc/skel/.profile /root/.profile || failed "IS_TMOUTPROFILE" "In order to fix, add 'export TMOUT=36000' to both /etc/skel/.profile and /root/.profile files"
 fi
 
 # Check RAID state (bioctl)
@@ -190,12 +184,9 @@ fi
 # Check Evoackup installation
 if [ "$IS_EVOBACKUP" = 1 ]; then
     if [ -f /etc/daily.local ]; then
-        grep -qE "^sh /usr/share/scripts/zzz_evobackup" /etc/daily.local || echo 'IS_EVOBACKUP FAILED!'
+        grep -qE "^sh /usr/share/scripts/zzz_evobackup" /etc/daily.local || failed "IS_EVOBACKUP" "Make sure 'sh /usr/share/scripts/zzz_evobackup' is present and activated in /etc/daily.local"
     else
-        echo 'IS_EVOBACKUP FAILED!'
-        if [[ "$VERBOSE" == 1 ]]; then
-            echo "Make sure /etc/daily.local exist and 'sh /usr/share/scripts/zzz_evobackup' is present and activated in /etc/daily.local"
-        fi
+        failed "IS_EVOBACKUP" "Make sure /etc/daily.local exists and 'sh /usr/share/scripts/zzz_evobackup' is present and activated in /etc/daily.local"
     fi
 fi
 
@@ -207,7 +198,7 @@ fi
 # Check if the server is running for more than a year.
 if [ "$IS_UPTIME" = 1 ]; then
     if [ $(uptime | cut -d" " -f 4) -gt 365 ]; then
-        echo 'IS_UPTIME FAILED!'
+        failed "IS_UPTIME" "The server is running for more than a year!"
     fi
 fi
 
@@ -218,10 +209,7 @@ fi
 
 # Check if /etc/.git/ has read/write permissions for root only.
 if [ "$IS_GITPERMS" = 1 ]; then
-    test -d /etc/.git && [ "$(stat -f %p /etc/.git/)" = "40700" ] || echo 'IS_GITPERMS FAILED!'
-    if [[ "$VERBOSE" == 1 ]]; then
-        echo "The directiry /etc/.git sould be in 700"
-    fi
+    test -d /etc/.git && [ "$(stat -f %p /etc/.git/)" = "40700" ] || failed "IS_GITPERMS" "The directiry /etc/.git sould be in 700"
 fi
 
 #if [ "$IS_OLD_HOME_DIR" = 1 ]; then
@@ -231,10 +219,7 @@ if [ "$IS_ADVBASE" = 1 ]; then
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         for advbase in $(ifconfig carp | grep advbase | awk -F 'advbase' '{print $2}' | awk '{print $1}' | xargs); do
         if [[ "$advbase" -gt 1 ]]; then
-            echo 'IS_ADVBASE FAILED!'
-            if [[ "$VERBOSE" == 1 ]]; then
-                    echo "At least one CARP interface has advbase greater than 5 seconds!" 
-            fi
+            failed "IS_ADVBASE" "At least one CARP interface has advbase greater than 5 seconds!"
         fi
         done
     fi
@@ -244,30 +229,21 @@ if [ "$IS_PREEMPT" = 1 ]; then
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         preempt=$(sysctl net.inet.carp.preempt | cut -d"=" -f2)
         if [[ "$preempt" -ne 1 ]]; then
-            echo 'IS_PREEMPT FAILED!'
-            if [[ "$VERBOSE" == 1 ]]; then
-                echo "The preempt function is not activated! Please type 'sysctl net.inet.carp.preempt=1' in"
-            fi
+            failed "IS_PREEMPT" "The preempt function is not activated! Please type 'sysctl net.inet.carp.preempt=1' in"
         fi
         if [ -f /etc/sysctl.conf ]; then
-            grep -qE "^net.inet.carp.preempt=1" /etc/sysctl.conf || echo 'IS_PREEMPT FAILED!'
+            grep -qE "^net.inet.carp.preempt=1" /etc/sysctl.conf || failed "IS_PREEMPT" "The preempt parameter is not permanently activated! Please add 'net.inet.carp.preempt=1' in /etc/sysctl.conf"
         else
-            echo 'IS_PREEMPT FAILED!'
-            if [[ "$VERBOSE" == 1 ]]; then
-                echo "The preempt parameter is not permanently activated! Please add 'net.inet.carp.preempt=1' in /etc/sysctl.conf"
-            fi
+	    failed "IS_PREEMPT" "Make sure /etc/sysctl.conf exists and contains the line 'net.inet.carp.preempt=1'"
         fi
     fi
 fi
 
 if [ "$IS_REBOOTMAIL" = 1 ]; then
     if [ -f /etc/rc.local ]; then
-        grep -qE '^date \| mail -s "boot/reboot of' /etc/rc.local || echo 'IS_REBOOTMAIL FAILED!'
+        grep -qE '^date \| mail -s "boot/reboot of' /etc/rc.local || failed "IS_REBOOTMAIL" "Make sure the line 'date | mail -s \"boot/reboot of \$hostname' is present in the /etc/rc.local file!"
     else
-        echo 'IS_REBOOTMAIL FAILED!'
-        if [[ "$VERBOSE" == 1 ]]; then
-            echo "Make sure /etc/rc.local exist and 'date | mail -s \"boot/reboot of \$hostname' is present!"
-        fi
+        failed "IS_REBOOTMAIL" "Make sure /etc/rc.local exist and 'date | mail -s \"boot/reboot of \$hostname' is present!"
     fi
 fi
 
@@ -280,94 +256,73 @@ fi
 #fi
 
 if [ "$IS_SOFTDEP" = 1 ]; then
-    grep -q "softdep" /etc/fstab || echo 'IS_SOFTDEP FAILED!'
+    grep -q "softdep" /etc/fstab || failed "IS_SOFTDEP" ""
 fi
 
 if [ "$IS_WHEEL" = 1 ]; then
     if [ -f /etc/sudoers ]; then
-        grep -qE "^%wheel.*$" /etc/sudoers || echo 'IS_WHEEL FAILED!'
+        grep -qE "^%wheel.*$" /etc/sudoers || failed "IS_WHEEL" ""
     fi
 fi
 
 if [ "$IS_PKGMIRROR" = 1 ]; then
-    grep -qE "^https://cdn\.openbsd\.org/pub/OpenBSD" /etc/installurl || echo 'IS_PKGMIRROR FAILED!'
-    if [[ "$VERBOSE" == 1 ]]; then
-        echo "Check whether the right repo is present in the /etc/installurl file"
-    fi
+    grep -qE "^https://cdn\.openbsd\.org/pub/OpenBSD" /etc/installurl || failed "IS_PKGMIRROR" "Check whether the right repo is present in the /etc/installurl file"
 fi
 
 if [ "$IS_HISTORY" = 1 ]; then
     file=/root/.profile
-    grep -qE "^HISTFILE=\$HOME/.histfile" $file && grep -qE "^export HISTSIZE=10000" $file || echo 'IS_HISTORY FAILED!'
-    if [[ "$VERBOSE" == 1 ]]; then
-        echo "Make sure both 'HISTFILE=$HOME/.histfile' and 'export HISTSIZE=10000' are present in /root/.profile"
-    fi
+    grep -qE "^HISTFILE=\$HOME/.histfile" $file && grep -qE "^export HISTSIZE=10000" $file || failed "IS_HISTORY" "Make sure both 'HISTFILE=$HOME/.histfile' and 'export HISTSIZE=10000' are present in /root/.profile"
 fi
 
 if [ "$IS_VIM" = 1 ]; then
-    pkg_info | grep -q vim || echo 'IS_VIM FAILED!'
-    if [[ "$VERBOSE" == 1 ]]; then
-        echo "vim is not installed! Please add with pkg_add vim"
-    fi
+    pkg_info | grep -q vim || failed "IS_VIM" "vim is not installed! Please add with pkg_add vim"
 fi
 
 if [ "$IS_TTYC0SECURE" = 1 ]; then
-    grep -Eqv "^ttyC0.*secure$" /etc/ttys || echo 'IS_TTYC0SECURE FAILED!'
-    if [[ "$VERBOSE" == 1 ]]; then
-        echo "First tty should be secured"
-    fi
+    grep -Eqv "^ttyC0.*secure$" /etc/ttys || failed "IS_TTYC0SECURE" "First tty should be secured"
 fi
 
 if [ "$IS_CUSTOMSYSLOG" = 1 ]; then
-    grep -q Evolix /etc/newsyslog.conf || echo 'IS_CUSTOMSYSLOG FAILED!'
+    grep -q Evolix /etc/newsyslog.conf || failed "IS_CUSTOMSYSLOG" ""
 fi
 
 if [ "$IS_SUDOMAINT" = 1 ]; then
     f=/etc/sudoers
     grep -q "Cmnd_Alias MAINT = /usr/share/scripts/evomaintenance.sh" $f \
     && grep -q "ADMIN ALL=NOPASSWD: MAINT" $f \
-    || echo 'IS_SUDOMAINT FAILED!'
+    || failed "IS_SUDOMAINT" ""
 fi
 
 if [ "$IS_POSTGRESQL" = 1 ]; then
-    pkg_info | grep -q postgresql-client || echo 'IS_POSTGRESQL FAILED!'
-    if [[ "$VERBOSE" == 1 ]]; then
-        echo "postgresql-client is not installed! Please add with pkg_add postgresql-client"
-    fi
+    pkg_info | grep -q postgresql-client || failed "IS_POSTGRESQL" "postgresql-client is not installed! Please add with pkg_add postgresql-client"
 fi
 
 if [ "$IS_NRPE" = 1 ]; then
-    ( pkg_info | grep -q monitoring-plugins && pkg_info | grep -q nrpe ) || echo 'IS_NRPE FAILED!'
-    if [[ "$VERBOSE" == 1 ]]; then
-        echo "nrpe and/or monitoring-plugins are not installed! Please add with pkg_add nrpe monitoring-plugins"
-    fi
+    ( pkg_info | grep -q monitoring-plugins && pkg_info | grep -q nrpe ) || failed "IS_NRPE" "nrpe and/or monitoring-plugins are not installed! Please add with pkg_add nrpe monitoring-plugins"
 fi
 
 if [ "$IS_RSYNC" = 1 ]; then
-    pkg info | grep -q rsync || echo 'IS_RSYNC FAILED!'
-    if [[ "$VERBOSE" == 1 ]]; then
-        echo "rsync is not installed! Please add with pkg_add rsync"
-    fi
+    pkg_info | grep -q rsync || failed "IS_RSYNC" "rsync is not installed! Please add with pkg_add rsync"
 fi
 
 if [ "$IS_CRONPATH" = 1 ]; then
-    grep -q "PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin" /var/cron/tabs/root || echo 'IS_CRONPATH FAILED!'
+    grep -q "PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin" /var/cron/tabs/root || failed "IS_CRONPATH" ""
 fi
 
 if [ "$IS_TMP_1777" = 1 ]; then
-    ls -ld /tmp | grep -q drwxrwxrwt || echo 'IS_TMP_1777 FAILED!'
+    ls -ld /tmp | grep -q drwxrwxrwt || failed "IS_TMP_1777" ""
 fi
 
 if [ "$IS_ROOT_0700" = 1 ]; then
-    ls -ld /root | grep -q drwx------ || echo 'IS_ROOT_0700 FAILED!'
+    ls -ld /root | grep -q drwx------ || failed "IS_ROOT_0700" ""
 fi
 
 if [ "$IS_USRSHARESCRIPTS" = 1 ]; then
-    ls -ld /usr/share/scripts | grep -q drwx------ || echo 'IS_USRSHARESCRIPTS FAILED!'
+    ls -ld /usr/share/scripts | grep -q drwx------ || failed "IS_USRSHARESCRIPTS" ""
 fi
 
 if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
-    grep -qE ^PermitRoot /etc/ssh/sshd_config && ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || echo 'IS_SSHPERMITROOTNO FAILED!' )
+    grep -qE ^PermitRoot /etc/ssh/sshd_config && ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO" "" )
 fi
 
 if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
@@ -418,5 +373,5 @@ if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
     && grep "^FULLFROM" $f |grep -qv "John Doe <jdoe@example.com>" \
     && grep "^URGENCYFROM" $f |grep -qv "mama.doe@example.com" \
     && grep "^URGENCYTEL" $f |grep -qv "06.00.00.00.00" \
-    && grep "^REALM" $f |grep -qv "example.com" ) || echo 'IS_EVOMAINTENANCECONF FAILED!'
+    && grep "^REALM" $f |grep -qv "example.com" ) || failed "IS_EVOMAINTENANCECONF" ""
 fi

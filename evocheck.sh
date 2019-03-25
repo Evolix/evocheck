@@ -1183,6 +1183,8 @@ if is_debian; then
                 failed "IS_DUPLICATE_FS_LABEL" "Duplicate labels: $labels"
             fi
             rm "$tmpFile"
+        else
+            failed "IS_DUPLICATE_FS_LABEL" "blkid not found"
         fi
     fi
 

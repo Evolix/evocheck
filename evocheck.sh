@@ -44,6 +44,9 @@ IS_SSHPERMITROOTNO=1
 IS_EVOMAINTENANCEUSERS=1
 IS_EVOMAINTENANCECONF=1
 
+# Default return code : 0 = no error
+RC=0
+
 # Verbose function
 verbose() {
     msg="${1:-$(cat /dev/stdin)}"
@@ -53,7 +56,107 @@ verbose() {
 # Source configuration file
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
 
-VERBOSE="${VERBOSE:-0}"
+# Functions
+
+show_version() {
+    cat <<END
+evocheck version ${VERSION}
+
+Copyright 2009-2019 Evolix <info@evolix.fr>,
+                    Romain Dessort <rdessort@evolix.fr>,
+                    Benoit Série <bserie@evolix.fr>,
+                    Gregory Colpart <reg@evolix.fr>,
+                    Jérémy Lecour <jlecour@evolix.fr>,
+                    Tristan Pilat <tpilat@evolix.fr>,
+                    Victor Laborie <vlaborie@evolix.fr>
+                    and others.
+
+evocheck comes with ABSOLUTELY NO WARRANTY.  This is free software,
+and you are welcome to redistribute it under certain conditions.
+See the GNU General Public License v3.0 for details.
+END
+}
+
+show_help() {
+    cat <<END
+evocheck is a script that verifies Evolix conventions on OpenBSD servers.
+
+Usage: evocheck
+  or   evocheck --cron
+  or   evocheck --quiet
+  or   evocheck --verbose
+
+Options
+     --cron                  disable a few checks
+ -v, --verbose               increase verbosity of checks
+ -q, --quiet                 nothing is printed on stdout nor stderr
+ -h, --help                  print this message and exit
+     --version               print version and exit
+END
+}
+
+is_installed(){
+    for pkg in "$@"; do
+        dpkg -l "$pkg" 2> /dev/null | grep -q -E '^(i|h)i' || return 1
+    done
+}
+
+# logging
+failed() {
+    check_name=$1
+    shift
+    check_comments=$*
+
+    RC=1
+    if [ "${QUIET}" != 1 ]; then
+        if [ -n "${check_comments}" ] && [ "${VERBOSE}" = 1 ]; then
+            printf "%s FAILED! %s\n" "${check_name}" "${check_comments}" 2>&1
+        else
+            printf "%s FAILED!\n" "${check_name}" 2>&1
+        fi
+    fi
+}
+
+# Parse options
+# based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
+while :; do
+    case $1 in
+        -h|-\?|--help)
+            show_help
+            exit 0
+            ;;
+        --version)
+            show_version
+            exit 0
+            ;;
+        --cron)
+            IS_KERNELUPTODATE=0
+            IS_UPTIME=0
+            ;;
+        -v|--verbose)
+            VERBOSE=1
+            ;;
+        -q|--quiet)
+            QUIET=1
+            VERBOSE=0
+            ;;
+        --)
+            # End of all options.
+            shift
+            break
+            ;;
+        -?*|[[:alnum:]]*)
+            # ignore unknown options
+            printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+            ;;
+        *)
+            # Default case: If no more options then break out of the loop.
+            break
+            ;;
+    esac
+
+    shift
+done
 
 # If --cron is passed, ignore some checks.
 if [ "$1" = "--cron" ]; then

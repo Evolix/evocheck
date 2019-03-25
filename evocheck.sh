@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # EvoCheck
 # Script to verify compliance of a OpenBSD server powered by Evolix

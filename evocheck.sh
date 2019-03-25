@@ -275,7 +275,9 @@ if [ "$IS_HISTORY" = 1 ]; then
 fi
 
 if [ "$IS_VIM" = 1 ]; then
-    pkg_info | grep -q vim || failed "IS_VIM" "vim is not installed! Please add with pkg_add vim"
+    if ! is_installed vim; then
+    	failed "IS_VIM" "vim is not installed! Please add with pkg_add vim"
+    fi
 fi
 
 if [ "$IS_TTYC0SECURE" = 1 ]; then
@@ -294,15 +296,21 @@ if [ "$IS_SUDOMAINT" = 1 ]; then
 fi
 
 if [ "$IS_POSTGRESQL" = 1 ]; then
-    pkg_info | grep -q postgresql-client || failed "IS_POSTGRESQL" "postgresql-client is not installed! Please add with pkg_add postgresql-client"
+    if ! is_installed postgresql-client; then
+    	failed "IS_POSTGRESQL" "postgresql-client is not installed! Please add with pkg_add postgresql-client"
+    fi
 fi
 
 if [ "$IS_NRPE" = 1 ]; then
-    ( pkg_info | grep -q monitoring-plugins && pkg_info | grep -q nrpe ) || failed "IS_NRPE" "nrpe and/or monitoring-plugins are not installed! Please add with pkg_add nrpe monitoring-plugins"
+    if ! is_installed monitoring-plugins || ! is_installed nrpe; then
+    	failed "IS_NRPE" "nrpe and/or monitoring-plugins are not installed! Please add with pkg_add nrpe monitoring-plugins"
+    fi
 fi
 
 if [ "$IS_RSYNC" = 1 ]; then
-    pkg_info | grep -q rsync || failed "IS_RSYNC" "rsync is not installed! Please add with pkg_add rsync"
+    if ! is_installed rsync; then
+    	failed "IS_RSYNC" "rsync is not installed! Please add with pkg_add rsync"
+    fi
 fi
 
 if [ "$IS_CRONPATH" = 1 ]; then

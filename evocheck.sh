@@ -334,37 +334,14 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
         if [ $? != 0 ]; then
             failed "IS_EVOMAINTENANCEUSERS" "$i doesn't have evomaintenance trap!"
         fi
-        for i in $( (grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep ^sudo /etc/group |cut -d: -f 4) | tr "," "\n" |sort -u); do
-            grep -qs "^trap.*sudo.*evomaintenance.sh" ${homeDir}/${i}/.*profile
-            if [ $? != 0 ]; then
-                echo 'IS_EVOMAINTENANCEUSERS FAILED!'
-                if [ "$VERBOSE" = 1 ]; then
-                    echo "$i doesn't have evomaintenance trap!"
-                else
-                    break
-                fi
-            fi
-        done
-    else
-        for i in $(getent group evolinux-sudo | cut -d':' -f4 | tr ',' ' '); do
-            grep -qs "^trap.*sudo.*evomaintenance.sh" ${homeDir}/$i/.*profile
-            if [ $? != 0 ]; then
-                echo 'IS_EVOMAINTENANCEUSERS FAILED!'
-                if [ "$VERBOSE" = 1 ]; then
-                    echo "$i doesn't have evomaintenance trap!"
-                else
-                    break
-                fi
-            fi
-        done
-    fi
+    done
 fi
 
 # Verification de la configuration d'evomaintenance
 if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
     f=/etc/evomaintenance.cf
     ( test -e $f \
-    && test $(stat -c "%a" $f) = "600" \
+    && test $(stat -f %p $f) = "100600" \
     && grep "^export PGPASSWORD" $f |grep -qv "your-passwd" \
     && grep "^PGDB" $f |grep -qv "your-db" \
     && grep "^PGTABLE" $f |grep -qv "your-table" \

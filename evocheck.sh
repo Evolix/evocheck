@@ -97,7 +97,7 @@ END
 
 is_installed(){
     for pkg in "$@"; do
-        dpkg -l "$pkg" 2> /dev/null | grep -q -E '^(i|h)i' || return 1
+	pkg_info | grep -q $pkg || return 1
     done
 }
 

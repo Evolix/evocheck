@@ -328,11 +328,11 @@ fi
 if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
     # Can be changed in evocheck.cf
     homeDir=${homeDir:-/home}
-    if ! is_debianversion stretch; then
-        if [ -f /etc/sudoers.d/evolinux ]; then
-            sudoers="/etc/sudoers.d/evolinux"
-        else
-            sudoers="/etc/sudoers"
+    sudoers="/etc/sudoers"
+    for i in $( (grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep ^sudo /etc/group |cut -d: -f 4) | tr "," "\n" |sort -u); do
+        grep -qs "^trap.*sudo.*evomaintenance.sh" ${homeDir}/${i}/.*profile
+        if [ $? != 0 ]; then
+            failed "IS_EVOMAINTENANCEUSERS" "$i doesn't have evomaintenance trap!"
         fi
         for i in $( (grep "^User_Alias *ADMIN" $sudoers | cut -d= -f2 | tr -d " "; grep ^sudo /etc/group |cut -d: -f 4) | tr "," "\n" |sort -u); do
             grep -qs "^trap.*sudo.*evomaintenance.sh" ${homeDir}/${i}/.*profile

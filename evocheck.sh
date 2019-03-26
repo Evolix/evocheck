@@ -106,6 +106,16 @@ is_installed(){
         dpkg -l "$pkg" 2> /dev/null | grep -q -E '^(i|h)i' || return 1
     done
 }
+minifirewall_file() {
+    case ${DEBIAN_RELEASE} in
+        lenny) "/etc/firewall.rc" ;;
+        squeeze) "/etc/firewall.rc" ;;
+        wheezy) "/etc/firewall.rc" ;;
+        jessie) "/etc/default/minifirewall" ;;
+        stretch) "/etc/default/minifirewall" ;;
+        *) "/etc/default/minifirewall" ;;
+    esac
+}
 
 # logging
 
@@ -1083,12 +1093,7 @@ main() {
     #-----------------------------------------------------------
 
     if is_debian; then
-
-        is_debian_lenny   && MINIFW_FILE=/etc/firewall.rc
-        is_debian_squeeze && MINIFW_FILE=/etc/firewall.rc
-        is_debian_wheezy  && MINIFW_FILE=/etc/firewall.rc
-        is_debian_jessie  && MINIFW_FILE=/etc/default/minifirewall
-        is_debian_stretch && MINIFW_FILE=/etc/default/minifirewall
+        MINIFW_FILE=$(minifirewall_file)
 
         test "${IS_LSBRELEASE:=1}" = 1 && check_lsbrelease
         test "${IS_DPKGWARNING:=1}" = 1 && check_dpkgwarning

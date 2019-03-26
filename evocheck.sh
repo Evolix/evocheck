@@ -170,6 +170,7 @@ check_umasksudoers(){
             || failed "IS_UMASKSUDOERS" "sudoers must set umask to 0077"
     fi
 }
+# Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
 check_nrpepostfix() {
     if is_installed postfix; then
         if is_debian_squeeze; then
@@ -182,6 +183,7 @@ check_nrpepostfix() {
         fi
     fi
 }
+# Check if mod-security config file is present
 check_modsecurity() {
     if is_debian_squeeze; then
         if is_installed libapache-mod-security; then
@@ -355,6 +357,7 @@ check_apachemunin() {
         fi
     fi
 }
+# Verification mytop + Munin si MySQL
 check_mysqlutils() {
     MYSQL_ADMIN=${MYSQL_ADMIN:-mysqladmin}
     if is_installed mysql-server; then
@@ -372,6 +375,7 @@ check_mysqlutils() {
         fi
     fi
 }
+# Verification de la configuration du raid soft (mdadm)
 check_raidsoft() {
     if test -e /proc/mdstat && grep -q md /proc/mdstat; then
         { grep -q "^AUTOCHECK=true" /etc/default/mdadm \
@@ -380,17 +384,20 @@ check_raidsoft() {
         } || failed "IS_RAIDSOFT"
     fi
 }
+# Verification du LogFormat de AWStats
 check_awstatslogformat() {
     if is_installed apache2.2-common awstats; then
         grep -qE '^LogFormat=1' /etc/awstats/awstats.conf.local \
             || failed "IS_AWSTATSLOGFORMAT"
     fi
 }
+# Verification de la présence de la config logrotate pour Munin
 check_muninlogrotate() {
     { test -e /etc/logrotate.d/munin-node \
         && test -e /etc/logrotate.d/munin;
     } || failed "IS_MUNINLOGROTATE"
 }
+# Verification de l'activation de Squid dans le cas d'un pack mail
 check_squid() {
     if is_debian_stretch; then
         squidconffile="/etc/squid/evolinux-custom.conf"
@@ -416,6 +423,7 @@ check_evomaintenance_fw() {
         fi
     fi
 }
+# Verification de la conf et de l'activation de mod-deflate
 check_moddeflate() {
     f=/etc/apache2/mods-enabled/deflate.conf
     if is_installed apache2.2; then
@@ -425,6 +433,7 @@ check_moddeflate() {
         } || failed "IS_MODDEFLATE"
     fi
 }
+# Verification de la conf log2mail
 check_log2mailrunning() {
     if is_pack_web && is_installed log2mail; then
         pgrep log2mail >/dev/null || failed 'IS_LOG2MAILRUNNING'
@@ -453,6 +462,7 @@ check_log2mailsquid() {
             || failed "IS_LOG2MAILSQUID"
     fi
 }
+# Verification si bind est chroote
 check_bindchroot() {
     if is_installed bind9; then
         if netstat -utpln | grep "/named" | grep :53 | grep -qvE "(127.0.0.1|::1)"; then
@@ -468,6 +478,7 @@ check_bindchroot() {
         fi
     fi
 }
+# Verification de la présence du depot volatile
 check_repvolatile() {
     if is_debian_lenny; then
         grep -qE "^deb http://volatile.debian.org/debian-volatile" /etc/apt/sources.list \
@@ -478,6 +489,7 @@ check_repvolatile() {
             || failed "IS_REPVOLATILE"
     fi
 }
+# /etc/network/interfaces should be present, we don't manage systemd-network yet
 check_network_interfaces() {
     if ! test -f /etc/network/interfaces; then
         IS_AUTOIF=0
@@ -485,6 +497,7 @@ check_network_interfaces() {
         failed "IS_NETWORK_INTERFACES" "systemd network configuration is not supported yet"
     fi
 }
+# Verify if all if are in auto
 check_autoif() {
     if is_debian_stretch; then
         interfaces=$(/sbin/ip address show up | grep "^[0-9]*:" | grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 | tr -d : | cut -d@ -f1 | tr "\n" " ")
@@ -498,31 +511,37 @@ check_autoif() {
         fi
     done
 }
+# Network conf verification
 check_interfacesgw() {
     number=$(grep -Ec "^[^#]*gateway [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" /etc/network/interfaces)
     test "$number" -gt 1 && failed "IS_INTERFACESGW" "there is more than 1 IPv4 gateway"
     number=$(grep -Ec "^[^#]*gateway [0-9a-fA-F]+:" /etc/network/interfaces)
     test "$number" -gt 1 && failed "IS_INTERFACESGW" "there is more than 1 IPv6 gateway"
 }
+# Verification de la mise en place d'evobackup
 check_evobackup() {
     evobackup_found=$(find /etc/cron* -name '*evobackup*' | wc -l)
     test "$evobackup_found" -gt 0 || failed "IS_EVOBACKUP"
 }
+# Verification de la presence du userlogrotate
 check_userlogrotate() {
     if is_pack_web; then
         test -x /etc/cron.weekly/userlogrotate || failed "IS_USERLOGROTATE"
     fi
 }
+# Verification de la syntaxe de la conf d'Apache
 check_apachectl() {
     if is_installed apache2.2-common; then
         /usr/sbin/apache2ctl configtest 2>&1 | grep -q "^Syntax OK$" || failed "IS_APACHECTL"
     fi
 }
+# Check if there is regular files in Apache sites-enabled.
 check_apachesymlink() {
     if is_installed apache2.2-common; then
         stat -c %F /etc/apache2/sites-enabled/* | grep -q regular && failed "IS_APACHESYMLINK"
     fi
 }
+# Check if there is real IP addresses in Allow/Deny directives (no trailing space, inline comments or so).
 check_apacheipinallow() {
     # Note: Replace "exit 1" by "print" in Perl code to debug it.
     if is_installed apache2.2-common; then
@@ -533,6 +552,7 @@ check_apacheipinallow() {
             || failed "IS_APACHEIPINALLOW"
     fi
 }
+# Check if default Apache configuration file for munin is absent (or empty or commented).
 check_muninapacheconf() {
     if is_debian_squeeze || is_debian_wheezy; then
         muninconf="/etc/apache2/conf.d/munin"
@@ -543,6 +563,7 @@ check_muninapacheconf() {
         test -e $muninconf && grep -vEq "^( |\t)*#" "$muninconf" && failed "IS_MUNINAPACHECONF"
     fi
 }
+# Verification de la priorité du package samba si les backports sont utilisés
 check_sambainpriority() {
     if is_debian_lenny && is_pack_samba; then
         if grep -qrE "^[^#].*backport" /etc/apt/sources.list{,.d}; then
@@ -551,6 +572,7 @@ check_sambainpriority() {
         fi
     fi
 }
+# Verification si le système doit redémarrer suite màj kernel.
 check_kerneluptodate() {
     if is_installed linux-image*; then
         # shellcheck disable=SC2012
@@ -561,6 +583,7 @@ check_kerneluptodate() {
         fi
     fi
 }
+# Check if the server is running for more than a year.
 check_uptime() {
     if is_installed linux-image*; then
         limit=$(date -d "now - 2 year" +%s)
@@ -570,6 +593,7 @@ check_uptime() {
         fi
     fi
 }
+# Check if munin-node running and RRD files are up to date.
 check_muninrunning() {
     if ! pgrep munin-node >/dev/null; then
         failed "IS_MUNINRUNNING" "Munin is not running"
@@ -593,6 +617,7 @@ check_muninrunning() {
         failed "IS_MUNINRUNNING" "Munin is not installed properly (main directories are missing)"
     fi
 }
+# Check if files in /home/backup/ are up-to-date
 check_backupuptodate() {
     if [ -d /home/backup/ ]; then
         if [ -n "$(ls -A /home/backup/)" ]; then
@@ -615,6 +640,7 @@ check_backupuptodate() {
 check_etcgit() {
     (cd /etc; git rev-parse --is-inside-work-tree > /dev/null 2>&1) || failed "IS_ETCGIT" "/etc is not a Git repository"
 }
+# Check if /etc/.git/ has read/write permissions for root only.
 check_gitperms() {
     if test -d /etc/.git; then
         expected="700"
@@ -622,6 +648,7 @@ check_gitperms() {
         [ "$expected" = "$actual" ] || failed "IS_GITPERMS"
     fi
 }
+# Check if no package has been upgraded since $limit.
 check_notupgraded() {
     last_upgrade=0
     upgraded=false
@@ -654,6 +681,7 @@ check_notupgraded() {
         [ "$last_upgrade" -lt "$limit" ] && failed "IS_NOTUPGRADED" "The system hasn't been updated for too long"
     fi
 }
+# Check if reserved blocks for root is at least 5% on every mounted partitions.
 check_tune2fs_m5() {
     min=5
     parts=$(grep -E "ext(3|4)" /proc/mounts | cut -d ' ' -f1 | tr -s '\n' ' ')
@@ -1072,7 +1100,7 @@ check_privatekeyworldreadable() {
 main() {
     # Default return code : 0 = no error
     RC=0
-    # Detect operating system name, verison and release
+    # Detect operating system name, version and release
     detect_os
 
     #-----------------------------------------------------------
@@ -1098,9 +1126,7 @@ main() {
         test "${IS_LSBRELEASE:=1}" = 1 && check_lsbrelease
         test "${IS_DPKGWARNING:=1}" = 1 && check_dpkgwarning
         test "${IS_UMASKSUDOERS:=1}" = 1 && check_umasksudoers
-        # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
         test "${IS_NRPEPOSTFIX:=1}" = 1 && check_nrpepostfix
-        # Check if mod-security config file is present
         test "${IS_MODSECURITY:=1}" = 1 && check_modsecurity
         test "${IS_CUSTOMSUDOERS:=1}" = 1 && check_customsudoers
         test "${IS_VARTMPFS:=1}" = 1 && check_vartmpfs
@@ -1129,62 +1155,36 @@ main() {
         test "${IS_NRPEPID:=1}" = 1 && check_nrpepid
         test "${IS_GRSECPROCS:=1}" = 1 && check_grsecprocs
         test "${IS_APACHEMUNIN:=1}" = 1 && check_apachemunin
-        # Verification mytop + Munin si MySQL
         test "${IS_MYSQLUTILS:=1}" = 1 && check_mysqlutils
-        # Verification de la configuration du raid soft (mdadm)
         test "${IS_RAIDSOFT:=1}" = 1 && check_raidsoft
-        # Verification du LogFormat de AWStats
         test "${IS_AWSTATSLOGFORMAT:=1}" = 1 && check_awstatslogformat
-        # Verification de la présence de la config logrotate pour Munin
         test "${IS_MUNINLOGROTATE:=1}" = 1 && check_muninlogrotate
-        # Verification de l'activation de Squid dans le cas d'un pack mail
         test "${IS_SQUID:=1}" = 1 && check_squid
         test "${IS_EVOMAINTENANCE_FW:=1}" = 1 && check_evomaintenance_fw
-        # Verification de la conf et de l'activation de mod-deflate
         test "${IS_MODDEFLATE:=1}" = 1 && check_moddeflate
-        # Verification de la conf log2mail
         test "${IS_LOG2MAILRUNNING:=1}" = 1 && check_log2mailrunning
         test "${IS_LOG2MAILAPACHE:=1}" = 1 && check_log2mailapache
         test "${IS_LOG2MAILMYSQL:=1}" = 1 && check_log2mailmysql
         test "${IS_LOG2MAILSQUID:=1}" = 1 && check_log2mailsquid
-        # Verification si bind est chroote
         test "${IS_BINDCHROOT:=1}" = 1 && check_bindchroot
-        # Verification de la présence du depot volatile
         test "${IS_REPVOLATILE:=1}" = 1 && check_repvolatile
-        # /etc/network/interfaces should be present, we don't manage systemd-network yet
         test "${IS_NETWORK_INTERFACES:=1}" = 1 && check_network_interfaces
-        # Verify if all if are in auto
         test "${IS_AUTOIF:=1}" = 1 && check_autoif
-        # Network conf verification
         test "${IS_INTERFACESGW:=1}" = 1 && check_interfacesgw
-        # Verification de la mise en place d'evobackup
         test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
-        # Verification de la presence du userlogrotate
         test "${IS_USERLOGROTATE:=1}" = 1 && check_userlogrotate
-        # Verification de la syntaxe de la conf d'Apache
         test "${IS_APACHECTL:=1}" = 1 && check_apachectl
-        # Check if there is regular files in Apache sites-enabled.
         test "${IS_APACHESYMLINK:=1}" = 1 && check_apachesymlink
-        # Check if there is real IP addresses in Allow/Deny directives (no trailing space, inline comments or so).
         test "${IS_APACHEIPINALLOW:=1}" = 1 && check_apacheipinallow
-        # Check if default Apache configuration file for munin is absent (or empty or commented).
         test "${IS_MUNINAPACHECONF:=1}" = 1 && check_muninapacheconf
-        # Verification de la priorité du package samba si les backports sont utilisés
         test "${IS_SAMBAPINPRIORITY:=1}" = 1 && check_sambainpriority
-        # Verification si le système doit redémarrer suite màj kernel.
         test "${IS_KERNELUPTODATE:=1}" = 1 && check_kerneluptodate
-        # Check if the server is running for more than a year.
         test "${IS_UPTIME:=1}" = 1 && check_uptime
-        # Check if munin-node running and RRD files are up to date.
         test "${IS_MUNINRUNNING:=1}" = 1 && check_muninrunning
-        # Check if files in /home/backup/ are up-to-date
         test "${IS_BACKUPUPTODATE:=1}" = 1 && check_backupuptodate
         test "${IS_ETCGIT:=1}" = 1 && check_etcgit
-        # Check if /etc/.git/ has read/write permissions for root only.
         test "${IS_GITPERMS:=1}" = 1 && check_gitperms
-        # Check if no package has been upgraded since $limit.
         test "${IS_NOTUPGRADED:=1}" = 1 && check_notupgraded
-        # Check if reserved blocks for root is at least 5% on every mounted partitions.
         test "${IS_TUNE2FS_M5:=1}" = 1 && check_tune2fs_m5
         test "${IS_EVOLINUXSUDOGROUP:=1}" = 1 && check_evolinuxsudogroup
         test "${IS_USERINADMGROUP:=1}" = 1 && check_userinadmgroup

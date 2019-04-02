@@ -310,6 +310,9 @@ if [ -e /etc/debian_version ]; then
 
     if [ "$IS_ALERT5MINIFW" = 1 ]; then
         grep -q ^/etc/init.d/minifirewall /etc/rc2.d/S*alert5 || failed "IS_ALERT5MINIFW"
+        if [ "$VERBOSE" = 1 ]; then
+        	echo "/etc/init.d/alert5 should boot /etc/init.d/minifirewall"
+        fi
     fi
 
     if [ "$IS_ALERT5MINIFW" = 1 ] && [ "$IS_MINIFW" = 1 ]; then

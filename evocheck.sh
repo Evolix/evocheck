@@ -191,7 +191,7 @@ is_debian() {
   test -n "${DEBIAN_RELEASE}"
 }
 is_debian_lenny() {
-    test "${DEBIAN_VERSION}" = "lenny"
+    test "${DEBIAN_RELEASE}" = "lenny"
 }
 is_debian_squeeze() {
     test "${DEBIAN_RELEASE}" = "squeeze"

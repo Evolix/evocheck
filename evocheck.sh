@@ -946,7 +946,10 @@ if is_debian; then
         if is_debian_stretch; then
             users=$(grep "^evolinux-sudo:" /etc/group | awk -F: '{print $4}' | tr ',' ' ')
             for user in $users; do
-                groups "$user" | grep -q adm || failed "IS_USERINADMGROUP" "User $user doesn't belong to \`adm' group"
+                if ! groups "$user" | grep -q adm; then
+                    failed "IS_USERINADMGROUP" "User $user doesn't belong to \`adm' group"
+                    test "${VERBOSE}" = 1 || break
+                fi
             done
         fi
     fi

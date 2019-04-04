@@ -543,7 +543,7 @@ if is_debian; then
                     && test -h /etc/munin/plugins/apache_accesses \
                     && test -h /etc/munin/plugins/apache_processes \
                     && test -h /etc/munin/plugins/apache_volume; } \
-                    || failed "IS_APACHEMUNIN" "mising munin plugins for Apache"
+                    || failed "IS_APACHEMUNIN" "missing munin plugins for Apache"
             else
                 pattern="/server-status-[[:alnum:]]{4,}"
                 { grep -r -q -s -E "^env.url.*${pattern}" /etc/munin/plugin-conf.d \

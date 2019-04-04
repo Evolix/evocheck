@@ -500,16 +500,16 @@ if is_debian; then
 
     if [ "$IS_NRPEPERMS" = 1 ]; then
         if [ -d /etc/nagios ]; then
-            actual=$(stat --format "%A" /etc/nagios)
-            expected="drwxr-x---"
+            actual=$(stat --format "%a" /etc/nagios)
+            expected="750"
             test "$expected" = "$actual" || failed "IS_NRPEPERMS"
         fi
     fi
 
     if [ "$IS_MINIFWPERMS" = 1 ]; then
         if [ -f "$MINIFW_FILE" ]; then
-            actual=$(stat --format "%A" $MINIFW_FILE)
-            expected="-rw-------"
+            actual=$(stat --format "%a" $MINIFW_FILE)
+            expected="600"
             test "$expected" = "$actual" || failed "IS_MINIFWPERMS"
         fi
     fi
@@ -1378,20 +1378,20 @@ if is_openbsd; then
 fi
 
 if [ "$IS_TMP_1777" = 1 ]; then
-    actual=$(stat --format "%A" /tmp)
-    expected="drwxrwxrwt"
+    actual=$(stat --format "%a" /tmp)
+    expected="1777"
     test "$expected" = "$actual" || failed "IS_TMP_1777"
 fi
 
 if [ "$IS_ROOT_0700" = 1 ]; then
-    actual=$(stat --format "%A" /root)
-    expected="drwx------"
+    actual=$(stat --format "%a" /root)
+    expected="700"
     test "$expected" = "$actual" || failed "IS_ROOT_0700"
 fi
 
 if [ "$IS_USRSHARESCRIPTS" = 1 ]; then
-    actual=$(stat --format "%A" /usr/share/scripts)
-    expected="drwx------"
+    actual=$(stat --format "%a" /usr/share/scripts)
+    expected="700"
     test "$expected" = "$actual" || failed "IS_USRSHARESCRIPTS"
 fi
 

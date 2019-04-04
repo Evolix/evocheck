@@ -282,7 +282,9 @@ while :; do
             ;;
         -?*|[[:alnum:]]*)
             # ignore unknown options
-            printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+            if [ "${QUIET}" != 1 ]; then
+                printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+            fi
             ;;
         *)
             # Default case: If no more options then break out of the loop.

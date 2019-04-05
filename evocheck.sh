@@ -108,12 +108,12 @@ is_installed(){
 }
 minifirewall_file() {
     case ${DEBIAN_RELEASE} in
-        lenny) "/etc/firewall.rc" ;;
-        squeeze) "/etc/firewall.rc" ;;
-        wheezy) "/etc/firewall.rc" ;;
-        jessie) "/etc/default/minifirewall" ;;
-        stretch) "/etc/default/minifirewall" ;;
-        *) "/etc/default/minifirewall" ;;
+        lenny) echo "/etc/firewall.rc" ;;
+        squeeze) echo "/etc/firewall.rc" ;;
+        wheezy) echo "/etc/firewall.rc" ;;
+        jessie) echo "/etc/default/minifirewall" ;;
+        stretch) echo "/etc/default/minifirewall" ;;
+        *) echo "/etc/default/minifirewall" ;;
     esac
 }
 

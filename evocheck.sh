@@ -1096,6 +1096,18 @@ check_privatekeyworldreadable() {
         done
     fi
 }
+check_evobackup_incs() {
+    if is_installed bkctld; then
+        bkctld_cron_file=${bkctld_cron_file:-/etc/cron.d/bkctld}
+        if [ -f "${bkctld_cron_file}" ]; then
+            root_crontab=$(grep -v "^#" ${bkctld_cron_file})
+            echo "${root_crontab}" | grep -q "bkctld inc" || failed "IS_EVOBACKUP_INCS" "\`bkctld inc' is missing in ${bkctld_cron_file}"
+            echo "${root_crontab}" | grep -q "check-incs.sh" || failed "IS_EVOBACKUP_INCS" "\`check-incs.sh' is missing in ${bkctld_cron_file}"
+        else
+            failed "IS_EVOBACKUP_INCS" "Crontab \`${bkctld_cron_file}' is missing"
+        fi
+    fi
+}
 
 main() {
     # Default return code : 0 = no error
@@ -1216,6 +1228,7 @@ main() {
         test "${IS_APACHE_CONFENABLED:=1}" = 1 && check_apache_confenabled
         test "${IS_MELTDOWN_SPECTRE:=1}" = 1 && check_meltdown_spectre
         test "${IS_OLD_HOME_DIR:=1}" = 1 && check_old_home_dir
+        test "${IS_EVOBACKUP_INCS:=1}" = 1 && check_evobackup_incs
     fi
 
     #-----------------------------------------------------------

@@ -315,7 +315,7 @@ check_nrpeperms() {
 }
 check_minifwperms() {
     if [ -f "$MINIFW_FILE" ]; then
-        actual=$(stat --format "%a" $MINIFW_FILE)
+        actual=$(stat --format "%a" "$MINIFW_FILE")
         expected="600"
         test "$expected" = "$actual" || failed "IS_MINIFWPERMS"
     fi
@@ -1102,7 +1102,7 @@ check_evobackup_incs() {
     if is_installed bkctld; then
         bkctld_cron_file=${bkctld_cron_file:-/etc/cron.d/bkctld}
         if [ -f "${bkctld_cron_file}" ]; then
-            root_crontab=$(grep -v "^#" ${bkctld_cron_file})
+            root_crontab=$(grep -v "^#" "${bkctld_cron_file}")
             echo "${root_crontab}" | grep -q "bkctld inc" || failed "IS_EVOBACKUP_INCS" "\`bkctld inc' is missing in ${bkctld_cron_file}"
             echo "${root_crontab}" | grep -q "check-incs.sh" || failed "IS_EVOBACKUP_INCS" "\`check-incs.sh' is missing in ${bkctld_cron_file}"
         else
@@ -1343,7 +1343,7 @@ readonly PROGDIR=$(realpath -m "$(dirname "$0")")
 # shellcheck disable=2124
 readonly ARGS=$@
 
-readonly VERSION="0.14.0.beta2"
+readonly VERSION="19.04"
 
 # Disable LANG*
 export LANG=C
@@ -1396,4 +1396,5 @@ while :; do
     shift
 done
 
+# shellcheck disable=SC2086
 main ${ARGS}

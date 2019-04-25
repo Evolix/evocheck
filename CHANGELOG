@@ -32,45 +32,45 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-  * Bunch of new checks:                                                   
-    IS_PRIVKEYWOLRDREADABLE                                                
-    IS_EVOLINUXSUDOGROUP                                                   
-    IS_USERINADMGROUP                                                      
-    IS_APACHE2EVOLINUXCONF    
-    IS_BACKPORTSCONF                       
-    IS_BIND9MUNIN                         
-    IS_BIND9LOGROTATE                      
-    IS_BROADCOMFIRMWARE                                                 
+  * Bunch of new checks:
+    IS_PRIVKEYWOLRDREADABLE
+    IS_EVOLINUXSUDOGROUP
+    IS_USERINADMGROUP
+    IS_APACHE2EVOLINUXCONF
+    IS_BACKPORTSCONF
+    IS_BIND9MUNIN
+    IS_BIND9LOGROTATE
+    IS_BROADCOMFIRMWARE
     IS_HARDWARERAIDTOOL
-    IS_LOG2MAILSYSTEMDUNIT                                              
+    IS_LOG2MAILSYSTEMDUNIT
     IS_LISTUPGRADE
-    IS_MARIADBEVOLINUXCONF              
+    IS_MARIADBEVOLINUXCONF
     IS_MARIADBSYSTEMDUNIT
-    IS_MYSQLMUNIN             
-    IS_PHPEVOLINUXCONF        
-    IS_SQUIDLOGROTATE                      
-    IS_SQUIDEVOLINUXCONF        
-    IS_SQL_BACKUP                          
-    IS_POSTGRES_BACKUP                    
-    IS_LDAP_BACKUP                         
-    IS_REDIS_BACKUP                       
-    IS_ELASTIC_BACKUP                                               
+    IS_MYSQLMUNIN
+    IS_PHPEVOLINUXCONF
+    IS_SQUIDLOGROTATE
+    IS_SQUIDEVOLINUXCONF
+    IS_SQL_BACKUP
+    IS_POSTGRES_BACKUP
+    IS_LDAP_BACKUP
+    IS_REDIS_BACKUP
+    IS_ELASTIC_BACKUP
     IS_MONGO_BACKUP
-    IS_MOUNT_FSTAB                                                  
+    IS_MOUNT_FSTAB
     IS_NETWORK_INTERFACES
 
 ### Changed
 
-  * IS_UPTIME added in --cron mode                                          
-  * is_pack_web() for Stretch           
-  * IS_DPKGWARNING for Stretch                                              
+  * IS_UPTIME added in --cron mode
+  * is_pack_web() for Stretch
+  * IS_DPKGWARNING for Stretch
   * IS_MOUNT_FSTAB is disabled if lsblk not available
-  * IS_MINIFWPERMS for Stretch                                      
+  * IS_MINIFWPERMS for Stretch
   * IS_SQUID for Stretch
-  * IS_LOG2MAILAPACHE for Stretch                                   
+  * IS_LOG2MAILAPACHE for Stretch
   * IS_AUTOIF for Stretch
   * IS_UPTIME warn if uptime is more thant 2y, was 1y
   * IS_NOTUPGRADED warn if last upgrade is older than 90d, was 30d
-  * IS_TUNE2FS_M5 use python in place of bc for calculation               
+  * IS_TUNE2FS_M5 use python in place of bc for calculation
   * IS_EVOMAINTENANCEUSERS for Stretch
-  * IS_EVOMAINTENANCECONF check also the mode of the file (600)           
+  * IS_EVOMAINTENANCECONF check also the mode of the file (600)

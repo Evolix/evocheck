@@ -1,3 +1,14 @@
+evocheck (19.04-1) stretch; urgency=medium
+
+  * New major upstream release:
+    * change versioning scheme : year.month.patch
+    * extracts tests into functions
+    * add verbose and quiet modes
+    * add usage output on error
+    * add braces and quotes
+
+ -- Benoît SÉRIE <bserie@evolix.fr>  Fri, 26 Apr 2019 16:14:59 +0200
+
 evocheck (0.13.1-1) stretch; urgency=medium
 
   * Fixing IS_DUPLICATE_FS_LEVEL check

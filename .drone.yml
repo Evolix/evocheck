@@ -3,6 +3,6 @@ name: default
 
 steps:
 - name: run shellcheck on evocheck.sh 
-  image: vlaborie/shellcheck
+  image: evolix/shellcheck
   commands:
   - LC_ALL=C.UTF-8 shellcheck evocheck.sh

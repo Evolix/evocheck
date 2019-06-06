@@ -386,7 +386,7 @@ check_raidsoft() {
 }
 # Verification du LogFormat de AWStats
 check_awstatslogformat() {
-    if is_installed apache2.2-common awstats; then
+    if is_installed apache2 awstats; then
         grep -qE '^LogFormat=1' /etc/awstats/awstats.conf.local \
             || failed "IS_AWSTATSLOGFORMAT"
     fi
@@ -531,20 +531,20 @@ check_userlogrotate() {
 }
 # Verification de la syntaxe de la conf d'Apache
 check_apachectl() {
-    if is_installed apache2.2-common; then
+    if is_installed apache2; then
         /usr/sbin/apache2ctl configtest 2>&1 | grep -q "^Syntax OK$" || failed "IS_APACHECTL"
     fi
 }
 # Check if there is regular files in Apache sites-enabled.
 check_apachesymlink() {
-    if is_installed apache2.2-common; then
+    if is_installed apache2; then
         stat -c %F /etc/apache2/sites-enabled/* | grep -q regular && failed "IS_APACHESYMLINK"
     fi
 }
 # Check if there is real IP addresses in Allow/Deny directives (no trailing space, inline comments or so).
 check_apacheipinallow() {
     # Note: Replace "exit 1" by "print" in Perl code to debug it.
-    if is_installed apache2.2-common; then
+    if is_installed apache2; then
         grep -IrE "^[^#] *(Allow|Deny) from" /etc/apache2/ \
             | grep -iv "from all" \
             | grep -iv "env=" \
@@ -559,7 +559,7 @@ check_muninapacheconf() {
     else
         muninconf="/etc/apache2/conf-available/munin.conf"
     fi
-    if is_installed apache2.2-common; then
+    if is_installed apache2; then
         test -e $muninconf && grep -vEq "^( |\t)*#" "$muninconf" && failed "IS_MUNINAPACHECONF"
     fi
 }

@@ -1158,7 +1158,7 @@ main() {
         test "${IS_LISTCHANGESCONF:=1}" = 1 && check_listchangesconf
         test "${IS_CUSTOMCRONTAB:=1}" = 1 && check_customcrontab
         test "${IS_SSHALLOWUSERS:=1}" = 1 && check_sshallowusers
-        test "${IS_DISKPERF:=1}" = 1 && check_diskperf
+        test "${IS_DISKPERF:=0}" = 1 && check_diskperf
         test "${IS_TMOUTPROFILE:=1}" = 1 && check_tmoutprofile
         test "${IS_ALERT5BOOT:=1}" = 1 && check_alert5boot
         test "${IS_ALERT5MINIFW:=1}" = 1 && check_alert5minifw

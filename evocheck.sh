@@ -538,7 +538,17 @@ check_apachectl() {
 # Check if there is regular files in Apache sites-enabled.
 check_apachesymlink() {
     if is_installed apache2; then
-        stat -c %F /etc/apache2/sites-enabled/* | grep -q regular && failed "IS_APACHESYMLINK"
+        apacheFind=$(find /etc/apache2/sites-enabled ! -type l -type f -print)
+        nbApacheFind=$(wc -m <<< "$apacheFind")
+        if [[ $nbApacheFind -gt 1 ]]; then
+            if [[ $VERBOSE == 1 ]]; then
+                while read -r line; do
+                    failed "IS_APACHESYMLINK" "Not a symlink: $line"
+                done <<< "$apacheFind"
+            else
+                failed "IS_APACHESYMLINK"
+            fi
+        fi
     fi
 }
 # Check if there is real IP addresses in Allow/Deny directives (no trailing space, inline comments or so).

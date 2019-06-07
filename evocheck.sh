@@ -891,12 +891,19 @@ check_mysqlmunin() {
 }
 check_mysqlnrpe() {
     if is_debian_stretch && is_installed mariadb-server; then
-        nagios_file="~nagios/.my.cnf"
-        { test -f $nagios_file \
-            && [ "$(stat -c %U $nagios_file)" = "nagios" ] \
-            && [ "$(stat -c %a $nagios_file)" = "600" ] \
-            && grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql -H localhost  -f $nagios_file";
-        } || failed "IS_MYSQLNRPE"
+        nagios_home=$(getent passwd "nagios" | cut -d: -f6)
+        nagios_file_abs="${nagios_home}/.my.cnf"
+        nagios_file_sym="~nagios/.my.cnf"
+
+        if ! test -f $nagios_file_abs; then
+            failed "IS_MYSQLNRPE" "$nagios_file_abs is missing"
+        elif [ "$(stat -c %U $nagios_file_abs)" != "nagios" ] \
+             || [ "$(stat -c %a $nagios_file_abs)" != "600" ]; then
+            failed "IS_MYSQLNRPE" "$nagios_file_abs has wrong permissions"
+        else
+            grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql -H localhost -f $nagios_file_sym" /etc/nagios/nrpe.d/evolix.cfg \
+            || failed "IS_MYSQLNRPE" "check_mysql is missing"
+        fi
     fi
 }
 check_phpevolinuxconf() {

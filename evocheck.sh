@@ -1088,9 +1088,7 @@ check_evomaintenanceconf() {
             && grep "^FULLFROM" $f | grep -qv "John Doe <jdoe@example.com>" \
             && grep "^URGENCYFROM" $f | grep -qv "mama.doe@example.com" \
             && grep "^URGENCYTEL" $f | grep -qv "06.00.00.00.00" \
-            && grep "^REALM" $f | grep -qv "example.com" \
-            && grep "^API_ENDPOINT" $f | grep -qv "https://example.com/api/" \
-            && grep "^API_KEY" $f | grep -qv "secretkey";
+            && grep "^REALM" $f | grep -qv "example.com"
         } || failed "IS_EVOMAINTENANCECONF" "evomaintenance is not correctly configured"
     else
         failed "IS_EVOMAINTENANCECONF" "Configuration file \`$f' is missing"

@@ -1121,6 +1121,12 @@ check_evobackup_incs() {
     fi
 }
 
+check_osprober() {
+    if is_installed os-prober qemu-kvm; then
+        failed "IS_OSPROBER" "Removal of os-prober package is recommended as it can cause serious issue on KVM server"
+    fi
+}
+
 main() {
     # Default return code : 0 = no error
     RC=0
@@ -1241,6 +1247,7 @@ main() {
         test "${IS_MELTDOWN_SPECTRE:=1}" = 1 && check_meltdown_spectre
         test "${IS_OLD_HOME_DIR:=1}" = 1 && check_old_home_dir
         test "${IS_EVOBACKUP_INCS:=1}" = 1 && check_evobackup_incs
+        test "${IS_OSPROBER:=1}" = 1 && check_osprober
     fi
 
     #-----------------------------------------------------------

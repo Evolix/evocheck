@@ -1122,10 +1122,8 @@ check_evobackup_incs() {
 }
 
 check_osprober() {
-    if is_installed os-prober; then
-        if is_installed qemu-kvm; then
-            failed "IS_OSPROBER" "Removal of os-prober package is recommended as it can cause serious issue on KVM server"
-        fi
+    if is_installed os-prober qemu-kvm; then
+        failed "IS_OSPROBER" "Removal of os-prober package is recommended as it can cause serious issue on KVM server"
     fi
 }
 

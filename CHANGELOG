@@ -5,15 +5,25 @@ and this project does not adhere to [Semantic Versioning](http://semver.org/spec
 
 ### Added
 
-* verbose mode for IS_APACHESYMLINK
-* new check: IS_OSPROBER
-
 ### Changed
 
 ### Fixed
 
+## [19.06] - 2019-06-21
+
+### Added
+
+* new check: IS_OSPROBER
+
+### Changed
+
 * IS_DISKPERF is disabled by default
+* verbose mode added for IS_APACHESYMLINK
+
+### Fixed
+
 * fix 5 apache checks (wrong package name was used)
+* fix IS_MYSQLNRPE (wrong test on a tilde expansion variable)
 
 ## [19.04] - 2019-04-25
 

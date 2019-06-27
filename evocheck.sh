@@ -1130,6 +1130,17 @@ check_osprober() {
     fi
 }
 
+check_apt_valid_until() {
+    aptvalidFile="/etc/apt/apt.conf.d/99no-check-valid-until"
+    aptvalidText="Acquire::Check-Valid-Until no;"
+    if grep -qs "archive.debian.org" /etc/apt/sources.list /etc/apt/sources.list.d/*; then
+        if ! grep -qs "$aptvalidText" /etc/apt/apt.conf.d/*; then
+            failed "IS_APT_VALID_UNTIL" \
+                "As you use archive.mirror.org you need ${aptvalidFile}: ${aptvalidText}"
+        fi
+    fi
+}
+
 main() {
     # Default return code : 0 = no error
     RC=0
@@ -1251,6 +1262,7 @@ main() {
         test "${IS_OLD_HOME_DIR:=1}" = 1 && check_old_home_dir
         test "${IS_EVOBACKUP_INCS:=1}" = 1 && check_evobackup_incs
         test "${IS_OSPROBER:=1}" = 1 && check_osprober
+        test "${IS_APT_VALID_UNTIL:=1}" = 1 && check_apt_valid_until
     fi
 
     #-----------------------------------------------------------

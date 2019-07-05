@@ -933,9 +933,11 @@ check_mysqlnrpe() {
 }
 check_phpevolinuxconf() {
     if is_debian_stretch || is_debian_buster; then
+        is_debian_stretch && phpVersion="7.0"
+        is_debian_buster && phpVersion="7.3"
         if is_installed php; then
-            { test -f /etc/php/7.0/cli/conf.d/z-evolinux-defaults.ini \
-                && test -f /etc/php/7.0/cli/conf.d/zzz-evolinux-custom.ini
+            { test -f /etc/php/${phpVersion}/cli/conf.d/z-evolinux-defaults.ini \
+                && test -f /etc/php/${phpVersion}/cli/conf.d/zzz-evolinux-custom.ini
             } || failed "IS_PHPEVOLINUXCONF"
         fi
     fi

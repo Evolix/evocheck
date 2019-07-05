@@ -59,6 +59,7 @@ detect_os() {
                 7) DEBIAN_RELEASE="wheezy";;
                 8) DEBIAN_RELEASE="jessie";;
                 9) DEBIAN_RELEASE="stretch";;
+                10) DEBIAN_RELEASE="buster";;
             esac
         fi
     elif [ "$(uname -s)" = "OpenBSD" ]; then
@@ -84,6 +85,9 @@ is_debian_jessie() {
 }
 is_debian_stretch() {
     test "${DEBIAN_RELEASE}" = "stretch"
+}
+is_debian_buster() {
+    test "${DEBIAN_RELEASE}" = "buster"
 }
 debian_release() {
     printf "%s" "${DEBIAN_RELEASE}"

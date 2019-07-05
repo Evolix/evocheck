@@ -1053,7 +1053,7 @@ check_usrsharescripts() {
     test "$expected" = "$actual" || failed "IS_USRSHARESCRIPTS"
 }
 check_sshpermitrootno() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         if grep -q "^PermitRoot" /etc/ssh/sshd_config; then
             grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO"
         fi

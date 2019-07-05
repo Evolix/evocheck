@@ -263,9 +263,9 @@ check_mountfstab() {
     fi
 }
 check_listchangesconf() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         if is_installed apt-listchanges; then
-            failed "IS_LISTCHANGESCONF" "apt-listchanges must not be installed on Stretch"
+            failed "IS_LISTCHANGESCONF" "apt-listchanges must not be installed on Debian >=9"
         fi
     else
         if [ -e "/etc/apt/listchanges.conf" ]; then

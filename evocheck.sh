@@ -414,7 +414,7 @@ check_muninlogrotate() {
 }
 # Verification de l'activation de Squid dans le cas d'un pack mail
 check_squid() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         squidconffile="/etc/squid/evolinux-custom.conf"
     else
         squidconffile="/etc/squid*/squid.conf"

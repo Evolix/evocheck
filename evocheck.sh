@@ -292,10 +292,16 @@ check_tmoutprofile() {
     grep -sq "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || failed "IS_TMOUTPROFILE" "TMOUT is not set"
 }
 check_alert5boot() {
-    if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
-        grep -q "^date" /etc/rc2.d/S*alert5 || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 init script"
+    if is_debian_buster; then
+        grep -qs "^date" /usr/share/scripts/alert5.sh || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 init script"
+        test -f /etc/systemd/system/alert5.service || failed "IS_ALERT5BOOT" "alert5 unit file is missing"
+        systemctl is-enabled alert5 -q || failed "IS_ALERT5BOOT" "alert5 unit is not enabled"
     else
-        failed "IS_ALERT5BOOT" "alert5 init script is missing"
+        if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
+            grep -q "^date" /etc/rc2.d/S*alert5 || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 init script"
+        else
+            failed "IS_ALERT5BOOT" "alert5 init script is missing"
+        fi
     fi
 }
 check_alert5minifw() {

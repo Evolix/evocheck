@@ -455,7 +455,7 @@ check_log2mailrunning() {
     fi
 }
 check_log2mailapache() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         conf=/etc/log2mail/config/apache
     else
         conf=/etc/log2mail/config/default

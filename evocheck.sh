@@ -1130,6 +1130,17 @@ check_osprober() {
     fi
 }
 
+check_jessie_backports() {
+    if is_debian_jessie; then
+        jessieBackports=$(grep -hs "jessie-backports" /etc/apt/sources.list /etc/apt/sources.list.d/*)
+        if test -n "$jessieBackports"; then
+            if ! grep -q "archive.debian.org" <<< "$jessieBackports"; then
+                failed "IS_JESSIE_BACKPORTS" "You must use deb http://archive.debian.org/debian/ jessie-backports main"
+            fi
+        fi
+    fi
+}
+
 main() {
     # Default return code : 0 = no error
     RC=0
@@ -1251,6 +1262,7 @@ main() {
         test "${IS_OLD_HOME_DIR:=1}" = 1 && check_old_home_dir
         test "${IS_EVOBACKUP_INCS:=1}" = 1 && check_evobackup_incs
         test "${IS_OSPROBER:=1}" = 1 && check_osprober
+        test "${IS_JESSIE_BACKPORTS:=1}" = 1 && check_jessie_backports
     fi
 
     #-----------------------------------------------------------

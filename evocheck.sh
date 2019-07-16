@@ -1194,8 +1194,8 @@ check_jessie_backports() {
         jessieBackports=$(grep -hs "jessie-backports" /etc/apt/sources.list /etc/apt/sources.list.d/*)
         if test -n "$jessieBackports"; then
             if ! grep -q "archive.debian.org" <<< "$jessieBackports"; then
-            fi
                 failed "IS_JESSIE_BACKPORTS" "You must use deb http://archive.debian.org/debian/ jessie-backports main"
+            fi
         fi
     fi
 }
@@ -1206,8 +1206,8 @@ check_apt_valid_until() {
     if grep -qs "archive.debian.org" /etc/apt/sources.list /etc/apt/sources.list.d/*; then
         if ! grep -qs "$aptvalidText" /etc/apt/apt.conf.d/*; then
             failed "IS_APT_VALID_UNTIL" \
-        fi
                 "As you use archive.mirror.org you need ${aptvalidFile}: ${aptvalidText}"
+        fi
     fi
 }
 

@@ -862,7 +862,7 @@ check_redis_backup() {
 check_elastic_backup() {
     if is_installed elasticsearch; then
         # You could change the default path in /etc/evocheck.cf
-        ELASTIC_BACKUP_PATH=${ELASTIC_BACKUP_PATH:-"/home/backup/elasticsearch"}
+        ELASTIC_BACKUP_PATH=${ELASTIC_BACKUP_PATH:-"/home/backup-elasticsearch"}
         test -d "$ELASTIC_BACKUP_PATH" || failed "IS_ELASTIC_BACKUP" "Elastic snapshot is missing (${ELASTIC_BACKUP_PATH})"
     fi
 }

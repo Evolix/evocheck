@@ -59,6 +59,7 @@ detect_os() {
                 7) DEBIAN_RELEASE="wheezy";;
                 8) DEBIAN_RELEASE="jessie";;
                 9) DEBIAN_RELEASE="stretch";;
+                10) DEBIAN_RELEASE="buster";;
             esac
         fi
     elif [ "$(uname -s)" = "OpenBSD" ]; then
@@ -84,6 +85,9 @@ is_debian_jessie() {
 }
 is_debian_stretch() {
     test "${DEBIAN_RELEASE}" = "stretch"
+}
+is_debian_buster() {
+    test "${DEBIAN_RELEASE}" = "buster"
 }
 debian_release() {
     printf "%s" "${DEBIAN_RELEASE}"
@@ -159,7 +163,7 @@ check_dpkgwarning() {
             test -e /etc/apt/apt.conf \
                 && failed "IS_DPKGWARNING" "/etc/apt/apt.conf is missing"
         fi
-    elif is_debian_stretch; then
+    elif is_debian_stretch || is_debian_buster; then
         test -e /etc/apt/apt.conf.d/z-evolinux.conf \
             || failed "IS_DPKGWARNING" "/etc/apt/apt.conf.d/z-evolinux.conf is missing"
     fi
@@ -225,12 +229,12 @@ check_aptitudeonly() {
     fi
 }
 check_aptitude() {
-    if is_debian_jessie || is_debian_stretch; then
+    if is_debian_jessie || is_debian_stretch || is_debian_buster; then
         test -e /usr/bin/aptitude && failed "IS_APTITUDE" "aptitude may not be installed on Debian >=8"
     fi
 }
 check_aptgetbak() {
-    if is_debian_jessie || is_debian_stretch; then
+    if is_debian_jessie || is_debian_stretch || is_debian_buster; then
         test -e /usr/bin/apt-get.bak && failed "IS_APTGETBAK" "missing dpkg-divert apt-get.bak"
     fi
 }
@@ -261,9 +265,9 @@ check_mountfstab() {
     fi
 }
 check_listchangesconf() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         if is_installed apt-listchanges; then
-            failed "IS_LISTCHANGESCONF" "apt-listchanges must not be installed on Stretch"
+            failed "IS_LISTCHANGESCONF" "apt-listchanges must not be installed on Debian >=9"
         fi
     else
         if [ -e "/etc/apt/listchanges.conf" ]; then
@@ -292,18 +296,29 @@ check_tmoutprofile() {
     grep -sq "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || failed "IS_TMOUTPROFILE" "TMOUT is not set"
 }
 check_alert5boot() {
-    if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
-        grep -q "^date" /etc/rc2.d/S*alert5 || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 init script"
+    if is_debian_buster; then
+        grep -qs "^date" /usr/share/scripts/alert5.sh || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 init script"
+        test -f /etc/systemd/system/alert5.service || failed "IS_ALERT5BOOT" "alert5 unit file is missing"
+        systemctl is-enabled alert5 -q || failed "IS_ALERT5BOOT" "alert5 unit is not enabled"
     else
-        failed "IS_ALERT5BOOT" "alert5 init script is missing"
+        if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
+            grep -q "^date" /etc/rc2.d/S*alert5 || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 init script"
+        else
+            failed "IS_ALERT5BOOT" "alert5 init script is missing"
+        fi
     fi
 }
 check_alert5minifw() {
-    if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
-        grep -q "^/etc/init.d/minifirewall" /etc/rc2.d/S*alert5 \
-            || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 init script"
+    if is_debian_buster; then
+        grep -qs "^/etc/init.d/minifirewall" /usr/share/scripts/alert5.sh \
+            || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 script or script is missing"
     else
-        failed "IS_ALERT5MINIFW" "alert5 init script is missing"
+        if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
+            grep -q "^/etc/init.d/minifirewall" /etc/rc2.d/S*alert5 \
+                || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 init script"
+        else
+            failed "IS_ALERT5MINIFW" "alert5 init script is missing"
+        fi
     fi
 }
 check_minifw() {
@@ -346,7 +361,7 @@ check_grsecprocs() {
 }
 check_apachemunin() {
     if test -e /etc/apache2/apache2.conf; then
-        if is_debian_stretch; then
+        if is_debian_stretch || is_debian_buster; then
             { test -h /etc/apache2/mods-enabled/status.load \
                 && test -h /etc/munin/plugins/apache_accesses \
                 && test -h /etc/munin/plugins/apache_processes \
@@ -405,7 +420,7 @@ check_muninlogrotate() {
 }
 # Verification de l'activation de Squid dans le cas d'un pack mail
 check_squid() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         squidconffile="/etc/squid/evolinux-custom.conf"
     else
         squidconffile="/etc/squid*/squid.conf"
@@ -446,7 +461,7 @@ check_log2mailrunning() {
     fi
 }
 check_log2mailapache() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         conf=/etc/log2mail/config/apache
     else
         conf=/etc/log2mail/config/default
@@ -505,7 +520,7 @@ check_network_interfaces() {
 }
 # Verify if all if are in auto
 check_autoif() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         interfaces=$(/sbin/ip address show up | grep "^[0-9]*:" | grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 | tr -d : | cut -d@ -f1 | tr "\n" " ")
     else
         interfaces=$(/sbin/ifconfig -s | tail -n +2 | grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 1 |tr "\n" " ")
@@ -723,7 +738,7 @@ check_tune2fs_m5() {
     done
 }
 check_evolinuxsudogroup() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         if grep -q "^evolinux-sudo:" /etc/group; then
             grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux \
                 || failed "IS_EVOLINUXSUDOGROUP" "missing evolinux-sudo directive in sudoers file"
@@ -731,7 +746,7 @@ check_evolinuxsudogroup() {
     fi
 }
 check_userinadmgroup() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         users=$(grep "^evolinux-sudo:" /etc/group | awk -F: '{print $4}' | tr ',' ' ')
         for user in $users; do
             if ! groups "$user" | grep -q adm; then
@@ -742,15 +757,17 @@ check_userinadmgroup() {
     fi
 }
 check_apache2evolinuxconf() {
-    if is_debian_stretch && test -d /etc/apache2; then
-        { test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
-            && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
-            && test -f /etc/apache2/ipaddr_whitelist.conf;
-        } || failed "IS_APACHE2EVOLINUXCONF" "missing custom evolinux apache config"
+    if is_debian_stretch || is_debian_buster; then
+        if test -d /etc/apache2; then
+            { test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
+                && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
+                && test -f /etc/apache2/ipaddr_whitelist.conf;
+            } || failed "IS_APACHE2EVOLINUXCONF" "missing custom evolinux apache config"
+        fi
     fi
 }
 check_backportsconf() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         grep -qsE "^[^#].*backports" /etc/apt/sources.list \
             && failed "IS_BACKPORTSCONF" "backports can't be in main sources list"
         if grep -qsE "^[^#].*backports" /etc/apt/sources.list.d/*.list; then
@@ -760,15 +777,19 @@ check_backportsconf() {
     fi
 }
 check_bind9munin() {
-    if is_debian_stretch && is_installed bind9; then
-        { test -L /etc/munin/plugins/bind9 \
-            && test -e /etc/munin/plugin-conf.d/bind9;
-        } || failed "IS_BIND9MUNIN" "missing bind plugin for munin"
+    if is_debian_stretch || is_debian_buster; then
+        if is_installed bind9; then
+            { test -L /etc/munin/plugins/bind9 \
+                && test -e /etc/munin/plugin-conf.d/bind9;
+            } || failed "IS_BIND9MUNIN" "missing bind plugin for munin"
+        fi
     fi
 }
 check_bind9logrotate() {
-    if is_debian_stretch && is_installed bind9; then
-        test -e /etc/logrotate.d/bind9 || failed "IS_BIND9LOGROTATE" "missing bind logrotate file"
+    if is_debian_stretch || is_debian_buster; then
+        if is_installed bind9; then
+            test -e /etc/logrotate.d/bind9 || failed "IS_BIND9LOGROTATE" "missing bind logrotate file"
+        fi
     fi
 }
 check_broadcomfirmware() {
@@ -799,7 +820,7 @@ check_hardwareraidtool() {
     fi
 }
 check_log2mailsystemdunit() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         systemctl -q is-active log2mail.service \
             || failed "IS_LOG2MAILSYSTEMDUNIT" "log2mail unit not running"
         test -f /etc/systemd/system/log2mail.service \
@@ -815,7 +836,7 @@ check_listupgrade() {
         || failed "IS_LISTUPGRADE" "missing listupgrade script or not executable"
 }
 check_mariadbevolinuxconf() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         if is_installed mariadb-server; then
             { test -f /etc/mysql/mariadb.conf.d/z-evolinux-defaults.cnf \
                 && test -f /etc/mysql/mariadb.conf.d/zzz-evolinux-custom.cnf;
@@ -881,67 +902,80 @@ check_elastic_backup() {
     fi
 }
 check_mariadbsystemdunit() {
-    if is_debian_stretch && is_installed mariadb-server; then
-        if systemctl -q is-active mariadb.service; then
-            test -f /etc/systemd/system/mariadb.service.d/evolinux.conf \
-                || failed "IS_MARIADBSYSTEMDUNIT" "missing systemd override for mariadb unit"
+    if is_debian_stretch || is_debian_buster; then
+        if is_installed mariadb-server; then
+            if systemctl -q is-active mariadb.service; then
+                test -f /etc/systemd/system/mariadb.service.d/evolinux.conf \
+                    || failed "IS_MARIADBSYSTEMDUNIT" "missing systemd override for mariadb unit"
+            fi
         fi
     fi
 }
 check_mysqlmunin() {
-    if is_debian_stretch && is_installed mariadb-server; then
-        for file in mysql_bytes mysql_queries mysql_slowqueries \
-            mysql_threads mysql_connections mysql_files_tables \
-            mysql_innodb_bpool mysql_innodb_bpool_act mysql_innodb_io \
-            mysql_innodb_log mysql_innodb_rows mysql_innodb_semaphores \
-            mysql_myisam_indexes mysql_qcache mysql_qcache_mem \
-            mysql_sorts mysql_tmp_tables; do
-
-            if [[ ! -L /etc/munin/plugins/$file ]]; then
-                failed "IS_MYSQLMUNIN" "missing munin plugin '$file'"
-                test "${VERBOSE}" = 1 || break
-            fi
-        done
+    if is_debian_stretch || is_debian_buster; then
+        if is_installed mariadb-server; then
+            for file in mysql_bytes mysql_queries mysql_slowqueries \
+                mysql_threads mysql_connections mysql_files_tables \
+                mysql_innodb_bpool mysql_innodb_bpool_act mysql_innodb_io \
+                mysql_innodb_log mysql_innodb_rows mysql_innodb_semaphores \
+                mysql_myisam_indexes mysql_qcache mysql_qcache_mem \
+                mysql_sorts mysql_tmp_tables; do
+                
+                if [[ ! -L /etc/munin/plugins/$file ]]; then
+                    failed "IS_MYSQLMUNIN" "missing munin plugin '$file'"
+                    test "${VERBOSE}" = 1 || break
+                fi
+            done
+        fi
     fi
 }
 check_mysqlnrpe() {
-    if is_debian_stretch && is_installed mariadb-server; then
-        nagios_file=~nagios/.my.cnf
-
-        if ! test -f ${nagios_file}; then
-            failed "IS_MYSQLNRPE" "missing ${nagios_file}"
-        elif [ "$(stat -c %U ${nagios_file})" != "nagios" ] \
-             || [ "$(stat -c %a ${nagios_file})" != "600" ]; then
-            failed "IS_MYSQLNRPE" "${nagios_file} has wrong permissions"
-        else
-            grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql" /etc/nagios/nrpe.d/evolix.cfg \
-            || failed "IS_MYSQLNRPE" "check_mysql is missing"
+    if is_debian_stretch || is_debian_buster; then
+        if is_installed mariadb-server; then
+            nagios_file=~nagios/.my.cnf
+            if ! test -f ${nagios_file}; then
+                failed "IS_MYSQLNRPE" "${nagios_file} is missing"
+            elif [ "$(stat -c %U ${nagios_file})" != "nagios" ] \
+                || [ "$(stat -c %a ${nagios_file})" != "600" ]; then
+                failed "IS_MYSQLNRPE" "${nagios_file} has wrong permissions"
+            else
+                grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql" /etc/nagios/nrpe.d/evolix.cfg \
+                || failed "IS_MYSQLNRPE" "check_mysql is missing"
+            fi
         fi
     fi
 }
 check_phpevolinuxconf() {
-    if is_debian_stretch && is_installed php; then
-        { test -f /etc/php/7.0/cli/conf.d/z-evolinux-defaults.ini \
-            && test -f /etc/php/7.0/cli/conf.d/zzz-evolinux-custom.ini;
-        } || failed "IS_PHPEVOLINUXCONF" "missing php evolinux config"
+    if is_debian_stretch || is_debian_buster; then
+        is_debian_stretch && phpVersion="7.0"
+        is_debian_buster && phpVersion="7.3"
+        if is_installed php; then
+            { test -f /etc/php/${phpVersion}/cli/conf.d/z-evolinux-defaults.ini \
+                && test -f /etc/php/${phpVersion}/cli/conf.d/zzz-evolinux-custom.ini
+            } || failed "IS_PHPEVOLINUXCONF" "missing php evolinux config"
+        fi
     fi
 }
 check_squidlogrotate() {
-    if is_debian_stretch && is_installed squid; then
-        grep -q monthly /etc/logrotate.d/squid \
-            || failed "IS_SQUIDLOGROTATE" "missing squid logrotate file"
+    if is_debian_stretch || is_debian_buster; then
+        if is_installed squid; then
+            grep -q monthly /etc/logrotate.d/squid \
+                || failed "IS_SQUIDLOGROTATE" "missing squid logrotate file"
+        fi
     fi
 }
 check_squidevolinuxconf() {
-    if is_debian_stretch && is_installed squid; then
-        { grep -qs "^CONFIG=/etc/squid/evolinux-defaults.conf$" /etc/default/squid \
-            && test -f /etc/squid/evolinux-defaults.conf \
-            && test -f /etc/squid/evolinux-whitelist-defaults.conf \
-            && test -f /etc/squid/evolinux-whitelist-custom.conf \
-            && test -f /etc/squid/evolinux-acl.conf \
-            && test -f /etc/squid/evolinux-httpaccess.conf \
-            && test -f /etc/squid/evolinux-custom.conf;
-        } || failed "IS_SQUIDEVOLINUXCONF" "missing squid evolinux config"
+    if is_debian_stretch || is_debian_buster; then
+        if is_installed squid; then
+            { grep -qs "^CONFIG=/etc/squid/evolinux-defaults.conf$" /etc/default/squid \
+                && test -f /etc/squid/evolinux-defaults.conf \
+                && test -f /etc/squid/evolinux-whitelist-defaults.conf \
+                && test -f /etc/squid/evolinux-whitelist-custom.conf \
+                && test -f /etc/squid/evolinux-acl.conf \
+                && test -f /etc/squid/evolinux-httpaccess.conf \
+                && test -f /etc/squid/evolinux-custom.conf;
+            } || failed "IS_SQUIDEVOLINUXCONF" "missing squid evolinux config"
+        fi
     fi
 }
 check_duplicate_fs_label() {
@@ -1006,7 +1040,7 @@ check_apache_confenabled() {
     # Starting from Jessie and Apache 2.4, /etc/apache2/conf.d/
     # must be replaced by conf-available/ and config files symlinked
     # to conf-enabled/
-    if is_debian_jessie || is_debian_stretch; then
+    if is_debian_jessie || is_debian_stretch || is_debian_buster; then
         if [ -f /etc/apache2/apache2.conf ]; then
             test -d /etc/apache2/conf.d/ \
                 && failed "IS_APACHE_CONFENABLED" "apache's conf.d directory must not exists"
@@ -1018,7 +1052,7 @@ check_apache_confenabled() {
 check_meltdown_spectre() {
     # For Stretch, detection is easy as the kernel use
     # /sys/devices/system/cpu/vulnerabilities/
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         for vuln in meltdown spectre_v1 spectre_v2; do
             test -f "/sys/devices/system/cpu/vulnerabilities/$vuln" \
                 || failed "IS_MELTDOWN_SPECTRE" "vulnerable to $vuln"
@@ -1071,7 +1105,7 @@ check_usrsharescripts() {
     test "$expected" = "$actual" || failed "IS_USRSHARESCRIPTS" "/usr/share/scripts must be $expected"
 }
 check_sshpermitrootno() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         if grep -q "^PermitRoot" /etc/ssh/sshd_config; then
             grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config \
                 || failed "IS_SSHPERMITROOTNO" "PermitRoot should be set at no"
@@ -1082,7 +1116,7 @@ check_sshpermitrootno() {
     fi
 }
 check_evomaintenanceusers() {
-    if is_debian_stretch; then
+    if is_debian_stretch || is_debian_buster; then
         users=$(getent group evolinux-sudo | cut -d':' -f4 | tr ',' ' ')
     else
         if [ -f /etc/sudoers.d/evolinux ]; then

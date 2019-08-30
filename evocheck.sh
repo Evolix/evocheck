@@ -801,7 +801,7 @@ check_broadcomfirmware() {
             } || failed "IS_BROADCOMFIRMWARE" "missing non-free repository"
         fi
     else
-        failed "IS_BROADCOMFIRMWARE" "lspci is missing"
+        failed "IS_BROADCOMFIRMWARE" "lspci not found in ${PATH}"
     fi
 }
 check_hardwareraidtool() {
@@ -816,7 +816,7 @@ check_hardwareraidtool() {
             is_installed cciss-vol-status || failed "IS_HARDWARERAIDTOOL" "cciss-vol-status not installed"
         fi
     else
-        failed "IS_HARDWARERAIDTOOL" "lspci is missing"
+        failed "IS_HARDWARERAIDTOOL" "lspci not found in ${PATH}"
     fi
 }
 check_log2mailsystemdunit() {
@@ -920,7 +920,7 @@ check_mysqlmunin() {
                 mysql_innodb_log mysql_innodb_rows mysql_innodb_semaphores \
                 mysql_myisam_indexes mysql_qcache mysql_qcache_mem \
                 mysql_sorts mysql_tmp_tables; do
-                
+
                 if [[ ! -L /etc/munin/plugins/$file ]]; then
                     failed "IS_MYSQLMUNIN" "missing munin plugin '$file'"
                     test "${VERBOSE}" = 1 || break
@@ -997,7 +997,7 @@ check_duplicate_fs_label() {
         fi
         rm "$tmpFile"
     else
-        failed "IS_DUPLICATE_FS_LABEL" "blkid not found"
+        failed "IS_DUPLICATE_FS_LABEL" "blkid not found in ${PATH}"
     fi
 }
 check_evolix_user() {

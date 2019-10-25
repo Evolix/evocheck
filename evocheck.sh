@@ -1446,7 +1446,7 @@ readonly PROGDIR=$(realpath -m "$(dirname "$0")")
 # shellcheck disable=2124
 readonly ARGS=$@
 
-readonly VERSION="19.09"
+readonly VERSION="19.10"
 
 # Disable LANG*
 export LANG=C

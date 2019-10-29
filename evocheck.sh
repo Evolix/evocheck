@@ -252,7 +252,13 @@ check_usrro() {
     grep /usr /etc/fstab | grep -q ro || failed "IS_USRRO" "missing ro directive on fstab for /usr"
 }
 check_tmpnoexec() {
-    mount | grep "on /tmp" | grep -q noexec || failed "IS_TMPNOEXEC" "/tmp is mounted with exec, should be noexec"
+    FINDMNT_BIN=$(command -v findmnt)
+    if [ -x ${FINDMNT_BIN} ]; then
+        options=$(${FINDMNT_BIN} --noheadings --first-only --output OPTIONS /tmp)
+        grep -qE "\bnoexec\b" ${options} || failed "IS_TMPNOEXEC" "/tmp is not mounted with 'noexec'"
+    else
+        mount | grep "on /tmp" | grep -q noexec || failed "IS_TMPNOEXEC" "/tmp is not mounted with 'noexec' (WARNING: findmnt(8) is not found)"
+    fi
 }
 check_mountfstab() {
     # Test if lsblk available, if not skip this test...

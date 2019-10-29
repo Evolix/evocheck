@@ -721,6 +721,7 @@ check_notupgraded() {
 check_tune2fs_m5() {
     min=5
     parts=$(grep -E "ext(3|4)" /proc/mounts | cut -d ' ' -f1 | tr -s '\n' ' ')
+    FINDMNT_BIN=$(command -v findmnt)
     for part in $parts; do
         blockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep -e "Block count:" | grep -Eo "[0-9]+")
         # If buggy partition, skip it.
@@ -733,7 +734,12 @@ check_tune2fs_m5() {
         percentage=$(awk "BEGIN { pc=100*${reservedBlockCount}/${blockCount}; i=int(pc); print (pc-i<0.5)?i:i+1 }")
 
         if [ "$percentage" -lt "${min}" ]; then
-            failed "IS_TUNE2FS_M5" "Partition ${part} has less than ${min}% reserved blocks (${percentage}%)"
+            if [ -x ${FINDMNT_BIN} ]; then
+                mount=$(${FINDMNT_BIN} --noheadings --first-only --output TARGET ${part})
+            else
+                mount="unknown mount point"
+            fi
+            failed "IS_TUNE2FS_M5" "Partition ${part} (${mount}) has less than ${min}% reserved blocks (${percentage}%)"
         fi
     done
 }

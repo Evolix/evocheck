@@ -1483,6 +1483,7 @@ while :; do
         --cron)
             IS_KERNELUPTODATE=0
             IS_UPTIME=0
+            IS_MELTDOWN_SPECTRE=0
             ;;
         -v|--verbose)
             VERBOSE=1

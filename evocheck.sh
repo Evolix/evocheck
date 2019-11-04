@@ -628,7 +628,7 @@ check_uptime() {
         limit=$(date -d "now - 2 year" +%s)
         last_reboot_at=$(($(date +%s) - $(cut -f1 -d '.' /proc/uptime)))
         if [ "$limit" -gt "$last_reboot_at" ]; then
-            failed "IS_UPTIME" "machine has an uptime of more thant 2 years, reboot on new kernel advised"
+            failed "IS_UPTIME" "machine has an uptime of more than 2 years, reboot on new kernel advised"
         fi
     fi
 }

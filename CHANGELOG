@@ -111,7 +111,7 @@ and this project does not adhere to [Semantic Versioning](http://semver.org/spec
   * IS_SQUID for Stretch
   * IS_LOG2MAILAPACHE for Stretch
   * IS_AUTOIF for Stretch
-  * IS_UPTIME warn if uptime is more thant 2y, was 1y
+  * IS_UPTIME warn if uptime is more than 2y, was 1y
   * IS_NOTUPGRADED warn if last upgrade is older than 90d, was 30d
   * IS_TUNE2FS_M5 use python in place of bc for calculation
   * IS_EVOMAINTENANCEUSERS for Stretch

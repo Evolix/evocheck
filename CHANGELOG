@@ -9,6 +9,20 @@ and this project does not adhere to [Semantic Versioning](http://semver.org/spec
 
 ### Fixed
 
+## [19.11] - 2019-11-05
+
+### Changed
+
+* IS_TUNE2FS_M5 displays the name of the partition
+* IS_MARIADBEVOLINUXCONF is disabled by default in cron mode
+* IS_PHPEVOLINUXCONF is disabled by default in cron mode
+* IS_OLD_HOME_DIR is disabled by default in cron mode
+* IS_TMPNOEXEC : better "noexec" detection for /tmp
+
+### Fixed
+
+* squid: better http port detection
+
 ## [19.08] - 2019-08-30
 
 ### Changed

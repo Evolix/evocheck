@@ -9,6 +9,9 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* IS_TMPUSRRO : improve grep for options detection
+* IS_TMPNOEXEC : fix grep for options detection
+
 ## [19.11] - 2019-11-05
 
 ### Changed
@@ -47,7 +50,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ## [19.04] - 2019-04-25
 
-### Added 
+### Added
 
 * IS_EVOBACKUP_INCS
 

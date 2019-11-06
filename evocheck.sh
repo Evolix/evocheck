@@ -249,7 +249,7 @@ check_apticron() {
     fi
 }
 check_usrro() {
-    grep /usr /etc/fstab | grep -q ro || failed "IS_USRRO" "missing ro directive on fstab for /usr"
+    grep /usr /etc/fstab | grep -qE "\bro\b" || failed "IS_USRRO" "missing ro directive on fstab for /usr"
 }
 check_tmpnoexec() {
     FINDMNT_BIN=$(command -v findmnt)

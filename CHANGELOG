@@ -7,6 +7,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
+* IS_EVOMAINTENANCE_FW : warn only if HOOK_DB is enabled
+
 ### Fixed
 
 * IS_TMPUSRRO : improve grep for options detection

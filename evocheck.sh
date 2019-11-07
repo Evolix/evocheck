@@ -659,11 +659,7 @@ check_muninrunning() {
 }
 # Check if files in /home/backup/ are up-to-date
 check_backupuptodate() {
-    # find local backup directory
-    backup_dir=$(grep --no-messages 'LOCAL_BACKUP_DIR=' /etc/cron.daily/zzz_evobackup | tr -d \" | cut -d= -f2)
-    if [ -z "${backup_dir}" ]; then
-        backup_dir="/home/backup"
-    fi
+    backup_dir="/home/backup"
     if [ -d "${backup_dir}" ]; then
         if [ -n "$(ls -A ${backup_dir})" ]; then
             for file in ${backup_dir}/*; do

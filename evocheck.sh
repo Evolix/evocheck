@@ -659,9 +659,14 @@ check_muninrunning() {
 }
 # Check if files in /home/backup/ are up-to-date
 check_backupuptodate() {
-    if [ -d /home/backup/ ]; then
-        if [ -n "$(ls -A /home/backup/)" ]; then
-            for file in /home/backup/*; do
+    # find local backup directory
+    backup_dir=$(grep --no-messages 'LOCAL_BACKUP_DIR=' /etc/cron.daily/zzz_evobackup | tr -d \" | cut -d= -f2)
+    if [ -z "${backup_dir}" ]; then
+        backup_dir="/home/backup"
+    fi
+    if [ -d "${backup_dir}" ]; then
+        if [ -n "$(ls -A ${backup_dir})" ]; then
+            for file in ${backup_dir}/*; do
                 limit=$(date +"%s" -d "now - 2 day")
                 updated_at=$(stat -c "%Y" "$file")
 
@@ -671,10 +676,10 @@ check_backupuptodate() {
                 fi
             done
         else
-            failed "IS_BACKUPUPTODATE" "/home/backup/ is empty"
+            failed "IS_BACKUPUPTODATE" "${backup_dir}/ is empty"
         fi
     else
-        failed "IS_BACKUPUPTODATE" "/home/backup/ is missing"
+        failed "IS_BACKUPUPTODATE" "${backup_dir}/ is missing"
     fi
 }
 check_etcgit() {

@@ -754,7 +754,7 @@ check_tune2fs_m5() {
 check_evolinuxsudogroup() {
     if is_debian_stretch || is_debian_buster; then
         if grep -q "^evolinux-sudo:" /etc/group; then
-            grep -q '^%evolinux-sudo  ALL=(ALL:ALL) ALL' /etc/sudoers.d/evolinux \
+            grep -qE '^%evolinux-sudo +ALL ?= ?\(ALL:ALL\) ALL' /etc/sudoers.d/evolinux \
                 || failed "IS_EVOLINUXSUDOGROUP" "missing evolinux-sudo directive in sudoers file"
         fi
     fi

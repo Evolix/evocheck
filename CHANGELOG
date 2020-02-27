@@ -7,8 +7,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
-* IS_EVOLINUXSUDOGROUP : improve sudoer directive detection
-
 ### Deprecated
 
 ### Removed
@@ -16,6 +14,12 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Fixed
 
 ### Security
+
+## [20.02.1] - 2020-02-27
+
+### Changed
+
+* IS_EVOLINUXSUDOGROUP : improve sudoer directive detection
 
 ## [19.11.2] - 2019-11-07
 

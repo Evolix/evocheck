@@ -5,6 +5,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* IS_EVOBACKUP_EXCLUDE_MOUNT : verify that mount points are excluded in evobackup scripts
+
 ### Changed
 
 ### Deprecated

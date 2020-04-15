@@ -5,6 +5,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* IS_CHROOTED_BINARY_NOT_UPTODATE: verify that chrooted processes run up-to-date binaries
+
 ### Changed
 
 ### Deprecated

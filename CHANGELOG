@@ -5,6 +5,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* IS_NGINX_LETSENCRYPT_UPTODATE: verify that the letsencrypt snippet is compatible with the current version of Nginx
+
 ### Changed
 
 ### Deprecated

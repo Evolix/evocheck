@@ -1241,7 +1241,7 @@ check_apt_valid_until() {
     fi
 }
 
-check_chrooted_binary_not_uptodate() {
+check_chrooted_binary_uptodate() {
     # list of processes to check
     process_list="sshd"
     for process_name in ${process_list}; do
@@ -1256,12 +1256,26 @@ check_chrooted_binary_not_uptodate() {
                 original_md5=$(md5sum "${original_bin}" | cut -f 1 -d ' ')
                 # compare md5 checksums
                 if [ "$original_md5" != "$chrooted_md5" ]; then
-                    failed "IS_CHROOTED_BINARY_NOT_UPTODATE" "${process_bin} (${pid}) is different than ${original_bin}."
+                    failed "IS_CHROOTED_BINARY_UPTODATE" "${process_bin} (${pid}) is different than ${original_bin}."
                     test "${VERBOSE}" = 1 || break
                 fi
             fi
         done
     done
+}
+check_nginx_letsencrypt_uptodate() {
+    snippets=$(find /etc/nginx -type f -name "letsencrypt.conf")
+    while read -r snippet; do
+        if is_debian_jessie; then
+            if ! grep -qE "^\s*alias\s+/.+/\.well-known/acme-challenge" "${snippet}"; then
+                failed "IS_NGINX_LETSENCRYPT_UPTODATE" "Nginx snippet ${snippet} is not compatible with Nginx on Debian 8."
+            fi
+        else
+            if grep -qE "^\s*alias\s+/.+/\.well-known/acme-challenge" "${snippet}"; then
+                failed "IS_NGINX_LETSENCRYPT_UPTODATE" "Nginx snippet ${snippet} is not compatible with Nginx on Debian 9+."
+            fi
+        fi
+    done <<< "$snippets"
 }
 
 main() {
@@ -1388,7 +1402,8 @@ main() {
         test "${IS_OSPROBER:=1}" = 1 && check_osprober
         test "${IS_JESSIE_BACKPORTS:=1}" = 1 && check_jessie_backports
         test "${IS_APT_VALID_UNTIL:=1}" = 1 && check_apt_valid_until
-        test "${IS_CHROOTED_BINARY_NOT_UPTODATE:=1}" = 1 && check_chrooted_binary_not_uptodate
+        test "${IS_CHROOTED_BINARY_UPTODATE:=1}" = 1 && check_chrooted_binary_uptodate
+        test "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" = 1 && check_nginx_letsencrypt_uptodate
     fi
 
     #-----------------------------------------------------------

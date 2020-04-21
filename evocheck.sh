@@ -86,46 +86,6 @@ failed() {
     fi
 }
 
-# Parse options
-# based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
-while :; do
-    case $1 in
-        -h|-\?|--help)
-            show_help
-            exit 0
-            ;;
-        --version)
-            show_version
-            exit 0
-            ;;
-        --cron)
-            IS_KERNELUPTODATE=0
-            IS_UPTIME=0
-            ;;
-        -v|--verbose)
-            VERBOSE=1
-            ;;
-        -q|--quiet)
-            QUIET=1
-            VERBOSE=0
-            ;;
-        --)
-            # End of all options.
-            shift
-            break
-            ;;
-        -?*|[[:alnum:]]*)
-            # ignore unknown options
-            printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
-            ;;
-        *)
-            # Default case: If no more options then break out of the loop.
-            break
-            ;;
-    esac
-
-    shift
-done
 
 # If --cron is passed, ignore some checks.
 if [ "$1" = "--cron" ]; then
@@ -329,3 +289,39 @@ if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
     && grep "^URGENCYTEL" $f |grep -qv "06.00.00.00.00" \
     && grep "^REALM" $f |grep -qv "example.com" ) || failed "IS_EVOMAINTENANCECONF" ""
 fi
+# Parse options
+# based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
+while :; do
+    case $1 in
+        -h|-\?|--help|--version)
+            show_help
+            exit 0
+            ;;
+        --cron)
+            IS_KERNELUPTODATE=0
+            IS_UPTIME=0
+            ;;
+        -v|--verbose)
+            VERBOSE=1
+            ;;
+        -q|--quiet)
+            QUIET=1
+            VERBOSE=0
+            ;;
+        --)
+            # End of all options.
+            shift
+            break
+            ;;
+        -?*|[[:alnum:]]*)
+            # ignore unknown options
+            printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
+            ;;
+        *)
+            # Default case: If no more options then break out of the loop.
+            break
+            ;;
+    esac
+
+    shift
+done

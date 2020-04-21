@@ -1,4 +1,4 @@
-Current project leader: Benoît
+Current project leader: Jérémy D and Tristan
 
 - Use English
 - Always do a Merge Request

@@ -25,25 +25,6 @@ test -f /etc/evocheck.cf && . /etc/evocheck.cf
 
 # Functions
 
-show_version() {
-    cat <<END
-evocheck version ${VERSION}
-
-Copyright 2009-2019 Evolix <info@evolix.fr>,
-                    Romain Dessort <rdessort@evolix.fr>,
-                    Benoit Série <bserie@evolix.fr>,
-                    Gregory Colpart <reg@evolix.fr>,
-                    Jérémy Lecour <jlecour@evolix.fr>,
-                    Tristan Pilat <tpilat@evolix.fr>,
-                    Victor Laborie <vlaborie@evolix.fr>
-                    and others.
-
-evocheck comes with ABSOLUTELY NO WARRANTY.  This is free software,
-and you are welcome to redistribute it under certain conditions.
-See the GNU General Public License v3.0 for details.
-END
-}
-
 show_help() {
     cat <<END
 NAME:

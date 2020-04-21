@@ -3,6 +3,8 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
+readonly VERSION="20.04.1"
+
 # Disable LANG*
 
 export LANG=C

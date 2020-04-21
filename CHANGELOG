@@ -1,76 +1,16 @@
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [0.13] - 2018-04-10
-
-### Added
-
-* New checks:
-  IS_EVOLIX_USER
+## [6.6] - 2020-04-21
 
 ### Changed
 
-* Fixing IS_DUPLICATE_FS_LEVEL check
-* Custom limit for IS_NOTUPGRADED
-* IS_SSHALLOWUSERS now check also for AllowGroups
-
-## [0.12] - 2018-03-19
-
-### Added
-
-* New checks:
-  IS_DUPLICATE_FS_LEVEL
-
-### Changed
-
-* Enabling IS_EVOBACKUP by default
-* Better output for IS_MYSQLMUNIN
-
-## [0.11] - 2018-02-07
-
-### Added
-
-  * Bunch of new checks:                                                   
-    IS_PRIVKEYWOLRDREADABLE                                                
-    IS_EVOLINUXSUDOGROUP                                                   
-    IS_USERINADMGROUP                                                      
-    IS_APACHE2EVOLINUXCONF    
-    IS_BACKPORTSCONF                       
-    IS_BIND9MUNIN                         
-    IS_BIND9LOGROTATE                      
-    IS_BROADCOMFIRMWARE                                                 
-    IS_HARDWARERAIDTOOL
-    IS_LOG2MAILSYSTEMDUNIT                                              
-    IS_LISTUPGRADE
-    IS_MARIADBEVOLINUXCONF              
-    IS_MARIADBSYSTEMDUNIT
-    IS_MYSQLMUNIN             
-    IS_PHPEVOLINUXCONF        
-    IS_SQUIDLOGROTATE                      
-    IS_SQUIDEVOLINUXCONF        
-    IS_SQL_BACKUP                          
-    IS_POSTGRES_BACKUP                    
-    IS_LDAP_BACKUP                         
-    IS_REDIS_BACKUP                       
-    IS_ELASTIC_BACKUP                                               
-    IS_MONGO_BACKUP
-    IS_MOUNT_FSTAB                                                  
-    IS_NETWORK_INTERFACES
-
-### Changed
-
-  * IS_UPTIME added in --cron mode                                          
-  * is_pack_web() for Stretch           
-  * IS_DPKGWARNING for Stretch                                              
-  * IS_MOUNT_FSTAB is disabled if lsblk not available
-  * IS_MINIFWPERMS for Stretch                                      
-  * IS_SQUID for Stretch
-  * IS_LOG2MAILAPACHE for Stretch                                   
-  * IS_AUTOIF for Stretch
-  * IS_UPTIME warn if uptime is more thant 2y, was 1y
-  * IS_NOTUPGRADED warn if last upgrade is older than 90d, was 30d
-  * IS_TUNE2FS_M5 use python in place of bc for calculation               
-  * IS_EVOMAINTENANCEUSERS for Stretch
-  * IS_EVOMAINTENANCECONF check also the mode of the file (600)           
+- Rewrite if statements to functions
+- Add a main function
+- New help message

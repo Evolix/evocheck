@@ -46,19 +46,40 @@ END
 
 show_help() {
     cat <<END
-evocheck is a script that verifies Evolix conventions on OpenBSD servers.
+NAME:
+   evocheck - a system configuration verification tool
 
-Usage: evocheck
-  or   evocheck --cron
-  or   evocheck --quiet
-  or   evocheck --verbose
+VERSION:
+   ${VERSION}
 
-Options
-     --cron                  disable a few checks
- -v, --verbose               increase verbosity of checks
- -q, --quiet                 nothing is printed on stdout nor stderr
- -h, --help                  print this message and exit
-     --version               print version and exit
+DESCRIPTION:
+   A script that verifies Evolix conventions on OpenBSD servers
+
+AUTHORS:
+   Benoit Serie <bserie@evolix.fr>
+   Gregory Colpart <reg@evolix.fr>
+   Jeremy Dubois <jdubois@evolix.fr>
+   Jeremy Lecour <jlecour@evolix.fr>
+   Ludovic Poujol <lpoujol@evolix.fr>
+   Romain Dessort <rdessort@evolix.fr>
+   Tristan Pilat <tpilat@evolix.fr>
+   Victor Laborie <vlaborie@evolix.fr>
+
+USAGE: evocheck
+   or  evocheck --cron 
+   or  evocheck --quiet 
+   or  evocheck --verbose 
+
+OPTIONS:
+       --cron                  disable a few checks
+   -v, --verbose               increase verbosity of checks
+   -q, --quiet                 nothing is printed on stdout nor stderr
+   -h, --help, --version       print this message and exit
+
+COPYRIGHT:
+   evocheck comes with ABSOLUTELY NO WARRANTY. This is free software,
+   and you are welcome to redistribute it under certain conditions.
+   See the GNU General Public License v3.0 for details. 2009-2020
 END
 }
 

@@ -233,7 +233,7 @@ check_rsync(){
 }
 
 check_cronpath(){
-    grep -q "PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin" /var/cron/tabs/root || failed "IS_CRONPATH" ""
+    grep -q "PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/share/scripts" /var/cron/tabs/root || failed "IS_CRONPATH" ""
 }
 
 check_tmp1777(){

@@ -93,58 +93,50 @@ if [ "$1" = "--cron" ]; then
     IS_UPTIME=0
 fi
 
-if [ "$IS_UMASKSUDOERS" = 1 ]; then
+check_umasksudoers(){
     grep -E -qr "umask=0077" /etc/sudoers* || failed "IS_UMASKSUDOERS" "sudoers must set umask to 0077"
-fi
+}
 
-if [ "$IS_TMPNOEXEC" = 1 ]; then
+check_tmpnoexec(){
     mount | grep "on /tmp" | grep -q noexec || failed "IS_TMPNOEXEC" "/tmp should be mounted with the noexec option"
-fi
+}
 
-if [ "$IS_TMOUTPROFILE" = 1 ]; then
+check_tmoutprofile(){
     grep -q TMOUT= /etc/skel/.profile /root/.profile || failed "IS_TMOUTPROFILE" "In order to fix, add 'export TMOUT=36000' to both /etc/skel/.profile and /root/.profile files"
-fi
+}
 
-# Check RAID state (bioctl)
-#if [ "$IS_RAIDOK" = 1 ]; then
-# TODO
-#fi
+check_raidok(){
+}
 
-# Check Evoackup installation
-if [ "$IS_EVOBACKUP" = 1 ]; then
+check_evobackup(){
     if [ -f /etc/daily.local ]; then
         grep -qE "^sh /usr/share/scripts/zzz_evobackup" /etc/daily.local || failed "IS_EVOBACKUP" "Make sure 'sh /usr/share/scripts/zzz_evobackup' is present and activated in /etc/daily.local"
     else
         failed "IS_EVOBACKUP" "Make sure /etc/daily.local exists and 'sh /usr/share/scripts/zzz_evobackup' is present and activated in /etc/daily.local"
     fi
-fi
+}
 
 # Check whether the system should be restarted (after a kernel update)
-#if [ "$IS_KERNELUPTODATE" = 1 ]; then
-# TODO
-#fi
+check_kerneluptodate(){
+}
 
-# Check if the server is running for more than a year.
-if [ "$IS_UPTIME" = 1 ]; then
+check_uptime(){
     if [ $(uptime | cut -d" " -f 4) -gt 365 ]; then
         failed "IS_UPTIME" "The server is running for more than a year!"
     fi
-fi
+}
 
-# Check if files in /home/backup/ are up-to-date
-#if [ "$IS_BACKUPUPTODATE" = 1 ]; then
-# TODO
-#fi
+check_backuptodate(){
+}
 
-# Check if /etc/.git/ has read/write permissions for root only.
-if [ "$IS_GITPERMS" = 1 ]; then
+check_gitperms(){
     test -d /etc/.git && [ "$(stat -f %p /etc/.git/)" = "40700" ] || failed "IS_GITPERMS" "The directiry /etc/.git sould be in 700"
-fi
+}
 
-#if [ "$IS_OLD_HOME_DIR" = 1 ]; then
-#fi
+check_oldhomedir(){
+}
 
-if [ "$IS_ADVBASE" = 1 ]; then
+check_advbase(){
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         for advbase in $(ifconfig carp | grep advbase | awk -F 'advbase' '{print $2}' | awk '{print $1}' | xargs); do
         if [[ "$advbase" -gt 1 ]]; then
@@ -152,9 +144,9 @@ if [ "$IS_ADVBASE" = 1 ]; then
         fi
         done
     fi
-fi
+}
 
-if [ "$IS_PREEMPT" = 1 ]; then
+check_preempt(){
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         preempt=$(sysctl net.inet.carp.preempt | cut -d"=" -f2)
         if [[ "$preempt" -ne 1 ]]; then
@@ -163,106 +155,104 @@ if [ "$IS_PREEMPT" = 1 ]; then
         if [ -f /etc/sysctl.conf ]; then
             grep -qE "^net.inet.carp.preempt=1" /etc/sysctl.conf || failed "IS_PREEMPT" "The preempt parameter is not permanently activated! Please add 'net.inet.carp.preempt=1' in /etc/sysctl.conf"
         else
-	    failed "IS_PREEMPT" "Make sure /etc/sysctl.conf exists and contains the line 'net.inet.carp.preempt=1'"
+        failed "IS_PREEMPT" "Make sure /etc/sysctl.conf exists and contains the line 'net.inet.carp.preempt=1'"
         fi
     fi
-fi
+}
 
-if [ "$IS_REBOOTMAIL" = 1 ]; then
+check_rebootmail(){
     if [ -f /etc/rc.local ]; then
         grep -qE '^date \| mail -s "boot/reboot of' /etc/rc.local || failed "IS_REBOOTMAIL" "Make sure the line 'date | mail -s \"boot/reboot of \$hostname' is present in the /etc/rc.local file!"
     else
         failed "IS_REBOOTMAIL" "Make sure /etc/rc.local exist and 'date | mail -s \"boot/reboot of \$hostname' is present!"
     fi
-fi
+}
 
-#if [ "$IS_PFENABLED" = 1 ]; then
-# TODO
-#fi
+check_pfenabled(){
+}
 
-#if [ "$IS_PFCUSTOM" = 1 ]; then
-# TODO
-#fi
+check_pfcustom(){
+}
 
-if [ "$IS_SOFTDEP" = 1 ]; then
+check_softdep(){
     grep -q "softdep" /etc/fstab || failed "IS_SOFTDEP" ""
-fi
+}
 
-if [ "$IS_WHEEL" = 1 ]; then
+check_wheel(){
     if [ -f /etc/sudoers ]; then
         grep -qE "^%wheel.*$" /etc/sudoers || failed "IS_WHEEL" ""
     fi
-fi
+}
 
-if [ "$IS_PKGMIRROR" = 1 ]; then
+check_pkgmirror(){
     grep -qE "^https://cdn\.openbsd\.org/pub/OpenBSD" /etc/installurl || failed "IS_PKGMIRROR" "Check whether the right repo is present in the /etc/installurl file"
-fi
+}
 
-if [ "$IS_HISTORY" = 1 ]; then
+check_history(){
     file=/root/.profile
     grep -qE "^HISTFILE=\$HOME/.histfile" $file && grep -qE "^export HISTSIZE=10000" $file || failed "IS_HISTORY" "Make sure both 'HISTFILE=$HOME/.histfile' and 'export HISTSIZE=10000' are present in /root/.profile"
-fi
+}
 
-if [ "$IS_VIM" = 1 ]; then
+check_vim(){
     if ! is_installed vim; then
-    	failed "IS_VIM" "vim is not installed! Please add with pkg_add vim"
+        failed "IS_VIM" "vim is not installed! Please add with pkg_add vim"
     fi
-fi
+}
 
-if [ "$IS_TTYC0SECURE" = 1 ]; then
+check_ttyc0secure(){
     grep -Eqv "^ttyC0.*secure$" /etc/ttys || failed "IS_TTYC0SECURE" "First tty should be secured"
-fi
+}
 
-if [ "$IS_CUSTOMSYSLOG" = 1 ]; then
+check_customsyslog(){
     grep -q Evolix /etc/newsyslog.conf || failed "IS_CUSTOMSYSLOG" ""
-fi
+}
 
-if [ "$IS_SUDOMAINT" = 1 ]; then
-    f=/etc/sudoers
-    grep -q "Cmnd_Alias MAINT = /usr/share/scripts/evomaintenance.sh" $f \
-    && grep -q "ADMIN ALL=NOPASSWD: MAINT" $f \
+check_sudomaint(){
+    file=/etc/sudoers
+    grep -q "Cmnd_Alias MAINT = /usr/share/scripts/evomaintenance.sh" $file \
+    && grep -q "ADMIN ALL=NOPASSWD: MAINT" $file \
     || failed "IS_SUDOMAINT" ""
-fi
+}
 
-if [ "$IS_POSTGRESQL" = 1 ]; then
+check_postgresql(){
     if ! is_installed postgresql-client; then
-    	failed "IS_POSTGRESQL" "postgresql-client is not installed! Please add with pkg_add postgresql-client"
+        failed "IS_POSTGRESQL" "postgresql-client is not installed! Please add with pkg_add postgresql-client"
     fi
-fi
+}
 
-if [ "$IS_NRPE" = 1 ]; then
+check_nrpe(){
     if ! is_installed monitoring-plugins || ! is_installed nrpe; then
-    	failed "IS_NRPE" "nrpe and/or monitoring-plugins are not installed! Please add with pkg_add nrpe monitoring-plugins"
-    fi
-fi
+        failed "IS_NRPE" "nrpe and/or monitoring-plugins are not installed! Please add with pkg_add nrpe monitoring-plugins"
+    fi 
+}
 
-if [ "$IS_RSYNC" = 1 ]; then
+check_rsync(){
     if ! is_installed rsync; then
-    	failed "IS_RSYNC" "rsync is not installed! Please add with pkg_add rsync"
+        failed "IS_RSYNC" "rsync is not installed! Please add with pkg_add rsync"
     fi
-fi
+}
 
-if [ "$IS_CRONPATH" = 1 ]; then
+check_cronpath(){
     grep -q "PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin" /var/cron/tabs/root || failed "IS_CRONPATH" ""
-fi
+}
 
-if [ "$IS_TMP_1777" = 1 ]; then
+check_tmp1777(){
     ls -ld /tmp | grep -q drwxrwxrwt || failed "IS_TMP_1777" ""
-fi
+}
 
-if [ "$IS_ROOT_0700" = 1 ]; then
+check_root0700(){
     ls -ld /root | grep -q drwx------ || failed "IS_ROOT_0700" ""
-fi
+}
 
-if [ "$IS_USRSHARESCRIPTS" = 1 ]; then
+check_usrsharescripts(){
     ls -ld /usr/share/scripts | grep -q drwx------ || failed "IS_USRSHARESCRIPTS" ""
-fi
+}
 
-if [ "$IS_SSHPERMITROOTNO" = 1 ]; then
+check_sshpermitrootno() {
     grep -qE ^PermitRoot /etc/ssh/sshd_config && ( grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config || failed "IS_SSHPERMITROOTNO" "" )
-fi
+}
 
-if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
+check_evomaintenanceusers(){
     # Can be changed in evocheck.cf
     homeDir=${homeDir:-/home}
     sudoers="/etc/sudoers"
@@ -271,24 +261,24 @@ if [ "$IS_EVOMAINTENANCEUSERS" = 1 ]; then
         if [ $? != 0 ]; then
             failed "IS_EVOMAINTENANCEUSERS" "$i doesn't have evomaintenance trap!"
         fi
-    done
-fi
+    done 
+}
 
-# Verification de la configuration d'evomaintenance
-if [ "$IS_EVOMAINTENANCECONF" = 1 ]; then
-    f=/etc/evomaintenance.cf
-    ( test -e $f \
-    && test $(stat -f %p $f) = "100600" \
-    && grep "^export PGPASSWORD" $f |grep -qv "your-passwd" \
-    && grep "^PGDB" $f |grep -qv "your-db" \
-    && grep "^PGTABLE" $f |grep -qv "your-table" \
-    && grep "^PGHOST" $f |grep -qv "your-pg-host" \
-    && grep "^FROM" $f |grep -qv "jdoe@example.com" \
-    && grep "^FULLFROM" $f |grep -qv "John Doe <jdoe@example.com>" \
-    && grep "^URGENCYFROM" $f |grep -qv "mama.doe@example.com" \
-    && grep "^URGENCYTEL" $f |grep -qv "06.00.00.00.00" \
-    && grep "^REALM" $f |grep -qv "example.com" ) || failed "IS_EVOMAINTENANCECONF" ""
-fi
+check_evomaintenanceconf(){
+    file=/etc/evomaintenance.cf
+    ( test -e $file \
+    && test $(stat -f %p $file) = "100600" \
+    && grep "^export PGPASSWORD" $file |grep -qv "your-passwd" \
+    && grep "^PGDB" $file |grep -qv "your-db" \
+    && grep "^PGTABLE" $file |grep -qv "your-table" \
+    && grep "^PGHOST" $file |grep -qv "your-pg-host" \
+    && grep "^FROM" $file |grep -qv "jdoe@example.com" \
+    && grep "^FULLFROM" $file |grep -qv "John Doe <jdoe@example.com>" \
+    && grep "^URGENCYFROM" $file |grep -qv "mama.doe@example.com" \
+    && grep "^URGENCYTEL" $file |grep -qv "06.00.00.00.00" \
+    && grep "^REALM" $file |grep -qv "example.com" ) || failed "IS_EVOMAINTENANCECONF" ""
+}
+
 # Parse options
 # based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
 while :; do

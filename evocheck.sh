@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # EvoCheck
-# Script to verify compliance of a OpenBSD server powered by Evolix
+# Script to verify compliance of an OpenBSD server powered by Evolix
 
 # Disable LANG*
 

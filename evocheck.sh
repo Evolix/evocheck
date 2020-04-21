@@ -279,6 +279,47 @@ check_evomaintenanceconf(){
     && grep "^REALM" $file |grep -qv "example.com" ) || failed "IS_EVOMAINTENANCECONF" ""
 }
 
+
+main() {
+    # Default return code : 0 = no error
+    RC=0
+
+    test "${IS_UMASKSUDOERS:=1}" = 1 && check_umasksudoers
+    test "${IS_TMPNOEXEC:=1}" = 1 && check_tmpnoexec
+    test "${IS_TMOUTPROFILE:=1}" = 1 && check_tmoutprofile
+    test "${IS_RAIDOK:=1}" = 1 && check_raidok
+    test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
+    test "${IS_KERNELUPTODATE:=1}" = 1 && check_kerneluptodate
+    test "${IS_UPTIME:=1}" = 1 && check_uptime
+    test "${IS_BACKUPUPTODATE:=1}" = 1 && check_backuptodate
+    test "${IS_GITPERMS:=1}" = 1 && check_gitperms
+    test "${IS_OLD_HOME_DIR:=1}" = 1 && check_oldhomedir
+    test "${IS_ADVBASE:=1}" = 1 && check_advbase
+    test "${IS_PREEMPT:=1}" = 1 && check_preempt
+    test "${IS_REBOOTMAIL:=1}" = 1 && check_rebootmail
+    test "${IS_PFENABLED:=1}" = 1 && check_pfenabled
+    test "${IS_PFCUSTOM:=1}" = 1 && check_pfcustom
+    test "${IS_SOFTDEP:=1}" = 1 && check_softdep
+    test "${IS_WHEEL:=1}" = 1 && check_wheel
+    test "${IS_PKGMIRROR:=1}" = 1 && check_pkgmirror
+    test "${IS_HISTORY:=1}" = 1 && check_history
+    test "${IS_VIM:=1}" = 1 && check_vim
+    test "${IS_TTYC0SECURE:=1}" = 1 && check_ttyc0secure
+    test "${IS_CUSTOMSYSLOG:=1}" = 1 && check_customsyslog
+    test "${IS_SUDOMAINT:=1}" = 1 && check_sudomaint
+    test "${IS_POSTGRESQL:=1}" = 1 && check_postgresql
+    test "${IS_NRPE:=1}" = 1 && check_nrpe
+    test "${IS_RSYNC:=1}" = 1 && check_rsync
+    test "${IS_CRONPATH:=1}" = 1 && check_cronpath
+    test "${IS_TMP_1777:=1}" = 1 && check_tmp1777
+    test "${IS_ROOT_0700:=1}" = 1 && check_root0700
+    test "${IS_USRSHARESCRIPTS:=1}" = 1 && check_usrsharescripts
+    test "${IS_SSHPERMITROOTNO:=1}" = 1 && check_sshpermitrootno
+    test "${IS_EVOMAINTENANCEUSERS:=1}" = 1 && check_evomaintenanceusers
+    test "${IS_EVOMAINTENANCECONF:=1}" = 1 && check_evomaintenanceconf
+
+    exit ${RC}
+}
 # Parse options
 # based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
 while :; do
@@ -315,3 +356,5 @@ while :; do
 
     shift
 done
+
+main ${ARGS}

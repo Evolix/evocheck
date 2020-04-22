@@ -255,7 +255,7 @@ check_usrro() {
 }
 check_tmpnoexec() {
     FINDMNT_BIN=$(command -v findmnt)
-    if [ -x ${FINDMNT_BIN} ]; then
+    if [ -x "${FINDMNT_BIN}" ]; then
         options=$(${FINDMNT_BIN} --noheadings --first-only --output OPTIONS /tmp)
         echo "${options}" | grep -qE "\bnoexec\b" || failed "IS_TMPNOEXEC" "/tmp is not mounted with 'noexec'"
     else
@@ -758,8 +758,8 @@ check_tune2fs_m5() {
         percentage=$(awk "BEGIN { pc=100*${reservedBlockCount}/${blockCount}; i=int(pc); print (pc-i<0.5)?i:i+1 }")
 
         if [ "$percentage" -lt "${min}" ]; then
-            if [ -x ${FINDMNT_BIN} ]; then
-                mount=$(${FINDMNT_BIN} --noheadings --first-only --output TARGET ${part})
+            if [ -x "${FINDMNT_BIN}" ]; then
+                mount=$(${FINDMNT_BIN} --noheadings --first-only --output TARGET "${part}")
             else
                 mount="unknown mount point"
             fi
@@ -1248,9 +1248,9 @@ check_chrooted_binary_uptodate() {
         # what is the binary path?
         original_bin=$(command -v "${process_name}")
         for pid in $(pgrep ${process_name}); do
-            process_bin=$(realpath /proc/${pid}/exe)
+            process_bin=$(realpath "/proc/${pid}/exe")
             # Is the process chrooted?
-            real_root=$(realpath /proc/${pid}/root)
+            real_root=$(realpath "/proc/${pid}/root")
             if [ "${real_root}" != "/" ]; then
                 chrooted_md5=$(md5sum "${process_bin}" | cut -f 1 -d ' ')
                 original_md5=$(md5sum "${original_bin}" | cut -f 1 -d ' ')
@@ -1511,7 +1511,9 @@ main() {
     exit ${RC}
 }
 
+# shellcheck disable=SC2034
 readonly PROGNAME=$(basename "$0")
+# shellcheck disable=SC2034
 readonly PROGDIR=$(realpath -m "$(dirname "$0")")
 # shellcheck disable=2124
 readonly ARGS=$@

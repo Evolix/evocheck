@@ -106,6 +106,15 @@ check_tmoutprofile(){
 }
 
 check_raidok(){
+    egrep 'sd.*RAID' /var/run/dmesg.boot 1> /dev/null 2>&1
+    RESULT=$?
+    if [ $RESULT -eq 0 ]; then
+        raid_device=$(egrep 'sd.*RAID' /var/run/dmesg.boot | awk '{ print $1 }')
+        raid_status=$(bioctl $raid_device | grep softraid | awk '{ print $3 }')
+        if [ $raid_status != "Online" ]; then
+            failed "IS_RAIDOK" "One of the RAID disk members is faulty. Use bioctl -h $raid_device for more informations"
+        fi
+    fi
 }
 
 check_evobackup(){

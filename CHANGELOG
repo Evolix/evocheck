@@ -15,9 +15,13 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
-* IS_EVOBACKUP_INCS: also look for the new command
-
 ### Security
+
+## [20.04.3] 2020-04-24
+
+### Fixed
+
+* IS_EVOBACKUP_INCS: also look for the new command
 
 ## [20.04.2] 2020-04-15
 

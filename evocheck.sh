@@ -1205,7 +1205,7 @@ check_evobackup_incs() {
         if [ -f "${bkctld_cron_file}" ]; then
             root_crontab=$(grep -v "^#" "${bkctld_cron_file}")
             echo "${root_crontab}" | grep -q "bkctld inc" || failed "IS_EVOBACKUP_INCS" "\`bkctld inc' is missing in ${bkctld_cron_file}"
-            echo "${root_crontab}" | grep -q "check-incs.sh" || failed "IS_EVOBACKUP_INCS" "\`check-incs.sh' is missing in ${bkctld_cron_file}"
+            echo "${root_crontab}" | grep -qE "(check-incs.sh|bkctld check-incs)" || failed "IS_EVOBACKUP_INCS" "\`check-incs.sh' is missing in ${bkctld_cron_file}"
         else
             failed "IS_EVOBACKUP_INCS" "Crontab \`${bkctld_cron_file}' is missing"
         fi

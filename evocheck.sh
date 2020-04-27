@@ -292,6 +292,15 @@ check_evomaintenanceconf(){
     && grep "^REALM" $file |grep -qv "example.com" ) || failed "IS_EVOMAINTENANCECONF" ""
 }
 
+check_sync(){
+    if ifconfig carp | grep carp 1> /dev/null 2>&1; then
+        sync_script=/usr/share/scripts/sync.sh
+        if [ ! -f $sync_script ]; then
+            failed "IS_SYNC" "The sync.sh script is absent! As a carp member, a sync.sh script should be present in /usr/share/scripts"
+        fi
+    fi
+}
+
 
 main() {
     # Default return code : 0 = no error
@@ -329,6 +338,7 @@ main() {
     test "${IS_SSHPERMITROOTNO:=1}" = 1 && check_sshpermitrootno
     test "${IS_EVOMAINTENANCEUSERS:=1}" = 1 && check_evomaintenanceusers
     test "${IS_EVOMAINTENANCECONF:=1}" = 1 && check_evomaintenanceconf
+    test "${IS_SYNC:=1}" = 1 && check_sync
 
     exit ${RC}
 }

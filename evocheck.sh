@@ -146,9 +146,6 @@ check_gitperms(){
     test -d /etc/.git && [ "$(stat -f %p /etc/.git/)" = "40700" ] || failed "IS_GITPERMS" "The directiry /etc/.git sould be in 700"
 }
 
-check_oldhomedir(){
-}
-
 check_advbase(){
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         for advbase in $(ifconfig carp | grep advbase | awk -F 'advbase' '{print $2}' | awk '{print $1}' | xargs); do
@@ -309,7 +306,6 @@ main() {
     test "${IS_UPTIME:=1}" = 1 && check_uptime
     test "${IS_BACKUPUPTODATE:=1}" = 1 && check_backuptodate
     test "${IS_GITPERMS:=1}" = 1 && check_gitperms
-    test "${IS_OLD_HOME_DIR:=1}" = 1 && check_oldhomedir
     test "${IS_ADVBASE:=1}" = 1 && check_advbase
     test "${IS_PREEMPT:=1}" = 1 && check_preempt
     test "${IS_REBOOTMAIL:=1}" = 1 && check_rebootmail

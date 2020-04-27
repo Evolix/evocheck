@@ -7,7 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [6.6] - 2020-04-21
+## [6.6.2] - 2020-04-27
+
+### Added
+
+- Add check_sync function - If a server is a Carp member we check whether the sync.sh script is present or not
+- Add check_pfenabled function - We make sure PF is enabled
+- Add check_uptodate function - Use syspatch(8) to check if security updates are available
+
+### Changed
+
+- Remove check_oldhomedir - This information is irrelevant since we always keep home directories of former sysadmins
+- Now use a version-naming scheme based on OpenBSD's one
+
+## [6.6.1] - 2020-04-21
 
 ### Changed
 

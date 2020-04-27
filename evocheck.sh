@@ -125,6 +125,12 @@ check_evobackup(){
     fi
 }
 
+check_uptodate(){
+    if [ -f $(command -v syspatch) ]; then
+        if syspatch -c | egrep "." 1> /dev/null 2>&1; then
+            failed "IS_UPTODATE" "Security update available! Update with syspatch(8)!"
+        fi
+    fi
 }
 
 check_uptime(){
@@ -296,6 +302,7 @@ main() {
     test "${IS_TMOUTPROFILE:=1}" = 1 && check_tmoutprofile
     test "${IS_RAIDOK:=1}" = 1 && check_raidok
     test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
+    test "${IS_UPTODATE:=1}" = 1 && check_uptodate
     test "${IS_UPTIME:=1}" = 1 && check_uptime
     test "${IS_BACKUPUPTODATE:=1}" = 1 && check_backuptodate
     test "${IS_GITPERMS:=1}" = 1 && check_gitperms

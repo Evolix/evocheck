@@ -182,6 +182,9 @@ check_rebootmail(){
 }
 
 check_pfenabled(){
+    if pfctl -si | grep Disabled 1> /dev/null 2>&1; then
+        failed "IS_PFENABLED" "PF is disabled! Make sure pf=NO is absent from /etc/rc.conf.local and carefully run pfctl -e"
+    fi
 }
 
 check_pfcustom(){

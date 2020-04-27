@@ -3,7 +3,7 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
-readonly VERSION="20.04.1"
+readonly VERSION="6.6.2"
 
 # Disable LANG*
 

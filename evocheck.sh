@@ -125,8 +125,6 @@ check_evobackup(){
     fi
 }
 
-# Check whether the system should be restarted (after a kernel update)
-check_kerneluptodate(){
 }
 
 check_uptime(){
@@ -298,7 +296,6 @@ main() {
     test "${IS_TMOUTPROFILE:=1}" = 1 && check_tmoutprofile
     test "${IS_RAIDOK:=1}" = 1 && check_raidok
     test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
-    test "${IS_KERNELUPTODATE:=1}" = 1 && check_kerneluptodate
     test "${IS_UPTIME:=1}" = 1 && check_uptime
     test "${IS_BACKUPUPTODATE:=1}" = 1 && check_backuptodate
     test "${IS_GITPERMS:=1}" = 1 && check_gitperms

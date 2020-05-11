@@ -559,7 +559,7 @@ check_evobackup_exclude_mount() {
     # shellcheck disable=SC2064
     trap "rm -f ${excludes_file}" 0
     # shellcheck disable=SC2044
-    for evobackup_file in $(find /etc/cron* -name '*evobackup*'); do
+    for evobackup_file in $(find /etc/cron* -name '*evobackup*' | grep -v -E ".disabled$"); do
         grep -- "--exclude " "${evobackup_file}" | grep -E -o "\"[^\"]+\"" | tr -d '"' > "${excludes_file}"
         not_excluded=$(findmnt --type nfs,nfs4,fuse.sshfs, -o target --noheadings | grep -v -f "${excludes_file}")
         for mount in ${not_excluded}; do

@@ -13,6 +13,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Removed
 
+* Remove unused PROGDIR variable
+
 ### Fixed
 
 ### Security

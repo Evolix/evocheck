@@ -1517,8 +1517,6 @@ main() {
 
 # shellcheck disable=SC2034
 readonly PROGNAME=$(basename "$0")
-# shellcheck disable=SC2034
-readonly PROGDIR=$(realpath -m "$(dirname "$0")")
 # shellcheck disable=2124
 readonly ARGS=$@
 

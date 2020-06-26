@@ -1013,7 +1013,7 @@ check_duplicate_fs_label() {
     BLKID_BIN=$(command -v blkid)
     if [ -x "$BLKID_BIN" ]; then
         tmpFile=$(mktemp -p /tmp)
-        parts=$($BLKID_BIN | grep -ve raid_member -e EFI_SYSPART | grep -Eo ' LABEL=".*"' | cut -d'"' -f2)
+        parts=$($BLKID_BIN -c /dev/null | grep -ve raid_member -e EFI_SYSPART | grep -Eo ' LABEL=".*"' | cut -d'"' -f2)
         for part in $parts; do
             echo "$part" >> "$tmpFile"
         done

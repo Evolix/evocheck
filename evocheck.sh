@@ -227,7 +227,7 @@ check_customsyslog(){
 check_sudomaint(){
     file=/etc/sudoers
     grep -q "Cmnd_Alias MAINT = /usr/share/scripts/evomaintenance.sh" $file \
-    && grep -q "ADMIN ALL=NOPASSWD: MAINT" $file \
+    && grep -q "%wheel ALL=NOPASSWD: MAINT" $file \
     || failed "IS_SUDOMAINT" ""
 }
 

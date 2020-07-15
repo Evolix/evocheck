@@ -221,7 +221,7 @@ check_ttyc0secure(){
 }
 
 check_customsyslog(){
-    grep -q Evolix /etc/newsyslog.conf || failed "IS_CUSTOMSYSLOG" ""
+    grep -q EvoBSD /etc/newsyslog.conf || failed "IS_CUSTOMSYSLOG" ""
 }
 
 check_sudomaint(){

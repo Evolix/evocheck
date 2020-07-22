@@ -3,7 +3,7 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
-readonly VERSION="6.7.1"
+readonly VERSION="6.7.2"
 
 # Disable LANG*
 
@@ -305,6 +305,14 @@ check_sync(){
     fi
 }
 
+check_defaultroute(){
+    file_route=$(cat /etc/mygate)
+    used_route=$(route -n show -priority 8 | grep default | awk '{print $2}')
+    if [ "$file_route" != "$used_route" ]; then
+        failed "IS_DEFAULTROUTE" "The default route in /etc/mygate is different from the one currently used"
+    fi
+}
+
 
 main() {
     # Default return code : 0 = no error
@@ -343,6 +351,7 @@ main() {
     test "${IS_EVOMAINTENANCEUSERS:=1}" = 1 && check_evomaintenanceusers
     test "${IS_EVOMAINTENANCECONF:=1}" = 1 && check_evomaintenanceconf
     test "${IS_SYNC:=1}" = 1 && check_sync
+    test "${IS_DEFAULTROUTE:=1}" = 1 && check_defaultroute
 
     exit ${RC}
 }

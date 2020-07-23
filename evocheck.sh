@@ -231,12 +231,6 @@ check_sudomaint(){
     || failed "IS_SUDOMAINT" ""
 }
 
-check_postgresql(){
-    if ! is_installed postgresql-client; then
-        failed "IS_POSTGRESQL" "postgresql-client is not installed! Please add with pkg_add postgresql-client"
-    fi
-}
-
 check_nrpe(){
     if ! is_installed monitoring-plugins || ! is_installed nrpe; then
         failed "IS_NRPE" "nrpe and/or monitoring-plugins are not installed! Please add with pkg_add nrpe monitoring-plugins"
@@ -344,7 +338,6 @@ main() {
     test "${IS_TTYC0SECURE:=1}" = 1 && check_ttyc0secure
     test "${IS_CUSTOMSYSLOG:=1}" = 1 && check_customsyslog
     test "${IS_SUDOMAINT:=1}" = 1 && check_sudomaint
-    test "${IS_POSTGRESQL:=1}" = 1 && check_postgresql
     test "${IS_NRPE:=1}" = 1 && check_nrpe
     test "${IS_RSYNC:=1}" = 1 && check_rsync
     test "${IS_CRONPATH:=1}" = 1 && check_cronpath

@@ -311,6 +311,16 @@ check_defaultroute(){
     fi
 }
 
+check_ntp(){
+    if grep -q "server ntp.evolix.net" /etc/ntpd.conf; then
+        if [ $(wc -l /etc/ntpd.conf | awk '{print $1}') -ne 1 ]; then
+            failed "IS_NTP" "The /etc/ntpd.conf file should only contains \"server ntp.evolix.net\"."
+        fi
+    else
+        failed "IS_NTP" "The configuration in /etc/ntpd.conf is not compliant. It should contains \"server ntp.evolix.net\"."
+    fi
+}
+
 
 main() {
     # Default return code : 0 = no error
@@ -349,6 +359,7 @@ main() {
     test "${IS_EVOMAINTENANCECONF:=1}" = 1 && check_evomaintenanceconf
     test "${IS_SYNC:=1}" = 1 && check_sync
     test "${IS_DEFAULTROUTE:=1}" = 1 && check_defaultroute
+    test "${IS_NTP:=1}" = 1 && check_ntp
 
     exit ${RC}
 }

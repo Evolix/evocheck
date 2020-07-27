@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [6.7.3] - 2020-07-23
 
+### Added
+
+- Add check_ntp - Check the ntpd configuration
+
 ### Fixed
 
 - Fix check_defaultroute - We need to check if the /etc/mygate file exists before comparing it

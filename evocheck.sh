@@ -3,7 +3,7 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
-readonly VERSION="6.7.3"
+readonly VERSION="6.7.4"
 
 # Disable LANG*
 
@@ -139,7 +139,25 @@ check_uptime(){
     fi
 }
 
-check_backuptodate(){
+check_backupuptodate(){
+    backup_dir="/home/backup"
+    if [ -d "${backup_dir}" ]; then
+        if [ -n "$(ls -A ${backup_dir})" ]; then
+            for file in ${backup_dir}/*; do
+                let "limit = $(date +"%s") - 172800"
+                updated_at=$(stat -f "%m" "$file")
+
+                if [ -f "$file" ] && [ "$limit" -gt "$updated_at" ]; then
+                    failed "IS_BACKUPUPTODATE" "$file has not been backed up"
+                    test "${VERBOSE}" = 1 || break;
+                fi
+            done
+        else
+            failed "IS_BACKUPUPTODATE" "${backup_dir}/ is empty"
+        fi
+    else
+        failed "IS_BACKUPUPTODATE" "${backup_dir}/ is missing"
+    fi
 }
 
 check_gitperms(){
@@ -333,7 +351,7 @@ main() {
     test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
     test "${IS_UPTODATE:=1}" = 1 && check_uptodate
     test "${IS_UPTIME:=1}" = 1 && check_uptime
-    test "${IS_BACKUPUPTODATE:=1}" = 1 && check_backuptodate
+    test "${IS_BACKUPUPTODATE:=1}" = 1 && check_backupuptodate
     test "${IS_GITPERMS:=1}" = 1 && check_gitperms
     test "${IS_ADVBASE:=1}" = 1 && check_advbase
     test "${IS_PREEMPT:=1}" = 1 && check_preempt

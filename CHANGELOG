@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.7.4] - 2020-08-04
+
+### Added
+
+- Add check_backupuptodate - Check that /home/backup is not older than 2 days
+
 ## [6.7.3] - 2020-07-23
 
 ### Added

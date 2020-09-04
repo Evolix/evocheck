@@ -886,7 +886,7 @@ check_postgres_backup() {
         # If you use something like barman, you should disable this check
         # You could change the default path in /etc/evocheck.cf
         POSTGRES_BACKUP_PATH=${POSTGRES_BACKUP_PATH:-"/home/backup/pg.dump.bak*"}
-        test -f "$POSTGRES_BACKUP_PATH" || failed "IS_POSTGRES_BACKUP" "PostgreSQL dump is missing (${POSTGRES_BACKUP_PATH})"
+        test -f ${POSTGRES_BACKUP_PATH} || failed "IS_POSTGRES_BACKUP" "PostgreSQL dump is missing (${POSTGRES_BACKUP_PATH})"
     fi
 }
 check_mongo_backup() {

@@ -885,7 +885,7 @@ check_postgres_backup() {
     if is_installed "postgresql-9*"; then
         # If you use something like barman, you should disable this check
         # You could change the default path in /etc/evocheck.cf
-        POSTGRES_BACKUP_PATH=${POSTGRES_BACKUP_PATH:-"/home/backup/pg.dump.bak"}
+        POSTGRES_BACKUP_PATH=${POSTGRES_BACKUP_PATH:-"/home/backup/pg.dump.bak*"}
         test -f "$POSTGRES_BACKUP_PATH" || failed "IS_POSTGRES_BACKUP" "PostgreSQL dump is missing (${POSTGRES_BACKUP_PATH})"
     fi
 }

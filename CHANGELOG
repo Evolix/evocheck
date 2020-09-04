@@ -9,6 +9,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 * IS_EVOBACKUP_EXCLUDE_MOUNT: exclude disabled backup scripts
 * IS_DUPLICATE_FS_LABEL: disable blkid cache
+* IS_POSTGRES_BACKUP: look for compressed backup too
 
 ### Deprecated
 

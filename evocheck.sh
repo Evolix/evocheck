@@ -3,7 +3,7 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
-readonly VERSION="6.7.4"
+readonly VERSION="6.7.5"
 
 # Disable LANG*
 
@@ -262,7 +262,7 @@ check_rsync(){
 }
 
 check_cronpath(){
-    grep -q "PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/share/scripts" /var/cron/tabs/root || failed "IS_CRONPATH" ""
+    grep -q "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:/usr/share/scripts" /var/cron/tabs/root || failed "IS_CRONPATH" ""
 }
 
 check_tmp1777(){

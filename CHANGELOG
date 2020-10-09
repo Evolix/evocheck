@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.7.5] - 2020-10-09
+
+### Fixed
+
+- Fix check_cronpath - Do not check PATH=XXX but only XXX because XXX can also be in quotes (PATH="XXX" would not be matched)
+
 ## [6.7.4] - 2020-08-04
 
 ### Added

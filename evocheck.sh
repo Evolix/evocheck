@@ -3,7 +3,7 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
-readonly VERSION="6.7.5"
+readonly VERSION="6.7.6"
 
 # Disable LANG*
 
@@ -99,6 +99,18 @@ check_umasksudoers(){
 
 check_tmpnoexec(){
     mount | grep "on /tmp" | grep -q noexec || failed "IS_TMPNOEXEC" "/tmp should be mounted with the noexec option"
+}
+
+check_softdep(){
+    if [ $(grep -c softdep /etc/fstab) -ne $(grep -c ffs /etc/fstab) ]; then
+        failed "IS_SOFTDEP" "All partitions should have the softdep option"
+    fi
+}
+
+check_noatime(){
+    if [ $(mount | grep -c noatime) -ne $(grep -c ffs /etc/fstab) ]; then
+        failed "IS_NOATIME" "All partitions should be mounted with the noatime option"
+    fi
 }
 
 check_tmoutprofile(){
@@ -207,10 +219,6 @@ check_pfenabled(){
 }
 
 check_pfcustom(){
-}
-
-check_softdep(){
-    grep -q "softdep" /etc/fstab || failed "IS_SOFTDEP" ""
 }
 
 check_wheel(){
@@ -346,6 +354,8 @@ main() {
 
     test "${IS_UMASKSUDOERS:=1}" = 1 && check_umasksudoers
     test "${IS_TMPNOEXEC:=1}" = 1 && check_tmpnoexec
+    test "${IS_SOFTDEP:=1}" = 1 && check_softdep
+    test "${IS_NOATIME:=1}" = 1 && check_noatime
     test "${IS_TMOUTPROFILE:=1}" = 1 && check_tmoutprofile
     test "${IS_RAIDOK:=1}" = 1 && check_raidok
     test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
@@ -358,7 +368,6 @@ main() {
     test "${IS_REBOOTMAIL:=1}" = 1 && check_rebootmail
     test "${IS_PFENABLED:=1}" = 1 && check_pfenabled
     test "${IS_PFCUSTOM:=1}" = 1 && check_pfcustom
-    test "${IS_SOFTDEP:=1}" = 1 && check_softdep
     test "${IS_WHEEL:=1}" = 1 && check_wheel
     test "${IS_PKGMIRROR:=1}" = 1 && check_pkgmirror
     test "${IS_HISTORY:=1}" = 1 && check_history

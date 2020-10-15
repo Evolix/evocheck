@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.7.6] - 2020-10-15
+
+### Added
+
+- Add check_noatime - Check that all ffs partitions are mounted with the noatime option
+
+### Fixed
+
+- Fix check_softdep - We now check the number of ffs partitions and we compare it to the number of softdep options currently there
+
 ## [6.7.5] - 2020-10-09
 
 ### Fixed

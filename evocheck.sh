@@ -138,7 +138,7 @@ check_evobackup(){
 }
 
 check_uptodate(){
-    if [ -f $(command -v syspatch) ]; then
+    if [ $(command -v syspatch) ]; then
         if syspatch -c | egrep "." 1> /dev/null 2>&1; then
             failed "IS_UPTODATE" "Security update available! Update with syspatch(8)!"
         fi

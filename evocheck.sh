@@ -3,7 +3,7 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
-readonly VERSION="6.7.6"
+readonly VERSION="6.7.7"
 
 # Disable LANG*
 
@@ -347,6 +347,12 @@ check_ntp(){
     fi
 }
 
+check_openvpncronlog(){
+    if /etc/rc.d/openvpn check > /dev/null 2>&1; then
+        grep -q 'cp /var/log/openvpn.log /var/log/openvpn.log.$(date +\\%F) && echo "$(date +\\%F. .\\%R) - logfile turned over via cron" > /var/log/openvpn.log && gzip /var/log/openvpn.log.$(date +\\%F) && find /var/log/ -type f -name "openvpn.log.\*" -mtime .365 -exec rm {} \\+' /var/cron/tabs/root || failed "IS_OPENVPNCRONLOG" "OpenVPN is enabled but there is no log rotation in the root crontab, or the cron is not up to date (OpenVPN log rotation in newsyslog is not used because a restart is needed)."
+    fi
+}
+
 
 main() {
     # Default return code : 0 = no error
@@ -387,6 +393,7 @@ main() {
     test "${IS_SYNC:=1}" = 1 && check_sync
     test "${IS_DEFAULTROUTE:=1}" = 1 && check_defaultroute
     test "${IS_NTP:=1}" = 1 && check_ntp
+    test "${IS_OPENVPNCRONLOG:=1}" = 1 && check_openvpncronlog
 
     exit ${RC}
 }

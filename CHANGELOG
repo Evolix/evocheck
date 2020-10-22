@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.7.7] - 2020-10-22
+
+### Added
+
+- Add check_openvpncronlog : a cron is needed to rotate logs, because a restart of OpenVPN would be needed with the use of newsyslog to rotate logs
+
+### Fixed
+
+- Fix check_uptodate : properly check that syspatch exists
+- Fix check_raidok : the same device could be displayed multiple times
+
 ## [6.7.6] - 2020-10-15
 
 ### Added

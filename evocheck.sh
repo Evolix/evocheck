@@ -108,7 +108,7 @@ check_softdep(){
 }
 
 check_noatime(){
-    if [ $(mount | grep -c noatime) -ne $(grep -c ffs /etc/fstab) ]; then
+    if [ $(mount | grep -c noatime) -ne $(grep ffs /etc/fstab | grep -vc ^\#) ]; then
         failed "IS_NOATIME" "All partitions should be mounted with the noatime option"
     fi
 }

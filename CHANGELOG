@@ -5,6 +5,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* support multiple values for SQL_BACKUP_PATH and POSTGRES_BACKUP_PATH
+
 ### Changed
 
 * IS_EVOBACKUP_EXCLUDE_MOUNT: exclude disabled backup scripts

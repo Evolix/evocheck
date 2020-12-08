@@ -881,15 +881,25 @@ check_sql_backup() {
     if (is_installed "mysql-server" || is_installed "mariadb-server"); then
         # You could change the default path in /etc/evocheck.cf
         SQL_BACKUP_PATH=${SQL_BACKUP_PATH:-"/home/backup/mysql.bak.gz"}
-        test -f "$SQL_BACKUP_PATH" || failed "IS_SQL_BACKUP" "MySQL dump is missing (${SQL_BACKUP_PATH})"
+        for backup_path in ${SQL_BACKUP_PATH}; do
+            if [ ! -f "${backup_path}" ]; then
+                failed "IS_SQL_BACKUP" "MySQL dump is missing (${backup_path})"
+                test "${VERBOSE}" = 1 || break
+            fi
+        done
     fi
 }
 check_postgres_backup() {
-    if is_installed "postgresql-9*"; then
+    if is_installed "postgresql-9*" || is_installed "postgresql-1*"; then
         # If you use something like barman, you should disable this check
         # You could change the default path in /etc/evocheck.cf
         POSTGRES_BACKUP_PATH=${POSTGRES_BACKUP_PATH:-"/home/backup/pg.dump.bak*"}
-        test -f ${POSTGRES_BACKUP_PATH} || failed "IS_POSTGRES_BACKUP" "PostgreSQL dump is missing (${POSTGRES_BACKUP_PATH})"
+        for backup_path in ${POSTGRES_BACKUP_PATH}; do
+            if [ ! -f "${backup_path}" ]; then
+                failed "IS_POSTGRES_BACKUP" "PostgreSQL dump is missing (${backup_path})"
+                test "${VERBOSE}" = 1 || break
+            fi
+        done
     fi
 }
 check_mongo_backup() {

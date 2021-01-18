@@ -1044,7 +1044,7 @@ check_duplicate_fs_label() {
     fi
 }
 check_evolix_user() {
-    grep -q "evolix:" /etc/passwd \
+    grep -q -E "^evolix:" /etc/passwd \
         && failed "IS_EVOLIX_USER" "evolix user should be deleted, used only for install"
 }
 check_evoacme_cron() {

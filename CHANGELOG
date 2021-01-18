@@ -15,6 +15,13 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
+## [20.12] 2021-01-18
+
+### Fixed
+
+* IS_EVOLIX_USER: Match on if account name begin by evolix, don't match account name testevolix for example
+
+
 ## [20.12] 2020-04-28
 
 ### Added

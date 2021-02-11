@@ -1295,6 +1295,18 @@ check_nginx_letsencrypt_uptodate() {
     fi
 }
 
+check_is_mysql_upgrade() {
+    cur_version=$(mysql --version |awk '{ print $5 }' |sed 's/,//g')
+    table_version=$(cat /var/lib/mysql/mysql_upgrade_info |tr -d '\0')
+    if is_debian_stretch || is_debian_buster; then
+        if is_installed mariadb-server; then
+            if [ "$cur_version" != "$table_version" ]; then
+               failed "IS_MYSQLUPGRADE" "Run mysql_upgrade is needed"
+            fi
+        fi
+    fi
+}
+
 main() {
     # Default return code : 0 = no error
     RC=0
@@ -1421,6 +1433,7 @@ main() {
         test "${IS_APT_VALID_UNTIL:=1}" = 1 && check_apt_valid_until
         test "${IS_CHROOTED_BINARY_UPTODATE:=1}" = 1 && check_chrooted_binary_uptodate
         test "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" = 1 && check_nginx_letsencrypt_uptodate
+        test "${IS_MYSQLUPGRADE:=1}" = 1 && check_is_mysql_upgrade
     fi
 
     #-----------------------------------------------------------

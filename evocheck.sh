@@ -4,7 +4,7 @@
 # Script to verify compliance of a Debian/OpenBSD server
 # powered by Evolix
 
-readonly VERSION="20.12"
+readonly VERSION="21.05-pre1"
 
 # base functions
 
@@ -62,6 +62,8 @@ detect_os() {
                 8) DEBIAN_RELEASE="jessie";;
                 9) DEBIAN_RELEASE="stretch";;
                 10) DEBIAN_RELEASE="buster";;
+                11) DEBIAN_RELEASE="bullseye";;
+                12) DEBIAN_RELEASE="bookworm";;
             esac
         fi
     elif [ "$(uname -s)" = "OpenBSD" ]; then
@@ -90,6 +92,12 @@ is_debian_stretch() {
 }
 is_debian_buster() {
     test "${DEBIAN_RELEASE}" = "buster"
+}
+is_debian_bullseye() {
+    test "${DEBIAN_RELEASE}" = "bullseye"
+}
+is_debian_bookworm() {
+    test "${DEBIAN_RELEASE}" = "bookworm"
 }
 debian_release() {
     printf "%s" "${DEBIAN_RELEASE}"
@@ -147,7 +155,7 @@ check_lsbrelease(){
         ## only the major version matters
         lhs=$(${LSB_RELEASE_BIN} --release --short | cut -d "." -f 1)
         rhs=$(cut -d "." -f 1 < /etc/debian_version)
-        test "$lhs" = "$rhs" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release and /etc/debian_version"
+        test "$lhs" = "$rhs" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})"
     else
         failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
     fi
@@ -165,7 +173,7 @@ check_dpkgwarning() {
             test -e /etc/apt/apt.conf \
                 && failed "IS_DPKGWARNING" "/etc/apt/apt.conf is missing"
         fi
-    elif is_debian_stretch || is_debian_buster; then
+    elif is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         test -e /etc/apt/apt.conf.d/z-evolinux.conf \
             || failed "IS_DPKGWARNING" "/etc/apt/apt.conf.d/z-evolinux.conf is missing"
     fi
@@ -234,12 +242,12 @@ check_aptitudeonly() {
     fi
 }
 check_aptitude() {
-    if is_debian_jessie || is_debian_stretch || is_debian_buster; then
+    if is_debian_jessie || is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         test -e /usr/bin/aptitude && failed "IS_APTITUDE" "aptitude may not be installed on Debian >=8"
     fi
 }
 check_aptgetbak() {
-    if is_debian_jessie || is_debian_stretch || is_debian_buster; then
+    if is_debian_jessie || is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         test -e /usr/bin/apt-get.bak && failed "IS_APTGETBAK" "prohibit the installation of apt-get.bak with dpkg-divert(1)"
     fi
 }
@@ -276,7 +284,7 @@ check_mountfstab() {
     fi
 }
 check_listchangesconf() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if is_installed apt-listchanges; then
             failed "IS_LISTCHANGESCONF" "apt-listchanges must not be installed on Debian >=9"
         fi
@@ -307,7 +315,7 @@ check_tmoutprofile() {
     grep -sq "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || failed "IS_TMOUTPROFILE" "TMOUT is not set"
 }
 check_alert5boot() {
-    if is_debian_buster; then
+    if is_debian_buster || is_debian_bullseye; then
         grep -qs "^date" /usr/share/scripts/alert5.sh || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 init script"
         test -f /etc/systemd/system/alert5.service || failed "IS_ALERT5BOOT" "alert5 unit file is missing"
         systemctl is-enabled alert5 -q || failed "IS_ALERT5BOOT" "alert5 unit is not enabled"
@@ -320,7 +328,7 @@ check_alert5boot() {
     fi
 }
 check_alert5minifw() {
-    if is_debian_buster; then
+    if is_debian_buster || is_debian_bullseye; then
         grep -qs "^/etc/init.d/minifirewall" /usr/share/scripts/alert5.sh \
             || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 script or script is missing"
     else
@@ -357,7 +365,11 @@ check_nrpedisks() {
     test "$NRPEDISKS" = "$DFDISKS" || failed "IS_NRPEDISKS" "there must be $DFDISKS check_disk in nrpe.cfg"
 }
 check_nrpepid() {
-    if ! is_debian_squeeze; then
+    if is_debian_bullseye; then
+        { test -e /etc/nagios/nrpe.cfg \
+            && grep -q "^pid_file=/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
+        } || failed "IS_NRPEPID" "missing or wrong pid_file directive in nrpe.cfg"
+    elif ! is_debian_squeeze; then
         { test -e /etc/nagios/nrpe.cfg \
             && grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
         } || failed "IS_NRPEPID" "missing or wrong pid_file directive in nrpe.cfg"
@@ -372,7 +384,7 @@ check_grsecprocs() {
 }
 check_apachemunin() {
     if test -e /etc/apache2/apache2.conf; then
-        if is_debian_stretch || is_debian_buster; then
+        if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
             { test -h /etc/apache2/mods-enabled/status.load \
                 && test -h /etc/munin/plugins/apache_accesses \
                 && test -h /etc/munin/plugins/apache_processes \
@@ -431,7 +443,7 @@ check_muninlogrotate() {
 }
 # Verification de l'activation de Squid dans le cas d'un pack mail
 check_squid() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         squidconffile="/etc/squid/evolinux-custom.conf"
     else
         squidconffile="/etc/squid*/squid.conf"
@@ -473,7 +485,7 @@ check_log2mailrunning() {
     fi
 }
 check_log2mailapache() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         conf=/etc/log2mail/config/apache
     else
         conf=/etc/log2mail/config/default
@@ -532,7 +544,7 @@ check_network_interfaces() {
 }
 # Verify if all if are in auto
 check_autoif() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         interfaces=$(/sbin/ip address show up | grep "^[0-9]*:" | grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap|vrrp)" | cut -d " " -f 2 | tr -d : | cut -d@ -f1 | tr "\n" " ")
     else
         interfaces=$(/sbin/ifconfig -s | tail -n +2 | grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap|vrrp)" | cut -d " " -f 1 |tr "\n" " ")
@@ -681,6 +693,7 @@ check_backupuptodate() {
     backup_dir="/home/backup"
     if [ -d "${backup_dir}" ]; then
         if [ -n "$(ls -A ${backup_dir})" ]; then
+            # shellcheck disable=SC2231
             for file in ${backup_dir}/*; do
                 limit=$(date +"%s" -d "now - 2 day")
                 updated_at=$(stat -c "%Y" "$file")
@@ -771,7 +784,7 @@ check_tune2fs_m5() {
     done
 }
 check_evolinuxsudogroup() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if grep -q "^evolinux-sudo:" /etc/group; then
             grep -qE '^%evolinux-sudo +ALL ?= ?\(ALL:ALL\) ALL' /etc/sudoers.d/evolinux \
                 || failed "IS_EVOLINUXSUDOGROUP" "missing evolinux-sudo directive in sudoers file"
@@ -779,7 +792,7 @@ check_evolinuxsudogroup() {
     fi
 }
 check_userinadmgroup() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         users=$(grep "^evolinux-sudo:" /etc/group | awk -F: '{print $4}' | tr ',' ' ')
         for user in $users; do
             if ! groups "$user" | grep -q adm; then
@@ -790,7 +803,7 @@ check_userinadmgroup() {
     fi
 }
 check_apache2evolinuxconf() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if test -d /etc/apache2; then
             { test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
                 && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
@@ -800,7 +813,7 @@ check_apache2evolinuxconf() {
     fi
 }
 check_backportsconf() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_ || is_debian_bullseye; then
         grep -qsE "^[^#].*backports" /etc/apt/sources.list \
             && failed "IS_BACKPORTSCONF" "backports can't be in main sources list"
         if grep -qsE "^[^#].*backports" /etc/apt/sources.list.d/*.list; then
@@ -810,7 +823,7 @@ check_backportsconf() {
     fi
 }
 check_bind9munin() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if is_installed bind9; then
             { test -L /etc/munin/plugins/bind9 \
                 && test -e /etc/munin/plugin-conf.d/bind9;
@@ -819,7 +832,7 @@ check_bind9munin() {
     fi
 }
 check_bind9logrotate() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if is_installed bind9; then
             test -e /etc/logrotate.d/bind9 || failed "IS_BIND9LOGROTATE" "missing bind logrotate file"
         fi
@@ -853,7 +866,7 @@ check_hardwareraidtool() {
     fi
 }
 check_log2mailsystemdunit() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         systemctl -q is-active log2mail.service \
             || failed "IS_LOG2MAILSYSTEMDUNIT" "log2mail unit not running"
         test -f /etc/systemd/system/log2mail.service \
@@ -869,7 +882,7 @@ check_listupgrade() {
         || failed "IS_LISTUPGRADE" "missing listupgrade script or not executable"
 }
 check_mariadbevolinuxconf() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if is_installed mariadb-server; then
             { test -f /etc/mysql/mariadb.conf.d/z-evolinux-defaults.cnf \
                 && test -f /etc/mysql/mariadb.conf.d/zzz-evolinux-custom.cnf;
@@ -955,7 +968,7 @@ check_mariadbsystemdunit() {
     fi
 }
 check_mysqlmunin() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if is_installed mariadb-server; then
             for file in mysql_bytes mysql_queries mysql_slowqueries \
                 mysql_threads mysql_connections mysql_files_tables \
@@ -973,7 +986,7 @@ check_mysqlmunin() {
     fi
 }
 check_mysqlnrpe() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if is_installed mariadb-server; then
             nagios_file=~nagios/.my.cnf
             if ! test -f ${nagios_file}; then
@@ -989,9 +1002,10 @@ check_mysqlnrpe() {
     fi
 }
 check_phpevolinuxconf() {
-    if is_debian_stretch || is_debian_buster; then
-        is_debian_stretch && phpVersion="7.0"
-        is_debian_buster && phpVersion="7.3"
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
+        is_debian_stretch  && phpVersion="7.0"
+        is_debian_buster   && phpVersion="7.3"
+        is_debian_bullseye && phpVersion="7.4"
         if is_installed php; then
             { test -f /etc/php/${phpVersion}/cli/conf.d/z-evolinux-defaults.ini \
                 && test -f /etc/php/${phpVersion}/cli/conf.d/zzz-evolinux-custom.ini
@@ -1000,7 +1014,7 @@ check_phpevolinuxconf() {
     fi
 }
 check_squidlogrotate() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if is_installed squid; then
             grep -q monthly /etc/logrotate.d/squid \
                 || failed "IS_SQUIDLOGROTATE" "missing squid logrotate file"
@@ -1008,7 +1022,7 @@ check_squidlogrotate() {
     fi
 }
 check_squidevolinuxconf() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if is_installed squid; then
             { grep -qs "^CONFIG=/etc/squid/evolinux-defaults.conf$" /etc/default/squid \
                 && test -f /etc/squid/evolinux-defaults.conf \
@@ -1083,7 +1097,7 @@ check_apache_confenabled() {
     # Starting from Jessie and Apache 2.4, /etc/apache2/conf.d/
     # must be replaced by conf-available/ and config files symlinked
     # to conf-enabled/
-    if is_debian_jessie || is_debian_stretch || is_debian_buster; then
+    if is_debian_jessie || is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if [ -f /etc/apache2/apache2.conf ]; then
             test -d /etc/apache2/conf.d/ \
                 && failed "IS_APACHE_CONFENABLED" "apache's conf.d directory must not exists"
@@ -1095,7 +1109,7 @@ check_apache_confenabled() {
 check_meltdown_spectre() {
     # For Stretch, detection is easy as the kernel use
     # /sys/devices/system/cpu/vulnerabilities/
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         for vuln in meltdown spectre_v1 spectre_v2; do
             test -f "/sys/devices/system/cpu/vulnerabilities/$vuln" \
                 || failed "IS_MELTDOWN_SPECTRE" "vulnerable to $vuln"
@@ -1148,7 +1162,7 @@ check_usrsharescripts() {
     test "$expected" = "$actual" || failed "IS_USRSHARESCRIPTS" "/usr/share/scripts must be $expected"
 }
 check_sshpermitrootno() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if grep -q "^PermitRoot" /etc/ssh/sshd_config; then
             grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config \
                 || failed "IS_SSHPERMITROOTNO" "PermitRoot should be set at no"
@@ -1159,7 +1173,7 @@ check_sshpermitrootno() {
     fi
 }
 check_evomaintenanceusers() {
-    if is_debian_stretch || is_debian_buster; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         users=$(getent group evolinux-sudo | cut -d':' -f4 | tr ',' ' ')
     else
         if [ -f /etc/sudoers.d/evolinux ]; then

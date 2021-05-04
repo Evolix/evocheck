@@ -1295,6 +1295,27 @@ check_nginx_letsencrypt_uptodate() {
     fi
 }
 
+check_lxc_container_resolv_conf() {
+    if is_installed lxc; then
+        container_list=$(lxc-ls)
+        current_resolvers=$(grep nameserver /etc/resolv.conf | sed 's/nameserver//g' )
+
+       for container in $container_list; do
+            if [ -f "/var/lib/lxc/${container}/rootfs/etc/resolv.conf" ]; then
+
+                while read -r resolver; do
+                    if ! grep -qE "^nameserver\s+${resolver}" "/var/lib/lxc/${container}/rootfs/etc/resolv.conf"; then
+                        failed "IS_LXC_CONTAINER_RESOLV_CONF" "resolv.conf miss-match beween host and container : missing nameserver ${resolver} in container ${container} resolv.conf"
+                    fi
+                done <<< "${current_resolvers}"
+
+            else
+                failed "IS_LXC_CONTAINER_RESOLV_CONF" "resolv.conf missing in container ${container}"
+            fi
+        done 
+    fi
+}
+
 main() {
     # Default return code : 0 = no error
     RC=0
@@ -1421,6 +1442,7 @@ main() {
         test "${IS_APT_VALID_UNTIL:=1}" = 1 && check_apt_valid_until
         test "${IS_CHROOTED_BINARY_UPTODATE:=1}" = 1 && check_chrooted_binary_uptodate
         test "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" = 1 && check_nginx_letsencrypt_uptodate
+        test "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" = 1 && check_lxc_container_resolv_conf
     fi
 
     #-----------------------------------------------------------

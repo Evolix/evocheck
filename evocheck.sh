@@ -4,7 +4,8 @@
 # Script to verify compliance of a Debian/OpenBSD server
 # powered by Evolix
 
-readonly VERSION="21.05-pre1"
+VERSION="21.05-pre2"
+readonly VERSION
 
 # base functions
 
@@ -12,7 +13,7 @@ show_version() {
     cat <<END
 evocheck version ${VERSION}
 
-Copyright 2009-2019 Evolix <info@evolix.fr>,
+Copyright 2009-2021 Evolix <info@evolix.fr>,
                     Romain Dessort <rdessort@evolix.fr>,
                     Benoit Série <bserie@evolix.fr>,
                     Gregory Colpart <reg@evolix.fr>,
@@ -812,7 +813,7 @@ check_apache2evolinuxconf() {
     fi
 }
 check_backportsconf() {
-    if is_debian_stretch || is_debian_ || is_debian_bullseye; then
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         grep -qsE "^[^#].*backports" /etc/apt/sources.list \
             && failed "IS_BACKPORTSCONF" "backports can't be in main sources list"
         if grep -qsE "^[^#].*backports" /etc/apt/sources.list.d/*.list; then
@@ -957,6 +958,7 @@ check_elastic_backup() {
     fi
 }
 check_mariadbsystemdunit() {
+    # TODO: check if it is still needed for bullseye
     if is_debian_stretch || is_debian_buster; then
         if is_installed mariadb-server; then
             if systemctl -q is-active mariadb.service; then
@@ -1541,10 +1543,13 @@ main() {
     exit ${RC}
 }
 
+PROGNAME=$(basename "$0")
 # shellcheck disable=SC2034
-readonly PROGNAME=$(basename "$0")
-# shellcheck disable=2124
-readonly ARGS=$@
+readonly PROGNAME
+
+# shellcheck disable=SC2124
+ARGS=$@
+readonly ARGS
 
 # Disable LANG*
 export LANG=C

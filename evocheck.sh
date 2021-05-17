@@ -240,7 +240,7 @@ check_aptitude() {
 }
 check_aptgetbak() {
     if is_debian_jessie || is_debian_stretch || is_debian_buster; then
-        test -e /usr/bin/apt-get.bak && failed "IS_APTGETBAK" "missing dpkg-divert apt-get.bak"
+        test -e /usr/bin/apt-get.bak && failed "IS_APTGETBAK" "prohibit the installation of apt-get.bak with dpkg-divert(1)"
     fi
 }
 check_apticron() {

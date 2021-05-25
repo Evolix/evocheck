@@ -533,9 +533,9 @@ check_network_interfaces() {
 # Verify if all if are in auto
 check_autoif() {
     if is_debian_stretch || is_debian_buster; then
-        interfaces=$(/sbin/ip address show up | grep "^[0-9]*:" | grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 2 | tr -d : | cut -d@ -f1 | tr "\n" " ")
+        interfaces=$(/sbin/ip address show up | grep "^[0-9]*:" | grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap|vrrp)" | cut -d " " -f 2 | tr -d : | cut -d@ -f1 | tr "\n" " ")
     else
-        interfaces=$(/sbin/ifconfig -s | tail -n +2 | grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap)" | cut -d " " -f 1 |tr "\n" " ")
+        interfaces=$(/sbin/ifconfig -s | tail -n +2 | grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap|vrrp)" | cut -d " " -f 1 |tr "\n" " ")
     fi
     for interface in $interfaces; do
         if ! grep -q "^auto $interface" /etc/network/interfaces; then

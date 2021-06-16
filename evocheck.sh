@@ -1217,14 +1217,20 @@ check_usrsharescripts() {
     test "$expected" = "$actual" || failed "IS_USRSHARESCRIPTS" "/usr/share/scripts must be $expected"
 }
 check_sshpermitrootno() {
-    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
-        if grep -q "^PermitRoot" /etc/ssh/sshd_config; then
-            grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config \
-                || failed "IS_SSHPERMITROOTNO" "PermitRoot should be set at no"
-        fi
+    sshd_args="-C addr=,user=,host=,laddr=,lport=0"
+    if is_debian_jessie || is_debian_stretch; then
+	# Noop, we'll use the default $sshd_args
+        :
+    elif is_debian_buster; then
+	sshd_args="${sshd_args},rdomain="
     else
-        grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config \
-            || failed "IS_SSHPERMITROOTNO" "PermitRoot should be set at no"
+	# NOTE: From Debian Bullseye 11 onward, with OpenSSH 8.1, the argument
+        # -T doesn't require the additional -C.
+	sshd_args=
+    fi
+    # XXX: We want parameter expension here
+    if ! (sshd -T $sshd_args | grep -q 'permitrootlogin no'); then
+       failed "IS_SSHPERMITROOTNO" "PermitRoot should be set to no"
     fi
 }
 check_evomaintenanceusers() {

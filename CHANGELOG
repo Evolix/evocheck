@@ -20,7 +20,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Fixed
 
 * IS_EVOLIX_USER: Match on if account name begin by evolix, don't match account name testevolix for example
-
+* IS_HARDWARERAIDTOOL: match more RAID PCI cards
 
 ## [20.12] 2020-04-28
 

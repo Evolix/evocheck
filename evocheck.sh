@@ -853,7 +853,7 @@ check_broadcomfirmware() {
 check_hardwareraidtool() {
     LSPCI_BIN=$(command -v lspci)
     if [ -x "${LSPCI_BIN}" ]; then
-        if ${LSPCI_BIN} | grep -q 'MegaRAID SAS'; then
+        if ${LSPCI_BIN} | grep -q 'MegaRAID'; then
             # shellcheck disable=SC2015
             is_installed megacli && { is_installed megaclisas-status || is_installed megaraidsas-status; } \
                 || failed "IS_HARDWARERAIDTOOL" "Mega tools not found"

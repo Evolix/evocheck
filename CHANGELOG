@@ -15,12 +15,23 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
+## [21.07] 2021-07-07
+
+### Added
+
+* Preliminary Debian 11 « Bullseye » support
+
+### Fixed
+
+* IS_HARDWARERAIDTOOL: match more RAID PCI cards
+
+### Security
+
 ## [20.12] 2021-01-18
 
 ### Fixed
 
 * IS_EVOLIX_USER: Match on if account name begin by evolix, don't match account name testevolix for example
-* IS_HARDWARERAIDTOOL: match more RAID PCI cards
 
 ## [20.12] 2020-04-28
 

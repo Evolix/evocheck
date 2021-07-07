@@ -4,7 +4,7 @@
 # Script to verify compliance of a Debian/OpenBSD server
 # powered by Evolix
 
-VERSION="21.05-pre2"
+VERSION="21.07"
 readonly VERSION
 
 # base functions

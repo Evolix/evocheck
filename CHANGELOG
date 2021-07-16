@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.9.0] - 2021-07-16
+
+### Added
+
+- Add check_advskew : convention for CARP interfaces. CARP in master state must have advskew parameter between 1 and 50, CARP in backup state must have advskew parameter between 100 and 150, preventing a configuration error with the same value for master and backup
+
 ## [6.8.0] - 2020-10-23
 
 ### Fixed

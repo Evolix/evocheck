@@ -3,7 +3,7 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
-readonly VERSION="6.7.7"
+readonly VERSION="6.9.0"
 
 # Disable LANG*
 
@@ -353,6 +353,29 @@ check_openvpncronlog(){
     fi
 }
 
+check_advskew(){
+    if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
+        for carp in $(ifconfig carp | grep ^carp | awk '{print $1}' | tr -d ":"); do
+            ifconfig $carp | grep -q master
+            master=$?
+            ifconfig $carp | grep -q backup
+            backup=$?
+            advskew=$(ifconfig $carp | grep advbase | awk -F 'advskew' '{print $2}' | awk '{print $1}')
+            if [ "$master" -eq 0 ]; then
+                if [ $advskew -lt 1 ] || [ $advskew -gt 50 ]; then
+                    failed "IS_ADVSKEW" "Interface $carp is master : advskew must be between 1 and 50, and must remain lower than that of the backup - current value : $advskew"
+                fi
+            elif [ "$backup" -eq 0 ]; then
+                if [ $advskew -lt 100 ] || [ $advskew -gt 150 ]; then
+                    failed "IS_ADVSKEW" "Interface $carp is backup : advskew must be between 100 and 150, and must remain greater than that of the master - current value : $advskew"
+                fi
+            else
+                failed "IS_ADVSKEW" "Interface $carp is neither master nor backup. Check interface state."
+            fi
+        done
+    fi
+}
+
 
 main() {
     # Default return code : 0 = no error
@@ -394,6 +417,7 @@ main() {
     test "${IS_DEFAULTROUTE:=1}" = 1 && check_defaultroute
     test "${IS_NTP:=1}" = 1 && check_ntp
     test "${IS_OPENVPNCRONLOG:=1}" = 1 && check_openvpncronlog
+    test "${IS_ADVSKEW:=1}" = 1 && check_advskew
 
     exit ${RC}
 }

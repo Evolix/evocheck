@@ -197,7 +197,7 @@ check_carppreempt(){
             failed "IS_CARPPREEMPT" "The preempt function is not activated! Please type 'sysctl net.inet.carp.preempt=1' in"
         fi
         if [ -f /etc/sysctl.conf ]; then
-            grep -qE "^net.inet.carp.preempt=1" /etc/sysctl.conf || failed "IS_PREEMPT" "The preempt parameter is not permanently activated! Please add 'net.inet.carp.preempt=1' in /etc/sysctl.conf"
+            grep -qE "^net.inet.carp.preempt=1" /etc/sysctl.conf || failed "IS_CARPPREEMPT" "The preempt parameter is not permanently activated! Please add 'net.inet.carp.preempt=1' in /etc/sysctl.conf"
         else
         failed "IS_CARPPREEMPT" "Make sure /etc/sysctl.conf exists and contains the line 'net.inet.carp.preempt=1'"
         fi

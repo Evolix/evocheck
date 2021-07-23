@@ -3,7 +3,7 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
-readonly VERSION="6.9.0"
+readonly VERSION="6.9.1"
 
 # Disable LANG*
 
@@ -176,7 +176,7 @@ check_gitperms(){
     test -d /etc/.git && [ "$(stat -f %p /etc/.git/)" = "40700" ] || failed "IS_GITPERMS" "The directiry /etc/.git sould be in 700"
 }
 
-check_advbase(){
+check_carpadvbase(){
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         bad_advbase=0
         for advbase in $(ifconfig carp | grep advbase | awk -F 'advbase' '{print $2}' | awk '{print $1}' | xargs); do
@@ -185,21 +185,21 @@ check_advbase(){
         fi
         done
         if [[ "$bad_advbase" -eq 1 ]]; then
-            failed "IS_ADVBASE" "At least one CARP interface has advbase greater than 5 seconds!"
+            failed "IS_CARPADVBASE" "At least one CARP interface has advbase greater than 5 seconds!"
         fi
     fi
 }
 
-check_preempt(){
+check_carppreempt(){
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         preempt=$(sysctl net.inet.carp.preempt | cut -d"=" -f2)
         if [[ "$preempt" -ne 1 ]]; then
-            failed "IS_PREEMPT" "The preempt function is not activated! Please type 'sysctl net.inet.carp.preempt=1' in"
+            failed "IS_CARPPREEMPT" "The preempt function is not activated! Please type 'sysctl net.inet.carp.preempt=1' in"
         fi
         if [ -f /etc/sysctl.conf ]; then
             grep -qE "^net.inet.carp.preempt=1" /etc/sysctl.conf || failed "IS_PREEMPT" "The preempt parameter is not permanently activated! Please add 'net.inet.carp.preempt=1' in /etc/sysctl.conf"
         else
-        failed "IS_PREEMPT" "Make sure /etc/sysctl.conf exists and contains the line 'net.inet.carp.preempt=1'"
+        failed "IS_CARPPREEMPT" "Make sure /etc/sysctl.conf exists and contains the line 'net.inet.carp.preempt=1'"
         fi
     fi
 }
@@ -353,7 +353,7 @@ check_openvpncronlog(){
     fi
 }
 
-check_advskew(){
+check_carpadvskew(){
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         for carp in $(ifconfig carp | grep ^carp | awk '{print $1}' | tr -d ":"); do
             ifconfig $carp | grep -q master
@@ -363,14 +363,14 @@ check_advskew(){
             advskew=$(ifconfig $carp | grep advbase | awk -F 'advskew' '{print $2}' | awk '{print $1}')
             if [ "$master" -eq 0 ]; then
                 if [ $advskew -lt 1 ] || [ $advskew -gt 50 ]; then
-                    failed "IS_ADVSKEW" "Interface $carp is master : advskew must be between 1 and 50, and must remain lower than that of the backup - current value : $advskew"
+                    failed "IS_CARPADVSKEW" "Interface $carp is master : advskew must be between 1 and 50, and must remain lower than that of the backup - current value : $advskew"
                 fi
             elif [ "$backup" -eq 0 ]; then
                 if [ $advskew -lt 100 ] || [ $advskew -gt 150 ]; then
-                    failed "IS_ADVSKEW" "Interface $carp is backup : advskew must be between 100 and 150, and must remain greater than that of the master - current value : $advskew"
+                    failed "IS_CARPADVSKEW" "Interface $carp is backup : advskew must be between 100 and 150, and must remain greater than that of the master - current value : $advskew"
                 fi
             else
-                failed "IS_ADVSKEW" "Interface $carp is neither master nor backup. Check interface state."
+                failed "IS_CARPADVSKEW" "Interface $carp is neither master nor backup. Check interface state."
             fi
         done
     fi
@@ -392,8 +392,8 @@ main() {
     test "${IS_UPTIME:=1}" = 1 && check_uptime
     test "${IS_BACKUPUPTODATE:=1}" = 1 && check_backupuptodate
     test "${IS_GITPERMS:=1}" = 1 && check_gitperms
-    test "${IS_ADVBASE:=1}" = 1 && check_advbase
-    test "${IS_PREEMPT:=1}" = 1 && check_preempt
+    test "${IS_CARPADVBASE:=1}" = 1 && check_carpadvbase
+    test "${IS_CARPPREEMPT:=1}" = 1 && check_carppreempt
     test "${IS_REBOOTMAIL:=1}" = 1 && check_rebootmail
     test "${IS_PFENABLED:=1}" = 1 && check_pfenabled
     test "${IS_PFCUSTOM:=1}" = 1 && check_pfcustom
@@ -417,7 +417,7 @@ main() {
     test "${IS_DEFAULTROUTE:=1}" = 1 && check_defaultroute
     test "${IS_NTP:=1}" = 1 && check_ntp
     test "${IS_OPENVPNCRONLOG:=1}" = 1 && check_openvpncronlog
-    test "${IS_ADVSKEW:=1}" = 1 && check_advskew
+    test "${IS_CARPADVSKEW:=1}" = 1 && check_carpadvskew
 
     exit ${RC}
 }

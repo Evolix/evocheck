@@ -6,6 +6,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Added
 
 * Check for bullseye security repository
+* Checks for new minifirewall configuration
 
 ### Changed
 

@@ -4,7 +4,7 @@
 # Script to verify compliance of a Debian/OpenBSD server
 # powered by Evolix
 
-VERSION="21.07"
+VERSION="21.09"
 readonly VERSION
 
 # base functions
@@ -356,6 +356,13 @@ check_minifw() {
     /sbin/iptables -L -n | grep -q -E "^ACCEPT\s*all\s*--\s*31\.170\.8\.4\s*0\.0\.0\.0/0\s*$" \
         || failed "IS_MINIFW" "minifirewall seems not starded"
 }
+check_minifw_includes() {
+    if is_debian_bullseye; then
+        if grep -q -e '/sbin/iptables' -e '/sbin/ip6tables' "${MINIFW_FILE}"; then
+            failed "IS_MINIFWINCLUDES" "minifirewall has direct iptables invocations in ${MINIFW_FILE} that should go in /etc/minifirewall.d/"
+        fi
+    fi
+}
 check_nrpeperms() {
     if [ -d /etc/nagios ]; then
         nagiosDir="/etc/nagios"
@@ -468,7 +475,8 @@ check_squid() {
             && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d $host -j ACCEPT" "$MINIFW_FILE" \
             && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" "$MINIFW_FILE" \
             && grep -qE "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* $http_port" "$MINIFW_FILE";
-        } || failed "IS_SQUID" "missing squid rules in minifirewall"
+        } || grep -qE "^PROXY='?on'?" "$MINIFW_FILE" \
+          || failed "IS_SQUID" "missing squid rules in minifirewall"
     fi
 }
 check_evomaintenance_fw() {
@@ -1397,6 +1405,7 @@ main() {
         test "${IS_ALERT5MINIFW:=1}" = 1 && test "${IS_MINIFW:=1}" = 1 && check_minifw
         test "${IS_NRPEPERMS:=1}" = 1 && check_nrpeperms
         test "${IS_MINIFWPERMS:=1}" = 1 && check_minifwperms
+        test "${IS_MINIFWINCLUDES:=1}" = 1 && check_minifw_includes
         test "${IS_NRPEDISKS:=0}" = 1 && check_nrpedisks
         test "${IS_NRPEPID:=1}" = 1 && check_nrpepid
         test "${IS_GRSECPROCS:=1}" = 1 && check_grsecprocs

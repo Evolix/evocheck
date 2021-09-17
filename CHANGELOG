@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [21.09] - 2021-09-17
+
+### Changed
+
+- Changed version numbering to use year.month and be capable to know the age of the script
+
+### Fixed
+
+- Fixed check_tmoutprofile : Add "if" to check if file exists
+
 ## [6.9.1] - 2021-07-23
 
 ### Changed

@@ -15,6 +15,12 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
+## [21.10] 2021-10-01
+
+### Fixed
+
+* IS_DEBIANSECURITY: optional trailing slash 
+
 ## [21.09] 2021-09-30
 
 ### Added

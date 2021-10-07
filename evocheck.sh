@@ -3,7 +3,7 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
-readonly VERSION="21.09"
+readonly VERSION="21.10"
 
 # Disable LANG*
 
@@ -114,7 +114,7 @@ check_noatime(){
 }
 
 check_tmoutprofile(){
-    if [ -f /etc/skel/.profile ]
+    if [ -f /etc/skel/.profile ]; then
         grep -q TMOUT= /etc/skel/.profile /root/.profile || failed "IS_TMOUTPROFILE" "In order to fix, add 'export TMOUT=36000' to both /etc/skel/.profile and /root/.profile files"
     else
         failed "IS_TMOUTPROFILE" "File /etc/skel/.profile does not exist. Both /etc/skel/.profile and /root/.profile should contain at least 'export TMOUT=36000'"

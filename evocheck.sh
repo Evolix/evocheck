@@ -1040,7 +1040,7 @@ check_phpevolinuxconf() {
 check_squidlogrotate() {
     if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
         if is_installed squid; then
-            grep -q monthly /etc/logrotate.d/squid \
+            grep -q -e monthly -e daily /etc/logrotate.d/squid \
                 || failed "IS_SQUIDLOGROTATE" "missing squid logrotate file"
         fi
     fi

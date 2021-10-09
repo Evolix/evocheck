@@ -245,7 +245,7 @@ check_debiansecurity() {
     fi
 
     source_file="/etc/apt/sources.list"
-    grep -q "${pattern}" "${source_file}" || failed "IS_DEBIANSECURITY" "missing debian security repository"
+    grep -qE "${pattern}" "${source_file}" || failed "IS_DEBIANSECURITY" "missing debian security repository"
 }
 check_aptitudeonly() {
     if is_debian_squeeze || is_debian_wheezy; then
@@ -316,7 +316,7 @@ check_customcrontab() {
     test "$found_lines" = 4 && failed "IS_CUSTOMCRONTAB" "missing custom field in crontab"
 }
 check_sshallowusers() {
-    grep -E -qi "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config \
+    grep -E -qir "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config /etc/ssh/sshd_config.d \
         || failed "IS_SSHALLOWUSERS" "missing AllowUsers or AllowGroups directive in sshd_config"
 }
 check_diskperf() {
@@ -1354,6 +1354,15 @@ check_lxc_container_resolv_conf() {
     fi
 }
 
+check_version_minifw() {
+    expected_version="21.10"
+    actual_version=$(/etc/init.d/minifirewall version)
+
+    if dpkg --compare-versions "${actual_version}" lt "${expected_version}"; then
+        failed "IS_VERSION_MINIFW" "minifirewall version ${expected_version} expected, but ${expected_version} found"
+    fi
+}
+
 main() {
     # Default return code : 0 = no error
     RC=0
@@ -1408,7 +1417,8 @@ main() {
         test "${IS_ALERT5MINIFW:=1}" = 1 && test "${IS_MINIFW:=1}" = 1 && check_minifw
         test "${IS_NRPEPERMS:=1}" = 1 && check_nrpeperms
         test "${IS_MINIFWPERMS:=1}" = 1 && check_minifwperms
-        test "${IS_MINIFWINCLUDES:=1}" = 1 && check_minifw_includes
+        # Enable when minifirewall is released
+        test "${IS_MINIFWINCLUDES:=0}" = 1 && check_minifw_includes
         test "${IS_NRPEDISKS:=0}" = 1 && check_nrpedisks
         test "${IS_NRPEPID:=1}" = 1 && check_nrpepid
         test "${IS_GRSECPROCS:=1}" = 1 && check_grsecprocs
@@ -1482,6 +1492,7 @@ main() {
         test "${IS_CHROOTED_BINARY_UPTODATE:=1}" = 1 && check_chrooted_binary_uptodate
         test "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" = 1 && check_nginx_letsencrypt_uptodate
         test "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" = 1 && check_lxc_container_resolv_conf
+        test "${IS_VERSION_MINIFW:=1}" = 1 && check_version_minifw
     fi
 
     #-----------------------------------------------------------

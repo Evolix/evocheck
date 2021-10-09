@@ -1492,7 +1492,7 @@ main() {
         test "${IS_CHROOTED_BINARY_UPTODATE:=1}" = 1 && check_chrooted_binary_uptodate
         test "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" = 1 && check_nginx_letsencrypt_uptodate
         test "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" = 1 && check_lxc_container_resolv_conf
-        test "${IS_VERSION_MINIFW:=1}" = 1 && check_version_minifw
+        test "${IS_VERSION_MINIFW:=0}" = 1 && check_version_minifw
     fi
 
     #-----------------------------------------------------------

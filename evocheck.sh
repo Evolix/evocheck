@@ -220,7 +220,6 @@ check_vartmpfs() {
     else
         df /var/tmp | grep -q tmpfs || failed "IS_VARTMPFS" "/var/tmp is not a tmpfs"
     fi
-    
 }
 check_serveurbase() {
     is_installed serveur-base || failed "IS_SERVEURBASE" "serveur-base package is not installed"

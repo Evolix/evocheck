@@ -74,7 +74,7 @@ detect_os() {
 }
 
 is_debian() {
-  test -n "${DEBIAN_RELEASE}"
+    test -n "${DEBIAN_RELEASE}"
 }
 is_debian_lenny() {
     test "${DEBIAN_RELEASE}" = "lenny"

@@ -604,6 +604,7 @@ check_evobackup_exclude_mount() {
             failed "IS_EVOBACKUP_EXCLUDE_MOUNT" "${mount} is not excluded from ${evobackup_file} backup script"
         done
     done
+    rm -rf "${excludes_file}"
 }
 # Verification de la presence du userlogrotate
 check_userlogrotate() {

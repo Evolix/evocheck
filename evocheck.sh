@@ -1354,14 +1354,119 @@ check_lxc_container_resolv_conf() {
         done 
     fi
 }
+download_versions() {
+    local file
+    file=${1:-}
 
-check_version_minifw() {
-    expected_version="21.10"
-    actual_version=$(/etc/init.d/minifirewall version)
+    ## The file is supposed to list programs : each on a line, then its latest version number
+    ## Examples:
+    # evoacme 21.06
+    # evomaintenance 0.6.4
 
-    if dpkg --compare-versions "${actual_version}" lt "${expected_version}"; then
-        failed "IS_VERSION_MINIFW" "minifirewall version ${expected_version} expected, but ${expected_version} found"
+    if is_debian; then
+        versions_url="https://upgrades.evolix.org/versions-${DEBIAN_RELEASE}"
+    elif is_openbsd; then
+        versions_url="https://upgrades.evolix.org/versions-${OPENBSD_RELEASE}"
+    else
+        failed "IS_VERSIONS_CHECK" "error determining os release"
     fi
+
+    # fetch timeout, in seconds
+    timeout=10
+
+    if command -v curl > /dev/null; then
+        curl --max-time ${timeout} --fail --silent --output "${versions_file}" "${versions_url}"
+    elif command -v wget > /dev/null; then
+        wget --timeout=${timeout} --quiet "${versions_url}" -O "${versions_file}"
+    elif command -v GET; then
+        GET -t ${timeout}s "${versions_url}" > "${versions_file}"
+    else
+        failed "IS_VERSIONS_CHECK" "failed to find curl, wget or GET"
+    fi
+    test "$?" -eq 0 || failed "IS_VERSIONS_CHECK" "failed to download ${versions_url} to ${versions_file}"
+}
+get_command() {
+    local program
+    program=${1:-}
+
+    case "${program}" in
+        ## Special cases where the program name is different than the command name
+        evocheck) echo "${0}" ;;
+        evomaintenance) command -v evomaintenance.sh ;;
+        listupgrade) command -v evolistupgrade.sh ;;
+        old-kernel-autoremoval) command -v old-kernel-autoremoval.sh ;;
+        backup-server-state) command -v backup-server-state ;;
+        mysql-queries-killer) command -v mysql-queries-killer.sh ;;
+
+        ## General case, where the program name is the same as the command name
+        *) command -v "${program}" ;;
+    esac
+}
+get_version() {
+    local program
+    local command
+    program=${1:-}
+    command=${2:-}
+
+    case "${program}" in
+        ## Special case if `command --version => 'command` is not the standard way to get the version
+        # my_command)
+        #    /path/to/my_command --get-version 
+        #    ;;
+
+        ## General case to get the version
+        *) ${command} --version 2> /dev/null | head -1 | cut -d ' ' -f 3 ;;
+    esac
+}
+check_version() {
+    local program
+    local expected_version
+    program=${1:-}
+    expected_version=${2:-}
+
+    command=$(get_command "${program}")
+    if [ -n "${command}" ]; then
+        # shellcheck disable=SC2086
+        actual_version=$(get_version "${program}" "${command}")
+        # printf "program:%s expected:%s actual:%s\n" "${program}" "${expected_version}" "${actual_version}"
+        if [ -z "${actual_version}" ]; then
+            failed "IS_VERSIONS_CHECK" "failed to lookup actual version of ${program}"
+        elif dpkg --compare-versions "${actual_version}" lt "${expected_version}"; then
+            failed "IS_VERSIONS_CHECK" "${program} version ${expected_version} expected, but ${actual_version} found"
+        else
+            : # Version check OK
+        fi
+    fi
+}
+add_to_path() {
+    local new_path
+    new_path=${1:-}
+
+    echo "$PATH" | grep -qF "${new_path}" || export PATH="${PATH}:${new_path}"
+}
+check_versions() {
+    versions_file=$(mktemp --tmpdir=/tmp "evocheck-versions.XXXXX")
+    # shellcheck disable=SC2064
+    trap "rm -f ${versions_file}" 0
+    download_versions "${versions_file}"
+    add_to_path "/usr/share/scripts"
+
+    grep -v '^ *#' < "${versions_file}" | while IFS= read -r line; do
+        local program
+        local version
+        program=$(echo "${line}" | cut -d ' ' -f 1)
+        version=$(echo "${line}" | cut -d ' ' -f 2)
+
+        if [ -n "${program}" ]; then
+            if [ -n "${version}" ]; then
+                check_version "${program}" "${version}"
+            else
+                failed "IS_VERSIONS_CHECK" "failed to lookup expected version for ${program}"
+            fi
+        fi
+    done
+
+    rm -f "${versions_file}"
 }
 
 main() {
@@ -1493,7 +1598,7 @@ main() {
         test "${IS_CHROOTED_BINARY_UPTODATE:=1}" = 1 && check_chrooted_binary_uptodate
         test "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" = 1 && check_nginx_letsencrypt_uptodate
         test "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" = 1 && check_lxc_container_resolv_conf
-        test "${IS_VERSION_MINIFW:=0}" = 1 && check_version_minifw
+        test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
     fi
 
     #-----------------------------------------------------------

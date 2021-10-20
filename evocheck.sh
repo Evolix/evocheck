@@ -1391,11 +1391,10 @@ get_command() {
     case "${program}" in
         ## Special cases where the program name is different than the command name
         evocheck) echo "${0}" ;;
-        evomaintenance) command -v evomaintenance.sh ;;
-        listupgrade) command -v evolistupgrade.sh ;;
-        old-kernel-autoremoval) command -v old-kernel-autoremoval.sh ;;
-        backup-server-state) command -v backup-server-state ;;
-        mysql-queries-killer) command -v mysql-queries-killer.sh ;;
+        evomaintenance) command -v "evomaintenance.sh" ;;
+        listupgrade) command -v "evolistupgrade.sh" ;;
+        old-kernel-autoremoval) command -v "old-kernel-autoremoval.sh" ;;
+        mysql-queries-killer) command -v "mysql-queries-killer.sh" ;;
 
         ## General case, where the program name is the same as the command name
         *) command -v "${program}" ;;
@@ -1412,6 +1411,11 @@ get_version() {
         # my_command)
         #    /path/to/my_command --get-version 
         #    ;;
+
+        ## When there is just an internal variable name
+        kvmstats | add-vm)
+            grep '^VERSION=' "${command}" | head -1 | cut -d '=' -f 2
+            ;;
 
         ## General case to get the version
         *) ${command} --version 2> /dev/null | head -1 | cut -d ' ' -f 3 ;;

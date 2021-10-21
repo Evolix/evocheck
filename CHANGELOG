@@ -5,9 +5,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
-* IS_SSHALLOWUSERS: also scan /etc/ssh/sshd_config.d
-* IS_CHECK_VERSIONS: check installed versions of Evolix programs
-
 ### Changed
 
 ### Deprecated
@@ -17,6 +14,13 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Fixed
 
 ### Security
+
+## [21.10.1] 2021-10-01
+
+### Added
+
+* IS_SSHALLOWUSERS: also scan /etc/ssh/sshd_config.d
+* IS_CHECK_VERSIONS: check installed versions of Evolix programs
 
 ## [21.10] 2021-10-01
 

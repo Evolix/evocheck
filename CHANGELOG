@@ -15,6 +15,11 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
+## [21.10.2] 2021-10-22
+
+### Changed
+Let's try the --version flag before falling back to grep for the constant
+
 ## [21.10.1] 2021-10-01
 
 ### Added

@@ -1412,9 +1412,13 @@ get_version() {
         #    /path/to/my_command --get-version 
         #    ;;
 
-        ## When there is just an internal variable name
+        ## Let's try the --version flag before falling back to grep for the constant
         kvmstats | add-vm)
-            grep '^VERSION=' "${command}" | head -1 | cut -d '=' -f 2
+            if ${command} --version > /dev/null 2> /dev/null; then
+                 ${command} --version 2> /dev/null | head -1 | cut -d ' ' -f 3
+            else
+                grep '^VERSION=' "${command}" | head -1 | cut -d '=' -f 2
+            fi
             ;;
 
         ## General case to get the version

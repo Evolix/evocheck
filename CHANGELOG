@@ -15,6 +15,11 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
+## [21.10.3] 2021-10-22
+
+* Check for newer versions
+* don't use "add-vm --version" yet
+
 ## [21.10.2] 2021-10-22
 
 ### Changed

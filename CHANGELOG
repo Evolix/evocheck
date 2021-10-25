@@ -7,8 +7,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
-* IS_CHECK_VERSIONS disabled in cron mode
-
 ### Deprecated
 
 ### Removed
@@ -17,7 +15,15 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
+## [21.10.4] 2021-10-25
+
+### Changed
+
+* IS_CHECK_VERSIONS disabled in cron mode
+
 ## [21.10.3] 2021-10-22
+
+### Added
 
 * Check for newer versions
 * don't use "add-vm --version" yet

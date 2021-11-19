@@ -827,7 +827,7 @@ check_userinadmgroup() {
 }
 check_apache2evolinuxconf() {
     if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
-        if test -d /etc/apache2; then
+        if is_installed apache2; then
             { test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
                 && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
                 && test -f /etc/apache2/ipaddr_whitelist.conf;

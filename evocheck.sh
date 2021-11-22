@@ -594,6 +594,16 @@ check_interfacesgw() {
     number=$(grep -Ec "^[^#]*gateway [0-9a-fA-F]+:" /etc/network/interfaces)
     test "$number" -gt 1 && failed "IS_INTERFACESGW" "there is more than 1 IPv6 gateway"
 }
+# Verification de l’état du service networking
+check_networking_service() {
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
+        if systemctl is-enabled networking.service > /dev/null; then
+            if ! systemctl is-active networking.service > /dev/null; then
+                failed "IS_NETWORKING_SERVICE" "networking.service is not active"
+            fi
+        fi
+    fi
+}
 # Verification de la mise en place d'evobackup
 check_evobackup() {
     evobackup_found=$(find /etc/cron* -name '*evobackup*' | wc -l)
@@ -1582,6 +1592,7 @@ main() {
         test "${IS_NETWORK_INTERFACES:=1}" = 1 && check_network_interfaces
         test "${IS_AUTOIF:=1}" = 1 && check_autoif
         test "${IS_INTERFACESGW:=1}" = 1 && check_interfacesgw
+        test "${IS_NETWORKING_SERVICE:=1}" = 1 && check_networking_service
         test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
         test "${IS_EVOBACKUP_EXCLUDE_MOUNT:=1}" = 1 && check_evobackup_exclude_mount
         test "${IS_USERLOGROTATE:=1}" = 1 && check_userlogrotate

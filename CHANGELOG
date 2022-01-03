@@ -5,6 +5,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+check_mysqlmunin : Complain if munin plugin mysql_commands returns an error
+
 ### Changed
 
 ### Deprecated

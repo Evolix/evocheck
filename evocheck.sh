@@ -1006,6 +1006,8 @@ check_mysqlmunin() {
                     test "${VERBOSE}" = 1 || break
                 fi
             done
+            munin-run mysql_commands 2> /dev/null > /dev/null
+            test $? -eq 0 || failed "IS_MYSQLMUNIN" "Munin plugin mysql_commands returned an error"
         fi
     fi
 }

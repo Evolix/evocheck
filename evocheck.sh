@@ -943,7 +943,10 @@ check_mongo_backup() {
         # You could change the default path in /etc/evocheck.cf
         MONGO_BACKUP_PATH=${MONGO_BACKUP_PATH:-"/home/backup/mongodump"}
         if [ -d "$MONGO_BACKUP_PATH" ]; then
-            for file in "${MONGO_BACKUP_PATH}"/*/*.{json,bson}; do
+            for file in "${MONGO_BACKUP_PATH}"/*/*.{json,bson}{,.gz}; do
+                if ! test -f "${file}"; then
+                    continue
+                fi
                 # Skip indexes file.
                 if ! [[ "$file" =~ indexes ]]; then
                     limit=$(date +"%s" -d "now - 2 day")

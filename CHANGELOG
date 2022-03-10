@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [22.03] - 2022-03-10
+
+### Added
+
+- check_evomaintenanceconf : check existence and rights of evomaintenance conf file
+- Added check_nrpeopensmtpd to ensure that opensmtpd is used for mailq nrpe check
+- Added check_sshallowusers to ensure that AllowUsers or AllowGroups directive is present in sshd_config
+- Added check_evobackup_exclude_mount to ensure that NFS mounts are excluded from backup
+- Added check_etcgit to ensure that /etc is a git repository
+- Added check_evolinuxsudogroup to ensure that evolinux-sudo is properly configured in sudo if group exist
+- Added check_bind9munin to ensure that a plugin for bind is configured when munin is installed
+- Added check_evolix_user to ensure that evolix user does not exist
+- Added check_versions and its functions (download_versions, get_command, get_version, check_version, add_to_path) to ensure that custom scripts are up to date
+
+### Changed
+
+- Overall improvement of evocheck : reordering, splitting version and help options, adding comments, developping some functions so they are more comprehensible
+- Improved check_umasksudoers to have a more complete grep
+- Updated check_history to reflect the new HISTSIZE value
+- Renamed check_tmp1777 and check_root0700 respectively to check_tmp_1777 and check_root_0700
+- Improved check_tmp_1777, check_root_0700, check_usrsharescripts in the way the folders rights are checked
+
+### Fixed
+
+- Fixed check_uptime : it didn't work at all, and tried to get uptime in the wrong way
+- Fixed check_evomaintenanceusers : sudo is not used for the evomaintenance trap, doas is ; and users were not found the better way
+
+### Removed
+
+- Removed empty check_pfcustom
+
 ## [21.10] - 2021-10-07
 
 ### Fixed

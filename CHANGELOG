@@ -5,9 +5,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
-check_mysqlmunin : Complain if munin plugin mysql_commands returns an error
-check_versions : track minifirewall version
-
 ### Changed
 
 ### Deprecated
@@ -17,6 +14,12 @@ check_versions : track minifirewall version
 ### Fixed
 
 ### Security
+
+## [22.03] 2022-03-15
+### Added
+
+check_mysqlmunin : Complain if munin plugin mysql_commands returns an error
+check_versions : track minifirewall version
 
 ## [21.10.4] 2021-10-25
 

@@ -1402,6 +1402,7 @@ get_command() {
         listupgrade) command -v "evolistupgrade.sh" ;;
         old-kernel-autoremoval) command -v "old-kernel-autoremoval.sh" ;;
         mysql-queries-killer) command -v "mysql-queries-killer.sh" ;;
+        minifirewall) echo "/etc/init.d/minifirewall" ;;
 
         ## General case, where the program name is the same as the command name
         *) command -v "${program}" ;;
@@ -1421,6 +1422,9 @@ get_version() {
 
         add-vm)
             grep '^VERSION=' "${command}" | head -1 | cut -d '=' -f 2
+            ;;
+        minifirewall)
+            ${command} status | head -1 | cut -d ' ' -f 3
             ;;
         ## Let's try the --version flag before falling back to grep for the constant
         kvmstats)

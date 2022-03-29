@@ -15,6 +15,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
+check_debiansecurity: Consider both https://deb\.debian\.org/debian-security/ and https://security\.debian\.org/debian-security/ as valid since both are documented as such.
+
 ## [22.03.1] 2022-03-22
 
 ### Changed

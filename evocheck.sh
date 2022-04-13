@@ -3,7 +3,7 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
-readonly VERSION="22.03"
+readonly VERSION="22.04"
 
 # base functions
 
@@ -484,6 +484,11 @@ check_versions() {
 
     rm -f "${versions_file}"
 }
+check_root_user() {
+    if [ "$(grep "^root:" /etc/master.passwd | awk -F":" '{print $2}')" != "*************" ]; then
+        failed "IS_ROOT_USER" "root user should not have a password ; replace the password field with 'vipw' for the root user with '*************' (exactly 13 asterisks) "
+    fi
+}
 
 main() {
     # Default return code : 0 = no error
@@ -533,6 +538,7 @@ main() {
     test "${IS_BIND9MUNIN:=1}" = 1 && check_bind9munin
     test "${IS_EVOLIX_USER:=1}" = 1 && check_evolix_user
     test "${IS_VERSIONS_CHECK:=1}" = 1 && check_versions
+    test "${IS_ROOT_USER:=1}" = 1 && check_root_user
 
     exit ${RC}
 }

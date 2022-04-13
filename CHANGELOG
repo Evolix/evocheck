@@ -7,11 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [22.04] - 2022-04-13
+
+### Added
+
+- Added check_root_user: make sure that root user does not have a password
+
 ## [22.03] - 2022-03-10
 
 ### Added
 
-- check_evomaintenanceconf : check existence and rights of evomaintenance conf file
+- check_evomaintenanceconf: check existence and rights of evomaintenance conf file
 - Added check_nrpeopensmtpd to ensure that opensmtpd is used for mailq nrpe check
 - Added check_sshallowusers to ensure that AllowUsers or AllowGroups directive is present in sshd_config
 - Added check_evobackup_exclude_mount to ensure that NFS mounts are excluded from backup
@@ -23,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Overall improvement of evocheck : reordering, splitting version and help options, adding comments, developping some functions so they are more comprehensible
+- Overall improvement of evocheck: reordering, splitting version and help options, adding comments, developping some functions so they are more comprehensible
 - Improved check_umasksudoers to have a more complete grep
 - Updated check_history to reflect the new HISTSIZE value
 - Renamed check_tmp1777 and check_root0700 respectively to check_tmp_1777 and check_root_0700
@@ -31,8 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed check_uptime : it didn't work at all, and tried to get uptime in the wrong way
-- Fixed check_evomaintenanceusers : sudo is not used for the evomaintenance trap, doas is ; and users were not found the better way
+- Fixed check_uptime: it didn't work at all, and tried to get uptime in the wrong way
+- Fixed check_evomaintenanceusers: sudo is not used for the evomaintenance trap, doas is ; and users were not found the better way
 
 ### Removed
 
@@ -42,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed check_tmoutprofile : syntax error on if/else/fi test
+- Fixed check_tmoutprofile: syntax error on if/else/fi test
 
 ## [21.09] - 2021-09-17
 
@@ -52,7 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed check_tmoutprofile : Add "if" to check if file exists
+- Fixed check_tmoutprofile: Add "if" to check if file exists
 
 ## [6.9.1] - 2021-07-23
 
@@ -64,24 +70,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add check_advskew : convention for CARP interfaces. CARP in master state must have advskew parameter between 1 and 50, CARP in backup state must have advskew parameter between 100 and 150, preventing a configuration error with the same value for master and backup
+- Add check_advskew: convention for CARP interfaces. CARP in master state must have advskew parameter between 1 and 50, CARP in backup state must have advskew parameter between 100 and 150, preventing a configuration error with the same value for master and backup
 
 ## [6.8.0] - 2020-10-23
 
 ### Fixed
 
-- Fix check_noatime : do not take into account commented entry in fstab
+- Fix check_noatime: do not take into account commented entry in fstab
 
 ## [6.7.7] - 2020-10-22
 
 ### Added
 
-- Add check_openvpncronlog : a cron is needed to rotate logs, because a restart of OpenVPN would be needed with the use of newsyslog to rotate logs
+- Add check_openvpncronlog: a cron is needed to rotate logs, because a restart of OpenVPN would be needed with the use of newsyslog to rotate logs
 
 ### Fixed
 
-- Fix check_uptodate : properly check that syspatch exists
-- Fix check_raidok : the same device could be displayed multiple times
+- Fix check_uptodate: properly check that syspatch exists
+- Fix check_raidok: the same device could be displayed multiple times
 
 ## [6.7.6] - 2020-10-15
 

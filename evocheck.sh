@@ -397,9 +397,9 @@ download_versions() {
     elif command -v GET; then
         GET -t ${timeout}s "${versions_url}" > "${versions_file}"
     else
-        failed "IS_VERSIONS_CHECK" "failed to find curl, wget or GET"
+        failed "IS_CHECK_VERSIONS" "failed to find curl, wget or GET"
     fi
-    test "$?" -eq 0 || failed "IS_VERSIONS_CHECK" "failed to download ${versions_url} to ${versions_file}"
+    test "$?" -eq 0 || failed "IS_CHECK_VERSIONS" "failed to download ${versions_url} to ${versions_file}"
 }
 get_command() {
     local program
@@ -445,13 +445,13 @@ check_version() {
         actual_version=$(get_version "${program}" "${command}")
         # printf "program:%s expected:%s actual:%s\n" "${program}" "${expected_version}" "${actual_version}"
         if [ -z "${actual_version}" ]; then
-            failed "IS_VERSIONS_CHECK" "failed to lookup actual version of ${program}"
+            failed "IS_CHECK_VERSIONS" "failed to lookup actual version of ${program}"
         elif [ "${actual_version}" = "${expected_version}" ]; then
             : # Version check OK ; to check first because of the way the check works
         elif [ "$(echo ${actual_version}\\n${expected_version} | sort -V | head -n 1)" = "${actual_version}" ]; then
-            failed "IS_VERSIONS_CHECK" "${program} version ${actual_version} is older than expected version ${expected_version}"
+            failed "IS_CHECK_VERSIONS" "${program} version ${actual_version} is older than expected version ${expected_version}"
         elif [ "$(echo ${actual_version}\\n${expected_version} | sort -V | head -n 1)" = "${expected_version}" ]; then
-            failed "IS_VERSIONS_CHECK" "${program} version ${actual_version} is newer than expected version ${expected_version}, you should update your index."
+            failed "IS_CHECK_VERSIONS" "${program} version ${actual_version} is newer than expected version ${expected_version}, you should update your index."
         fi
     fi
 }
@@ -477,7 +477,7 @@ check_versions() {
             if [ -n "${version}" ]; then
                 check_version "${program}" "${version}"
             else
-                failed "IS_VERSIONS_CHECK" "failed to lookup expected version for ${program}"
+                failed "IS_CHECK_VERSIONS" "failed to lookup expected version for ${program}"
             fi
         fi
     done
@@ -537,7 +537,7 @@ main() {
     test "${IS_EVOLINUXSUDOGROUP:=1}" = 1 && check_evolinuxsudogroup
     test "${IS_BIND9MUNIN:=1}" = 1 && check_bind9munin
     test "${IS_EVOLIX_USER:=1}" = 1 && check_evolix_user
-    test "${IS_VERSIONS_CHECK:=1}" = 1 && check_versions
+    test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
     test "${IS_ROOT_USER:=1}" = 1 && check_root_user
 
     exit ${RC}
@@ -565,6 +565,7 @@ while :; do
         --cron)
             IS_KERNELUPTODATE=0
             IS_UPTIME=0
+            IS_CHECK_VERSIONS=0
             ;;
         -v|--verbose)
             VERBOSE=1

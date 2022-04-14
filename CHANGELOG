@@ -13,6 +13,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+check_versions: "IS_CHECK_VERSIONS" was checked but "IS_VERSIONS_CHECK" was echoed, now "IS_CHECK_VERSIONS" everywhere
+
 ### Security
 
 check_debiansecurity: Consider both https://deb\.debian\.org/debian-security/ and https://security\.debian\.org/debian-security/ as valid since both are documented as such.

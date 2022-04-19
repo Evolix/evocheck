@@ -1456,7 +1456,7 @@ check_version() {
         elif dpkg --compare-versions "${actual_version}" lt "${expected_version}"; then
             failed "IS_CHECK_VERSIONS" "${program} version ${actual_version} is older than expected version ${expected_version}"
         elif dpkg --compare-versions "${actual_version}" gt "${expected_version}"; then
-            failed "IS_CHECK_VERSIONS" "${program} version ${actual_version} is newer than expected version ${expected_version}, you should update tour index."
+            failed "IS_CHECK_VERSIONS" "${program} version ${actual_version} is newer than expected version ${expected_version}, you should update your index."
         else
             : # Version check OK
         fi

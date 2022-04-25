@@ -7,17 +7,23 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
-* fix various shellcheck violations
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-* IS_EVOBACKUP_EXCLUDE_MOUNT: fix one-file-system restriction
-
 ### Security
+
+## [22.04.1] 2022-04-25
+
+### Changed
+
+* fix various shellcheck violations
+
+### Fixed
+
+* IS_EVOBACKUP_EXCLUDE_MOUNT: fix one-file-system restriction
 
 ## [22.04] 2022-04-25
 

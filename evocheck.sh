@@ -596,7 +596,7 @@ check_evobackup() {
 }
 # Vérification de l'exclusion des montages (NFS) dans les sauvegardes
 check_evobackup_exclude_mount() {
-    excludes_file=$(mktemp --tmpdir=${TMPDIR:-/tmp} "evocheck.evobackup_exclude_mount.XXXXX")
+    excludes_file=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.evobackup_exclude_mount.XXXXX")
     files_to_cleanup="${files_to_cleanup} ${excludes_file}"
 
     # shellcheck disable=SC2044
@@ -1074,7 +1074,7 @@ check_duplicate_fs_label() {
     # Do it only if thereis blkid binary
     BLKID_BIN=$(command -v blkid)
     if [ -n "$BLKID_BIN" ]; then
-        tmpFile=$(mktemp --tmpdir=${TMPDIR:-/tmp} "evocheck.duplicate_fs_label.XXXXX")
+        tmpFile=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.duplicate_fs_label.XXXXX")
         files_to_cleanup="${files_to_cleanup} ${tmpFile}"
 
         parts=$($BLKID_BIN -c /dev/null | grep -ve raid_member -e EFI_SYSPART | grep -Eo ' LABEL=".*"' | cut -d'"' -f2)
@@ -1473,7 +1473,7 @@ add_to_path() {
     echo "$PATH" | grep -qF "${new_path}" || export PATH="${PATH}:${new_path}"
 }
 check_versions() {
-    versions_file=$(mktemp --tmpdir=${TMPDIR:-/tmp} "evocheck.versions.XXXXX")
+    versions_file=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.versions.XXXXX")
     files_to_cleanup="${files_to_cleanup} ${versions_file}"
 
     download_versions "${versions_file}"
@@ -1501,7 +1501,7 @@ main() {
     # Detect operating system name, version and release
     detect_os
 
-    main_output_file=$(mktemp --tmpdir=${TMPDIR:-/tmp} "evocheck.main.XXXXX")
+    main_output_file=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.main.XXXXX")
     files_to_cleanup="${files_to_cleanup} ${main_output_file}"
 
     #-----------------------------------------------------------
@@ -1733,7 +1733,9 @@ main() {
     fi
 
     if [ -f "${main_output_file}" ]; then
-        if [ $(cat "${main_output_file}" | wc -l) -gt 0 ]; then
+        lines_found=$(wc -l < "${main_output_file}")
+        # shellcheck disable=SC2086
+        if [ ${lines_found} -gt 0 ]; then
 
             cat "${main_output_file}" 2>&1
         fi

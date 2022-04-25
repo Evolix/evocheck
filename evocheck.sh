@@ -603,13 +603,13 @@ check_evobackup_exclude_mount() {
     for evobackup_file in $(find /etc/cron* -name '*evobackup*' | grep -v -E ".disabled$"); do
         # If rsync is not limited by "one-file-system"
         # then we verify that every mount is excluded
-        grep -q -- "^\s*--one-file-system" "${evobackup_file}" \
-            || grep -- "--exclude " "${evobackup_file}" | grep -E -o "\"[^\"]+\"" | tr -d '"' \
-            > "${excludes_file}"
-        not_excluded=$(findmnt --type nfs,nfs4,fuse.sshfs, -o target --noheadings | grep -v -f "${excludes_file}")
-        for mount in ${not_excluded}; do
-            failed "IS_EVOBACKUP_EXCLUDE_MOUNT" "${mount} is not excluded from ${evobackup_file} backup script"
-        done
+        if ! grep -q -- "^\s*--one-file-system" "${evobackup_file}"; then
+            grep -- "--exclude " "${evobackup_file}" | grep -E -o "\"[^\"]+\"" | tr -d '"' > "${excludes_file}"
+            not_excluded=$(findmnt --type nfs,nfs4,fuse.sshfs, -o target --noheadings | grep -v -f "${excludes_file}")
+            for mount in ${not_excluded}; do
+                failed "IS_EVOBACKUP_EXCLUDE_MOUNT" "${mount} is not excluded from ${evobackup_file} backup script"
+            done
+        fi
     done
 }
 # Verification de la presence du userlogrotate

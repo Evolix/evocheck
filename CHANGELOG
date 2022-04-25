@@ -15,6 +15,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* IS_EVOBACKUP_EXCLUDE_MOUNT: fix one-file-system restriction
+
 ### Security
 
 ## [22.04] 2022-04-25

@@ -343,21 +343,34 @@ check_alert5boot() {
     fi
 }
 check_alert5minifw() {
-    if is_debian_buster || is_debian_bullseye; then
-        grep -qs "^/etc/init.d/minifirewall" /usr/share/scripts/alert5.sh \
-            || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 script or script is missing"
-    else
-        if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
-            grep -q "^/etc/init.d/minifirewall" /etc/rc2.d/S*alert5 \
-                || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 init script"
+    # If minifirewall is not started by alert5
+    if [ ! -f /etc/systemd/system/minifirewall.service ]; then
+        if is_debian_buster || is_debian_bullseye; then
+            grep -qs "^/etc/init.d/minifirewall" /usr/share/scripts/alert5.sh \
+                || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 script or script is missing"
         else
-            failed "IS_ALERT5MINIFW" "alert5 init script is missing"
+            if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
+                grep -q "^/etc/init.d/minifirewall" /etc/rc2.d/S*alert5 \
+                    || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 init script"
+            else
+                failed "IS_ALERT5MINIFW" "alert5 init script is missing"
+            fi
+        fi
+    fi
+}
+check_systemdminifw() {
+    if [ -f /etc/systemd/system/minifirewall.service ]; then
+        if ! systemctl is-enabled minifirewall 2>&1 > /dev/null; then
+            failed "IS_SYSTEMDMINIFW" "Minifirewall service is not enabled in systemd"
+        fi
+        if ! systemctl is-active minifirewall 2>&1 > /dev/null; then
+            failed "IS_SYSTEMDMINIFW" "Minifirewall service is not active in systemd"
         fi
     fi
 }
 check_minifw() {
     /sbin/iptables -L -n | grep -q -E "^ACCEPT\s*all\s*--\s*31\.170\.8\.4\s*0\.0\.0\.0/0\s*$" \
-        || failed "IS_MINIFW" "minifirewall seems not starded"
+        || failed "IS_MINIFW" "minifirewall seems not started"
 }
 check_minifw_includes() {
     if is_debian_bullseye; then
@@ -1549,6 +1562,7 @@ main() {
         test "${IS_TMOUTPROFILE:=1}" = 1 && check_tmoutprofile
         test "${IS_ALERT5BOOT:=1}" = 1 && check_alert5boot
         test "${IS_ALERT5MINIFW:=1}" = 1 && check_alert5minifw
+        test "${IS_SYSTEMDMINIFW:=1}" = 1 && check_systemdminifw
         test "${IS_ALERT5MINIFW:=1}" = 1 && test "${IS_MINIFW:=1}" = 1 && check_minifw
         test "${IS_NRPEPERMS:=1}" = 1 && check_nrpeperms
         test "${IS_MINIFWPERMS:=1}" = 1 && check_minifwperms

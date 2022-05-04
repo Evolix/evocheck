@@ -343,7 +343,7 @@ check_alert5boot() {
     fi
 }
 check_alert5minifw() {
-    # If minifirewall is not started by alert5
+    # If minifirewall is not started by alert5
     if [ ! -f /etc/systemd/system/minifirewall.service ]; then
         if is_debian_buster || is_debian_bullseye; then
             grep -qs "^/etc/init.d/minifirewall" /usr/share/scripts/alert5.sh \

@@ -7,6 +7,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
+IS_EVOBACKUP_EXCLUDE_MOUNT: exclude scripts without Rsync command
+
 ### Deprecated
 
 ### Removed

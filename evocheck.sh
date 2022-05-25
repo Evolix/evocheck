@@ -337,6 +337,8 @@ check_alert5boot() {
     else
         if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
             grep -q "^date" /etc/rc2.d/S*alert5 || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 init script"
+        elif [ -n "$(find /etc/init.d/ -name 'alert5')" ]; then
+            grep -q "^date" /etc/init.d/alert5 || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 int script"
         else
             failed "IS_ALERT5BOOT" "alert5 init script is missing"
         fi
@@ -349,6 +351,9 @@ check_alert5minifw() {
     else
         if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
             grep -q "^/etc/init.d/minifirewall" /etc/rc2.d/S*alert5 \
+                || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 init script"
+        elif [ -n "$(find /etc/init.d/ -name 'alert5')" ]; then
+            grep -q "^/etc/init.d/minifirewall" /etc/init.d/alert5 \
                 || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 init script"
         else
             failed "IS_ALERT5MINIFW" "alert5 init script is missing"

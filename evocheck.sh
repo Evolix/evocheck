@@ -235,7 +235,7 @@ check_debiansecurity() {
     if is_debian_bullseye; then
         # https://www.debian.org/releases/bullseye/amd64/release-notes/ch-information.html#security-archive
         # https://www.debian.org/security/
-        pattern="^deb https://(deb|security)\.debian\.org/debian-security/? bullseye-security main"
+        pattern="^deb http://security\.debian\.org/debian-security/? bullseye-security main"
     elif is_debian_buster; then
         pattern="^deb http://security\.debian\.org/debian-security/? buster/updates main"
     elif is_debian_stretch; then

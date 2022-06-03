@@ -5,8 +5,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
-* IS_AUTOIF: Ignore WireGuard interfaces
-
 ### Changed
 
 ### Deprecated
@@ -16,6 +14,16 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Fixed
 
 ### Security
+
+## [22.06] 2022-06-03
+
+### Added
+
+* IS_AUTOIF: Ignore WireGuard interfaces
+
+### Changed
+
+* IS_DEBIANSECURITY: Fix Debian security repo for Bullseye, cf https://www.debian.org/releases/stable/errata
 
 ## [22.05] 2022-05-12
 

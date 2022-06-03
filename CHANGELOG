@@ -5,6 +5,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* IS_AUTOIF: Ignore WireGuard interfaces
+
 ### Changed
 
 ### Deprecated

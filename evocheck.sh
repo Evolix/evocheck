@@ -19,7 +19,8 @@ Copyright 2009-2022 Evolix <info@evolix.fr>,
                     Gregory Colpart <reg@evolix.fr>,
                     Jérémy Lecour <jlecour@evolix.fr>,
                     Tristan Pilat <tpilat@evolix.fr>,
-                    Victor Laborie <vlaborie@evolix.fr>
+                    Victor Laborie <vlaborie@evolix.fr>,
+                    Alexis Ben Miloud--Josselin <abenmiloud@evolix.fr>,
                     and others.
 
 evocheck comes with ABSOLUTELY NO WARRANTY.  This is free software,

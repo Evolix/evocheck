@@ -742,12 +742,13 @@ check_backupuptodate() {
     backup_dir="/home/backup"
     if [ -d "${backup_dir}" ]; then
         if [ -n "$(ls -A ${backup_dir})" ]; then
-            # shellcheck disable=SC2231
-            for file in ${backup_dir}/*; do
+            # Look for all files, including subdirectories.
+            # If this turns out to be problematic, we can go back to first level only, with --max-depth=1
+            find "${backup_dir}" -type f | while read -r file; do
                 limit=$(date +"%s" -d "now - 2 day")
                 updated_at=$(stat -c "%Y" "$file")
 
-                if [ -f "$file" ] && [ "$limit" -gt "$updated_at" ]; then
+                if [ "$limit" -gt "$updated_at" ]; then
                     failed "IS_BACKUPUPTODATE" "$file has not been backed up"
                     test "${VERBOSE}" = 1 || break;
                 fi

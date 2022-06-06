@@ -15,11 +15,22 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
+## [22.06] 2022-06-03
+
+### Added
+
+* IS_AUTOIF: Ignore WireGuard interfaces
+* IS_NETWORKING_SERVICE: check if networking service is enabled
+
+### Changed
+
+* IS_DEBIANSECURITY: Fix Debian security repo for Bullseye, cf https://www.debian.org/releases/stable/errata
+
 ## [22.05] 2022-05-12
 
 ### Changed
 
-IS_EVOBACKUP_EXCLUDE_MOUNT: exclude scripts without Rsync command
+* IS_EVOBACKUP_EXCLUDE_MOUNT: exclude scripts without Rsync command
 
 ## [22.04.1] 2022-04-25
 

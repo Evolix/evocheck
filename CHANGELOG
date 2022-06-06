@@ -15,6 +15,15 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
+## [22.06.1] 2022-06-06
+
+* Changed
+
+* IS_BACKUPUPTODATE: look for all files (with find) instead of simple "file globbing" on first level.
+* IS_DEBIANSECURITY: support source list options
+* IS_SSHPERMITROOTNO: analyze real configuration, instead of parsing the file
+
+
 ## [22.06] 2022-06-03
 
 ### Added

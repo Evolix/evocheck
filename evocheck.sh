@@ -4,7 +4,7 @@
 # Script to verify compliance of a Debian/OpenBSD server
 # powered by Evolix
 
-VERSION="22.03.1"
+VERSION="22.06"
 readonly VERSION
 
 # base functions
@@ -19,7 +19,8 @@ Copyright 2009-2022 Evolix <info@evolix.fr>,
                     Gregory Colpart <reg@evolix.fr>,
                     Jérémy Lecour <jlecour@evolix.fr>,
                     Tristan Pilat <tpilat@evolix.fr>,
-                    Victor Laborie <vlaborie@evolix.fr>
+                    Victor Laborie <vlaborie@evolix.fr>,
+                    Alexis Ben Miloud--Josselin <abenmiloud@evolix.fr>,
                     and others.
 
 evocheck comes with ABSOLUTELY NO WARRANTY.  This is free software,
@@ -235,11 +236,11 @@ check_debiansecurity() {
     if is_debian_bullseye; then
         # https://www.debian.org/releases/bullseye/amd64/release-notes/ch-information.html#security-archive
         # https://www.debian.org/security/
-        pattern="^deb https://(deb|security)\.debian\.org/debian-security/? bullseye-security main"
+        pattern="^deb  ?(\[.*\])? ?http://security\.debian\.org/debian-security/? bullseye-security main"
     elif is_debian_buster; then
-        pattern="^deb http://security\.debian\.org/debian-security/? buster/updates main"
+        pattern="^deb  ?(\[.*\])? ?http://security\.debian\.org/debian-security/? buster/updates main"
     elif is_debian_stretch; then
-        pattern="^deb http://security\.debian\.org/debian-security/? stretch/updates main"
+        pattern="^deb  ?(\[.*\])? ?http://security\.debian\.org/debian-security/? stretch/updates main"
     else
         pattern="^deb.*security"
     fi
@@ -337,6 +338,8 @@ check_alert5boot() {
     else
         if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
             grep -q "^date" /etc/rc2.d/S*alert5 || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 init script"
+        elif [ -n "$(find /etc/init.d/ -name 'alert5')" ]; then
+            grep -q "^date" /etc/init.d/alert5 || failed "IS_ALERT5BOOT" "boot mail is not sent by alert5 int script"
         else
             failed "IS_ALERT5BOOT" "alert5 init script is missing"
         fi
@@ -349,6 +352,9 @@ check_alert5minifw() {
     else
         if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
             grep -q "^/etc/init.d/minifirewall" /etc/rc2.d/S*alert5 \
+                || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 init script"
+        elif [ -n "$(find /etc/init.d/ -name 'alert5')" ]; then
+            grep -q "^/etc/init.d/minifirewall" /etc/init.d/alert5 \
                 || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 init script"
         else
             failed "IS_ALERT5MINIFW" "alert5 init script is missing"
@@ -571,7 +577,7 @@ check_network_interfaces() {
 # Verify if all if are in auto
 check_autoif() {
     if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
-        interfaces=$(/sbin/ip address show up | grep "^[0-9]*:" | grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap|vrrp|lxcbr)" | cut -d " " -f 2 | tr -d : | cut -d@ -f1 | tr "\n" " ")
+        interfaces=$(/sbin/ip address show up | grep "^[0-9]*:" | grep -E -v "(lo|vnet|docker|veth|tun|tap|macvtap|vrrp|lxcbr|wg)" | cut -d " " -f 2 | tr -d : | cut -d@ -f1 | tr "\n" " ")
     else
         interfaces=$(/sbin/ifconfig -s | tail -n +2 | grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap|vrrp)" | cut -d " " -f 1 |tr "\n" " ")
     fi
@@ -589,6 +595,16 @@ check_interfacesgw() {
     number=$(grep -Ec "^[^#]*gateway [0-9a-fA-F]+:" /etc/network/interfaces)
     test "$number" -gt 1 && failed "IS_INTERFACESGW" "there is more than 1 IPv6 gateway"
 }
+# Verification de l’état du service networking
+check_networking_service() {
+    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
+        if systemctl is-enabled networking.service > /dev/null; then
+            if ! systemctl is-active networking.service > /dev/null; then
+                failed "IS_NETWORKING_SERVICE" "networking.service is not active"
+            fi
+        fi
+    fi
+}
 # Verification de la mise en place d'evobackup
 check_evobackup() {
     evobackup_found=$(find /etc/cron* -name '*evobackup*' | wc -l)
@@ -596,16 +612,23 @@ check_evobackup() {
 }
 # Vérification de l'exclusion des montages (NFS) dans les sauvegardes
 check_evobackup_exclude_mount() {
-    excludes_file=$(mktemp --tmpdir=${TMPDIR:-/tmp} "evocheck.evobackup_exclude_mount.XXXXX")
+    excludes_file=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.evobackup_exclude_mount.XXXXX")
     files_to_cleanup="${files_to_cleanup} ${excludes_file}"
 
     # shellcheck disable=SC2044
     for evobackup_file in $(find /etc/cron* -name '*evobackup*' | grep -v -E ".disabled$"); do
-        grep -- "--exclude " "${evobackup_file}" | grep -E -o "\"[^\"]+\"" | tr -d '"' > "${excludes_file}"
-        not_excluded=$(findmnt --type nfs,nfs4,fuse.sshfs, -o target --noheadings | grep -v -f "${excludes_file}")
-        for mount in ${not_excluded}; do
-            failed "IS_EVOBACKUP_EXCLUDE_MOUNT" "${mount} is not excluded from ${evobackup_file} backup script"
-        done
+        # if the file seems to be a backup script, with an Rsync invocation
+        if grep -q "^\s*rsync" "${evobackup_file}"; then
+            # If rsync is not limited by "one-file-system"
+            # then we verify that every mount is excluded
+            if ! grep -q -- "^\s*--one-file-system" "${evobackup_file}"; then
+                grep -- "--exclude " "${evobackup_file}" | grep -E -o "\"[^\"]+\"" | tr -d '"' > "${excludes_file}"
+                not_excluded=$(findmnt --type nfs,nfs4,fuse.sshfs, -o target --noheadings | grep -v -f "${excludes_file}")
+                for mount in ${not_excluded}; do
+                    failed "IS_EVOBACKUP_EXCLUDE_MOUNT" "${mount} is not excluded from ${evobackup_file} backup script"
+                done
+            fi
+        fi
     done
 }
 # Verification de la presence du userlogrotate
@@ -948,7 +971,7 @@ check_mongo_backup() {
         # You could change the default path in /etc/evocheck.cf
         MONGO_BACKUP_PATH=${MONGO_BACKUP_PATH:-"/home/backup/mongodump"}
         if [ -d "$MONGO_BACKUP_PATH" ]; then
-            for file in "${MONGO_BACKUP_PATH}"/*/*.{json,bson}; do
+            for file in "${MONGO_BACKUP_PATH}"/*/*.{json,bson}.*; do
                 # Skip indexes file.
                 if ! [[ "$file" =~ indexes ]]; then
                     limit=$(date +"%s" -d "now - 2 day")
@@ -1070,7 +1093,7 @@ check_duplicate_fs_label() {
     # Do it only if thereis blkid binary
     BLKID_BIN=$(command -v blkid)
     if [ -n "$BLKID_BIN" ]; then
-        tmpFile=$(mktemp --tmpdir=${TMPDIR:-/tmp} "evocheck.duplicate_fs_label.XXXXX")
+        tmpFile=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.duplicate_fs_label.XXXXX")
         files_to_cleanup="${files_to_cleanup} ${tmpFile}"
 
         parts=$($BLKID_BIN -c /dev/null | grep -ve raid_member -e EFI_SYSPART | grep -Eo ' LABEL=".*"' | cut -d'"' -f2)
@@ -1194,14 +1217,20 @@ check_usrsharescripts() {
     test "$expected" = "$actual" || failed "IS_USRSHARESCRIPTS" "/usr/share/scripts must be $expected"
 }
 check_sshpermitrootno() {
-    if is_debian_stretch || is_debian_buster || is_debian_bullseye; then
-        if grep -q "^PermitRoot" /etc/ssh/sshd_config; then
-            grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config \
-                || failed "IS_SSHPERMITROOTNO" "PermitRoot should be set at no"
-        fi
+    sshd_args="-C addr=,user=,host=,laddr=,lport=0"
+    if is_debian_jessie || is_debian_stretch; then
+	# Noop, we'll use the default $sshd_args
+        :
+    elif is_debian_buster; then
+	sshd_args="${sshd_args},rdomain="
     else
-        grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config \
-            || failed "IS_SSHPERMITROOTNO" "PermitRoot should be set at no"
+	# NOTE: From Debian Bullseye 11 onward, with OpenSSH 8.1, the argument
+        # -T doesn't require the additional -C.
+	sshd_args=
+    fi
+    # XXX: We want parameter expension here
+    if ! (sshd -T $sshd_args | grep -q 'permitrootlogin no'); then
+       failed "IS_SSHPERMITROOTNO" "PermitRoot should be set to no"
     fi
 }
 check_evomaintenanceusers() {
@@ -1425,7 +1454,7 @@ get_version() {
             grep '^VERSION=' "${command}" | head -1 | cut -d '=' -f 2
             ;;
         minifirewall)
-            ${command} status | head -1 | cut -d ' ' -f 3
+            ${command} version | head -1 | cut -d ' ' -f 3
             ;;
         ## Let's try the --version flag before falling back to grep for the constant
         kvmstats)
@@ -1469,7 +1498,7 @@ add_to_path() {
     echo "$PATH" | grep -qF "${new_path}" || export PATH="${PATH}:${new_path}"
 }
 check_versions() {
-    versions_file=$(mktemp --tmpdir=${TMPDIR:-/tmp} "evocheck.versions.XXXXX")
+    versions_file=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.versions.XXXXX")
     files_to_cleanup="${files_to_cleanup} ${versions_file}"
 
     download_versions "${versions_file}"
@@ -1497,7 +1526,7 @@ main() {
     # Detect operating system name, version and release
     detect_os
 
-    main_output_file=$(mktemp --tmpdir=${TMPDIR:-/tmp} "evocheck.main.XXXXX")
+    main_output_file=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.main.XXXXX")
     files_to_cleanup="${files_to_cleanup} ${main_output_file}"
 
     #-----------------------------------------------------------
@@ -1570,6 +1599,7 @@ main() {
         test "${IS_NETWORK_INTERFACES:=1}" = 1 && check_network_interfaces
         test "${IS_AUTOIF:=1}" = 1 && check_autoif
         test "${IS_INTERFACESGW:=1}" = 1 && check_interfacesgw
+        test "${IS_NETWORKING_SERVICE:=1}" = 1 && check_networking_service
         test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
         test "${IS_EVOBACKUP_EXCLUDE_MOUNT:=1}" = 1 && check_evobackup_exclude_mount
         test "${IS_USERLOGROTATE:=1}" = 1 && check_userlogrotate
@@ -1729,7 +1759,9 @@ main() {
     fi
 
     if [ -f "${main_output_file}" ]; then
-        if [ $(cat "${main_output_file}" | wc -l) -gt 0 ]; then
+        lines_found=$(wc -l < "${main_output_file}")
+        # shellcheck disable=SC2086
+        if [ ${lines_found} -gt 0 ]; then
 
             cat "${main_output_file}" 2>&1
         fi

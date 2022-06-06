@@ -13,24 +13,61 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
-check_versions: "IS_CHECK_VERSIONS" was checked but "IS_VERSIONS_CHECK" was echoed, now "IS_CHECK_VERSIONS" everywhere
+### Security
+
+## [22.06] 2022-06-03
+
+### Added
+
+* IS_AUTOIF: Ignore WireGuard interfaces
+* IS_NETWORKING_SERVICE: check if networking service is enabled
+
+### Changed
+
+* IS_DEBIANSECURITY: Fix Debian security repo for Bullseye, cf https://www.debian.org/releases/stable/errata
+
+## [22.05] 2022-05-12
+
+### Changed
+
+* IS_EVOBACKUP_EXCLUDE_MOUNT: exclude scripts without Rsync command
+
+## [22.04.1] 2022-04-25
+
+### Changed
+
+* fix various shellcheck violations
+
+### Fixed
+
+* IS_EVOBACKUP_EXCLUDE_MOUNT: fix one-file-system restriction
+
+## [22.04] 2022-04-25
+
+### Changed
+
+* IS_EVOBACKUP_EXCLUDE_MOUNT : skip if --one-file-system is used
+
+### Fixed
+
+* check_versions: "IS_CHECK_VERSIONS" was checked but "IS_VERSIONS_CHECK" was echoed, now "IS_CHECK_VERSIONS" everywhere
 
 ### Security
 
-check_debiansecurity: Consider both https://deb\.debian\.org/debian-security/ and https://security\.debian\.org/debian-security/ as valid since both are documented as such.
+* check_debiansecurity: Consider both https://deb\.debian\.org/debian-security/ and https://security\.debian\.org/debian-security/ as valid since both are documented as such.
 
 ## [22.03.1] 2022-03-22
 
 ### Changed
 
-check_autoif : Ignore lxcbr interfaces, new since bullseye
+* check_autoif : Ignore lxcbr interfaces, new since bullseye
 
 ## [22.03] 2022-03-15
 
 ### Added
 
-check_mysqlmunin : Complain if munin plugin mysql_commands returns an error
-check_versions : track minifirewall version
+* check_mysqlmunin : Complain if munin plugin mysql_commands returns an error
+* check_versions : track minifirewall version
 
 ## [21.10.4] 2021-10-25
 
@@ -48,7 +85,8 @@ check_versions : track minifirewall version
 ## [21.10.2] 2021-10-22
 
 ### Changed
-Let's try the --version flag before falling back to grep for the constant
+
+* Let's try the --version flag before falling back to grep for the constant
 
 ## [21.10.1] 2021-10-01
 

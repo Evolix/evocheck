@@ -363,7 +363,7 @@ check_alert5minifw() {
 }
 check_minifw() {
     /sbin/iptables -L -n | grep -q -E "^ACCEPT\s*all\s*--\s*31\.170\.8\.4\s*0\.0\.0\.0/0\s*$" \
-        || failed "IS_MINIFW" "minifirewall seems not starded"
+        || failed "IS_MINIFW" "minifirewall seems not started"
 }
 check_minifw_includes() {
     if is_debian_bullseye; then

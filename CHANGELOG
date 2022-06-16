@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Fixed various shellcheck violations
+- Added a function to cleanup files at once instead of using multiple trap rm
+
 ## [22.04] - 2022-04-13
 
 ### Added

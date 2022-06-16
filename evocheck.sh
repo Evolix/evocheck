@@ -45,7 +45,7 @@ END
 }
 is_installed(){
     for pkg in "$@"; do
-	pkg_info | grep -q $pkg || return 1
+        pkg_info | grep -q "$pkg" || return 1
     done
 }
 
@@ -75,12 +75,12 @@ check_tmpnoexec(){
     mount | grep "on /tmp" | grep -q noexec || failed "IS_TMPNOEXEC" "/tmp should be mounted with the noexec option"
 }
 check_softdep(){
-    if [ $(grep -c softdep /etc/fstab) -ne $(grep -c ffs /etc/fstab) ]; then
+    if [ "$(grep -c softdep /etc/fstab)" -ne "$(grep -c ffs /etc/fstab)" ]; then
         failed "IS_SOFTDEP" "All partitions should have the softdep option"
     fi
 }
 check_noatime(){
-    if [ $(mount | grep -c noatime) -ne $(grep ffs /etc/fstab | grep -vc ^\#) ]; then
+    if [ "$(mount | grep -c noatime)" -ne "$(grep ffs /etc/fstab | grep -vc ^\#)" ]; then
         failed "IS_NOATIME" "All partitions should be mounted with the noatime option"
     fi
 }
@@ -92,12 +92,12 @@ check_tmoutprofile(){
     fi
 }
 check_raidok(){
-    egrep 'sd.*RAID' /var/run/dmesg.boot 1> /dev/null 2>&1
+    grep -E 'sd.*RAID' /var/run/dmesg.boot 1> /dev/null 2>&1
     RESULT=$?
     if [ $RESULT -eq 0 ]; then
-        raid_device=$(egrep 'sd.*RAID' /var/run/dmesg.boot | awk '{ print $1 }' | tail -1)
-        raid_status=$(bioctl $raid_device | grep softraid | awk '{ print $3 }')
-        if [ $raid_status != "Online" ]; then
+        raid_device=$(grep -E 'sd.*RAID' /var/run/dmesg.boot | awk '{ print $1 }' | tail -1)
+        raid_status=$(bioctl "$raid_device" | grep softraid | awk '{ print $3 }')
+        if [ "$raid_status" != "Online" ]; then
             failed "IS_RAIDOK" "One of the RAID disk members is faulty. Use bioctl -h $raid_device for more informations"
         fi
     fi
@@ -110,14 +110,14 @@ check_evobackup(){
     fi
 }
 check_uptodate(){
-    if [ $(command -v syspatch) ]; then
-        if syspatch -c | egrep "." 1> /dev/null 2>&1; then
+    if [ "$(command -v syspatch)" ]; then
+        if syspatch -c | grep -E "." 1> /dev/null 2>&1; then
             failed "IS_UPTODATE" "Security update available! Update with syspatch(8)!"
         fi
     fi
 }
 check_uptime(){
-    let "uptime = $(date +"%s") - $(sysctl -n kern.boottime)"
+    uptime=$(($(date +"%s") - $(sysctl -n kern.boottime)))
     if [ "$uptime" -gt "$(( 2*365*24*60*60 ))" ]; then
         failed "IS_UPTIME" "The server has an uptime of more than 2 years, reboot on new kernel advised"
     fi
@@ -126,8 +126,8 @@ check_backupuptodate(){
     backup_dir="/home/backup"
     if [ -d "${backup_dir}" ]; then
         if [ -n "$(ls -A ${backup_dir})" ]; then
-            for file in ${backup_dir}/*; do
-                let "limit = $(date +"%s") - 172800"
+            for file in "${backup_dir}"/*; do
+                limit=$(($(date +"%s") - 172800))
                 updated_at=$(stat -f "%m" "$file")
 
                 if [ -f "$file" ] && [ "$limit" -gt "$updated_at" ]; then
@@ -154,11 +154,11 @@ check_carpadvbase(){
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         bad_advbase=0
         for advbase in $(ifconfig carp | grep advbase | awk -F 'advbase' '{print $2}' | awk '{print $1}' | xargs); do
-        if [[ "$advbase" -gt 5 ]]; then
+        if [ "$advbase" -gt 5 ]; then
             bad_advbase=1
         fi
         done
-        if [[ "$bad_advbase" -eq 1 ]]; then
+        if [ "$bad_advbase" -eq 1 ]; then
             failed "IS_CARPADVBASE" "At least one CARP interface has advbase greater than 5 seconds!"
         fi
     fi
@@ -166,7 +166,7 @@ check_carpadvbase(){
 check_carppreempt(){
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         preempt=$(sysctl net.inet.carp.preempt | cut -d"=" -f2)
-        if [[ "$preempt" -ne 1 ]]; then
+        if [ "$preempt" -ne 1 ]; then
             failed "IS_CARPPREEMPT" "The preempt function is not activated! Please type 'sysctl net.inet.carp.preempt=1' in"
         fi
         if [ -f /etc/sysctl.conf ]; then
@@ -198,6 +198,7 @@ check_pkgmirror(){
 }
 check_history(){
     file=/root/.profile
+    # shellcheck disable=SC2015
     grep -qE "^HISTFILE=\$HOME/.histfile" $file && grep -qE "^export HISTSIZE=100000" $file || failed "IS_HISTORY" "Make sure both 'HISTFILE=$HOME/.histfile' and 'export HISTSIZE=100000' are present in /root/.profile"
 }
 check_vim(){
@@ -213,6 +214,7 @@ check_customsyslog(){
 }
 check_sudomaint(){
     file=/etc/sudoers
+    # shellcheck disable=SC2015
     grep -q "Cmnd_Alias MAINT = /usr/share/scripts/evomaintenance.sh" $file \
     && grep -q "%wheel ALL=NOPASSWD: MAINT" $file \
     || failed "IS_SUDOMAINT" ""
@@ -304,7 +306,7 @@ check_defaultroute(){
 }
 check_ntp(){
     if grep -q "server ntp.evolix.net" /etc/ntpd.conf; then
-        if [ $(wc -l /etc/ntpd.conf | awk '{print $1}') -ne 1 ]; then
+        if [ "$(wc -l /etc/ntpd.conf | awk '{print $1}')" -ne 1 ]; then
             failed "IS_NTP" "The /etc/ntpd.conf file should only contains \"server ntp.evolix.net\"."
         fi
     else
@@ -313,23 +315,24 @@ check_ntp(){
 }
 check_openvpncronlog(){
     if /etc/rc.d/openvpn check > /dev/null 2>&1; then
+        # shellcheck disable=SC2016
         grep -q 'cp /var/log/openvpn.log /var/log/openvpn.log.$(date +\\%F) && echo "$(date +\\%F. .\\%R) - logfile turned over via cron" > /var/log/openvpn.log && gzip /var/log/openvpn.log.$(date +\\%F) && find /var/log/ -type f -name "openvpn.log.\*" -mtime .365 -exec rm {} \\+' /var/cron/tabs/root || failed "IS_OPENVPNCRONLOG" "OpenVPN is enabled but there is no log rotation in the root crontab, or the cron is not up to date (OpenVPN log rotation in newsyslog is not used because a restart is needed)."
     fi
 }
 check_carpadvskew(){
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         for carp in $(ifconfig carp | grep ^carp | awk '{print $1}' | tr -d ":"); do
-            ifconfig $carp | grep -q master
+            ifconfig "$carp" | grep -q master
             master=$?
-            ifconfig $carp | grep -q backup
+            ifconfig "$carp" | grep -q backup
             backup=$?
-            advskew=$(ifconfig $carp | grep advbase | awk -F 'advskew' '{print $2}' | awk '{print $1}')
+            advskew=$(ifconfig "$carp" | grep advbase | awk -F 'advskew' '{print $2}' | awk '{print $1}')
             if [ "$master" -eq 0 ]; then
-                if [ $advskew -lt 1 ] || [ $advskew -gt 50 ]; then
+                if [ "$advskew" -lt 1 ] || [ "$advskew" -gt 50 ]; then
                     failed "IS_CARPADVSKEW" "Interface $carp is master : advskew must be between 1 and 50, and must remain lower than that of the backup - current value : $advskew"
                 fi
             elif [ "$backup" -eq 0 ]; then
-                if [ $advskew -lt 100 ] || [ $advskew -gt 150 ]; then
+                if [ "$advskew" -lt 100 ] || [ "$advskew" -gt 150 ]; then
                     failed "IS_CARPADVSKEW" "Interface $carp is backup : advskew must be between 100 and 150, and must remain greater than that of the master - current value : $advskew"
                 fi
             else
@@ -346,7 +349,9 @@ check_sshallowusers() {
 }
 check_evobackup_exclude_mount() {
     excludes_file=$(mktemp)
-    trap "rm -f ${excludes_file}" 0
+    files_to_cleanup="${files_to_cleanup} ${excludes_file}"
+
+    # shellcheck disable=SC2013
     for evobackup_file in $(grep -Eo "/usr/share/scripts/zzz_evobackup.*" /etc/daily.local | grep -v "^#" | awk '{print $1}'); do
         grep -- "--exclude " "${evobackup_file}" | grep -E -o "\"[^\"]+\"" | tr -d '"' > "${excludes_file}"
         not_excluded=$(mount | grep "type nfs" | awk '{print $3}' | grep -v -f "${excludes_file}")
@@ -376,6 +381,7 @@ check_evolix_user() {
     grep -q -E "^evolix:" /etc/passwd && failed "IS_EVOLIX_USER" "evolix user should not exist"
 }
 download_versions() {
+    # shellcheck disable=SC2039
     local file
     file=${1:-}
 
@@ -402,6 +408,7 @@ download_versions() {
     test "$?" -eq 0 || failed "IS_CHECK_VERSIONS" "failed to download ${versions_url} to ${versions_file}"
 }
 get_command() {
+    # shellcheck disable=SC2039
     local program
     program=${1:-}
 
@@ -416,7 +423,9 @@ get_command() {
     esac
 }
 get_version() {
+    # shellcheck disable=SC2039
     local program
+    # shellcheck disable=SC2039
     local command
     program=${1:-}
     command=${2:-}
@@ -434,8 +443,20 @@ get_version() {
         *) ${command} --version 2> /dev/null | head -1 | cut -d ' ' -f 3 ;;
     esac
 }
+get_lower_version() {
+    # shellcheck disable=SC2039
+    local actual_version
+    # shellcheck disable=SC2039
+    local expected_version
+    actual_version=${1:-}
+    expected_version=${2:-}
+
+    printf "%s\n%s" "${actual_version}" "${expected_version}" | sort -V | head -n 1
+}
 check_version() {
+    # shellcheck disable=SC2039
     local program
+    # shellcheck disable=SC2039
     local expected_version
     program=${1:-}
     expected_version=${2:-}
@@ -448,14 +469,15 @@ check_version() {
             failed "IS_CHECK_VERSIONS" "failed to lookup actual version of ${program}"
         elif [ "${actual_version}" = "${expected_version}" ]; then
             : # Version check OK ; to check first because of the way the check works
-        elif [ "$(echo ${actual_version}\\n${expected_version} | sort -V | head -n 1)" = "${actual_version}" ]; then
+        elif [ "$(get_lower_version "${actual_version}" "${expected_version}")" = "${actual_version}" ]; then
             failed "IS_CHECK_VERSIONS" "${program} version ${actual_version} is older than expected version ${expected_version}"
-        elif [ "$(echo ${actual_version}\\n${expected_version} | sort -V | head -n 1)" = "${expected_version}" ]; then
+        elif [ "$(get_lower_version "${actual_version}" "${expected_version}")" = "${expected_version}" ]; then
             failed "IS_CHECK_VERSIONS" "${program} version ${actual_version} is newer than expected version ${expected_version}, you should update your index."
         fi
     fi
 }
 add_to_path() {
+    # shellcheck disable=SC2039
     local new_path
     new_path=${1:-}
 
@@ -463,12 +485,15 @@ add_to_path() {
 }
 check_versions() {
     versions_file=$(mktemp -p /tmp "evocheck-versions.XXXXXXXX")
-    trap "rm -f ${versions_file}" 0
+    files_to_cleanup="${files_to_cleanup} ${versions_file}"
+
     download_versions "${versions_file}"
     add_to_path "/usr/share/scripts"
 
     grep -v '^ *#' < "${versions_file}" | while IFS= read -r line; do
+        # shellcheck disable=SC2039
         local program
+        # shellcheck disable=SC2039
         local version
         program=$(echo "${line}" | cut -d ' ' -f 1)
         version=$(echo "${line}" | cut -d ' ' -f 2)
@@ -542,12 +567,20 @@ main() {
 
     exit ${RC}
 }
+cleanup_temp_files() {
+    # shellcheck disable=SC2086
+    rm -f ${files_to_cleanup}
+}
 
 # Disable LANG*
 export LANG=C
 export LANGUAGE=C
 
+files_to_cleanup=""
+trap cleanup_temp_files 0
+
 # Source configuration file
+# shellcheck disable=SC1091
 test -f /etc/evocheck.cf && . /etc/evocheck.cf
 
 # Parse options
@@ -563,7 +596,6 @@ while :; do
             exit 0
             ;;
         --cron)
-            IS_KERNELUPTODATE=0
             IS_UPTIME=0
             IS_CHECK_VERSIONS=0
             ;;
@@ -592,4 +624,5 @@ while :; do
     shift
 done
 
+# shellcheck disable=SC2086
 main ${ARGS}

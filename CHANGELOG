@@ -5,6 +5,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* IS_FAIL2BAN_PURGE: workaround to purge fail2ban database on stretch and buster
+
 ### Changed
 
 ### Deprecated

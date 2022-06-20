@@ -610,6 +610,14 @@ check_evobackup() {
     evobackup_found=$(find /etc/cron* -name '*evobackup*' | wc -l)
     test "$evobackup_found" -gt 0 || failed "IS_EVOBACKUP" "missing evobackup cron"
 }
+# Vérification de la mise en place de la purge pour fail2ban
+check_purge_fail2ban() {
+    if is_debian_stretch || is_debian_buster; then
+      if is_installed fail2ban; then
+        test -f /etc/cron.daily/fail2ban_dbpurge || failed "IS_FAIL2BAN_PURGE" "missing script fail2ban_dbpurge cron"
+      fi
+    fi
+}
 # Vérification de l'exclusion des montages (NFS) dans les sauvegardes
 check_evobackup_exclude_mount() {
     excludes_file=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.evobackup_exclude_mount.XXXXX")

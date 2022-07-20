@@ -9,6 +9,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
+* IS_NETWORKING_SERVICE: not in cron mode 
+
 ### Deprecated
 
 ### Removed

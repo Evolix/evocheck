@@ -1818,6 +1818,7 @@ while :; do
             IS_UPTIME=0
             IS_MELTDOWN_SPECTRE=0
             IS_CHECK_VERSIONS=0
+            IS_NETWORKING_SERVICE=0
             ;;
         -v|--verbose)
             VERBOSE=1

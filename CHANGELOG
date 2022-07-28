@@ -5,11 +5,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
-* IS_FAIL2BAN_PURGE: workaround to purge fail2ban database on stretch and buster
-
 ### Changed
-
-* IS_NETWORKING_SERVICE: not in cron mode 
 
 ### Deprecated
 
@@ -18,6 +14,20 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Fixed
 
 ### Security
+
+## [22.07] 2022-07-28
+
+### Added
+
+* IS_FAIL2BAN_PURGE: workaround to purge fail2ban database on stretch and buster
+
+### Changed
+
+* IS_NETWORKING_SERVICE: not in cron mode 
+
+### Fixed:
+
+* IS_BACKUPUPTODATE: correct order for find(1) arguments
 
 ## [22.06.2] 2022-06-09
 

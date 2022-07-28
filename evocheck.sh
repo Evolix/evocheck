@@ -1236,7 +1236,7 @@ check_sshpermitrootno() {
 	    sshd_args=
     fi
     # shellcheck disable=SC2086
-    if ! (sshd -T ${sshd_args} | grep -q 'permitrootlogin no'); then
+    if ! (sshd -T ${sshd_args} 2> /dev/null | grep -qi 'permitrootlogin no'); then
         failed "IS_SSHPERMITROOTNO" "PermitRoot should be set to no"
     fi
 }

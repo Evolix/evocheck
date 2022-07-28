@@ -7,8 +7,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
-* IS_SSHPERMITROOTNO: do not display sshd errors
-
 ### Deprecated
 
 ### Removed
@@ -16,6 +14,12 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Fixed
 
 ### Security
+
+## [22.07.1] 2022-07-28
+
+### Changed
+
+* IS_SSHPERMITROOTNO: do not display sshd errors
 
 ## [22.07] 2022-07-28
 

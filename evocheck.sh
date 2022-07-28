@@ -1235,8 +1235,8 @@ check_sshpermitrootno() {
         # -T doesn't require the additional -C.
 	sshd_args=
     fi
-    # XXX: We want parameter expension here
-    if ! (sshd -T $sshd_args | grep -q 'permitrootlogin no'); then
+    # shellcheck disable=SC2086
+    if ! (sshd -T ${sshd_args} | grep -q 'permitrootlogin no'); then
        failed "IS_SSHPERMITROOTNO" "PermitRoot should be set to no"
     fi
 }

@@ -4,6 +4,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ## [Unreleased]
 
 ### Added
+* IS_AUTOIF: add support for /etc/network/interfaces.d
 
 ### Changed
 

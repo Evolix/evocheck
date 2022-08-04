@@ -248,9 +248,8 @@ check_usrsharescripts(){
     test "$expected" = "$actual" || failed "IS_USRSHARESCRIPTS" "/usr/share/scripts must be 700"
 }
 check_sshpermitrootno() {
-    if grep -q "^PermitRoot" /etc/ssh/sshd_config; then
-        grep -E -qi "PermitRoot.*no" /etc/ssh/sshd_config \
-            || failed "IS_SSHPERMITROOTNO" "PermitRoot should be set at no"
+    if ! (sshd -T -C addr=,user=,host=,laddr=,lport=0,rdomain= | grep -q 'permitrootlogin no'); then
+       failed "IS_SSHPERMITROOTNO" "PermitRoot should be set to no"
     fi
 }
 check_evomaintenanceusers(){

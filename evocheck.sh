@@ -248,7 +248,7 @@ check_usrsharescripts(){
     test "$expected" = "$actual" || failed "IS_USRSHARESCRIPTS" "/usr/share/scripts must be 700"
 }
 check_sshpermitrootno() {
-    if ! (sshd -T -C addr=,user=,host=,laddr=,lport=0,rdomain= | grep -q 'permitrootlogin no'); then
+    if ! (sshd -T -C addr=,user=,host=,laddr=,lport=0,rdomain= 2> /dev/null | grep -qi 'permitrootlogin no'); then
        failed "IS_SSHPERMITROOTNO" "PermitRoot should be set to no"
     fi
 }

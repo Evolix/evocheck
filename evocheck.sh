@@ -126,7 +126,7 @@ check_backupuptodate(){
     backup_dir="/home/backup"
     if [ -d "${backup_dir}" ]; then
         if [ -n "$(ls -A ${backup_dir})" ]; then
-            for file in "${backup_dir}"/*; do
+            find "${backup_dir}" -maxdepth 1 -type f | while read -r file; do
                 limit=$(($(date +"%s") - 172800))
                 updated_at=$(stat -f "%m" "$file")
 

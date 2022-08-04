@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - check_evobackup_exclude_mount : skip if --one-file-system is used, and exclude scripts without Rsync command
+- check_backupuptodate: use find with --max-depth=1 to limit the number of evaluated files
 
 ## [22.08] - 2022-08-04
 

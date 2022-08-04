@@ -352,11 +352,18 @@ check_evobackup_exclude_mount() {
 
     # shellcheck disable=SC2013
     for evobackup_file in $(grep -Eo "/usr/share/scripts/zzz_evobackup.*" /etc/daily.local | grep -v "^#" | awk '{print $1}'); do
-        grep -- "--exclude " "${evobackup_file}" | grep -E -o "\"[^\"]+\"" | tr -d '"' > "${excludes_file}"
-        not_excluded=$(mount | grep "type nfs" | awk '{print $3}' | grep -v -f "${excludes_file}")
-        for mount in ${not_excluded}; do
-            failed "IS_EVOBACKUP_EXCLUDE_MOUNT" "${mount} is not excluded from ${evobackup_file} backup script"
-        done
+        # if the file seems to be a backup script, with an Rsync invocation
+        if grep -q "^\s*rsync" "${evobackup_file}"; then
+            # If rsync is not limited by "one-file-system"
+            # then we verify that every mount is excluded
+            if ! grep -q -- "^\s*--one-file-system" "${evobackup_file}"; then
+                grep -- "--exclude " "${evobackup_file}" | grep -E -o "\"[^\"]+\"" | tr -d '"' > "${excludes_file}"
+                not_excluded=$(findmnt --type nfs,nfs4,fuse.sshfs, -o target --noheadings | grep -v -f "${excludes_file}")
+                for mount in ${not_excluded}; do
+                    failed "IS_EVOBACKUP_EXCLUDE_MOUNT" "${mount} is not excluded from ${evobackup_file} backup script"
+                done
+            fi
+        fi
     done
     rm -rf "${excludes_file}"
 }

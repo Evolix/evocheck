@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- check_evobackup_exclude_mount : skip if --one-file-system is used, and exclude scripts without Rsync command
+
 ## [22.08] - 2022-08-04
 
 ### Fixed

@@ -1,4 +1,4 @@
 .vagrant
-
+tmp
 *.swp
 .DS_Store

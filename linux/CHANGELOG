@@ -13,6 +13,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Removed
 
+* remove all BSD specific code
+
 ### Fixed
 
 ### Security

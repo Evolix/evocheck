@@ -5,19 +5,25 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
-* IS_AUTOIF: add support for /etc/network/interfaces.d
-
 ### Changed
 
 ### Deprecated
 
 ### Removed
 
-* remove all BSD specific code
-
 ### Fixed
 
 ### Security
+
+## [22.08] 2022-08-29
+
+### Added
+
+* IS_AUTOIF: add support for /etc/network/interfaces.d
+
+### Removed
+
+* remove all BSD specific code
 
 ## [22.07.1] 2022-07-28
 

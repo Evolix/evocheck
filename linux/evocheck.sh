@@ -575,8 +575,8 @@ check_autoif() {
         interfaces=$(/sbin/ifconfig -s | tail -n +2 | grep -E -v "^(lo|vnet|docker|veth|tun|tap|macvtap|vrrp)" | cut -d " " -f 1 |tr "\n" " ")
     fi
     for interface in $interfaces; do
-        if ! grep -Rq "^auto $interface" /etc/network/interfaces*; then
-            failed "IS_AUTOIF" "Network interface \`${interface}' is not set to auto"
+        if grep -Rq "^iface $interface" /etc/network/interfaces* && ! grep -Rq "^auto $interface" /etc/network/interfaces*; then
+            failed "IS_AUTOIF" "Network interface \`${interface}' is statically defined but not set to auto"
             test "${VERBOSE}" = 1 || break
         fi
     done

@@ -7,8 +7,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
-* IS_AUTOIF: check only statically defined interfaces
-
 ### Deprecated
 
 ### Removed
@@ -16,6 +14,12 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Fixed
 
 ### Security
+
+## [22.08.1] 2022-08-29
+
+### Changed
+
+* IS_AUTOIF: check only statically defined interfaces
 
 ## [22.08] 2022-08-29
 

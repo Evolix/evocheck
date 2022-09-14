@@ -13,9 +13,13 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
-* restore deleted MINIFW_FILE variable
-
 ### Security
+
+## [22.09] 2022-09-14
+
+### Fixed
+
+* restore deleted MINIFW_FILE variable
 
 ## [22.08.1] 2022-08-29
 

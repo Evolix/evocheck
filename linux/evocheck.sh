@@ -1527,6 +1527,8 @@ main() {
     main_output_file=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.main.XXXXX")
     files_to_cleanup="${files_to_cleanup} ${main_output_file}"
 
+    MINIFW_FILE=$(minifirewall_file)
+
     test "${IS_TMP_1777:=1}" = 1 && check_tmp_1777
     test "${IS_ROOT_0700:=1}" = 1 && check_root_0700
     test "${IS_USRSHARESCRIPTS:=1}" = 1 && check_usrsharescripts

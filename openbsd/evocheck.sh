@@ -304,12 +304,12 @@ check_defaultroute(){
     fi
 }
 check_ntp(){
-    if grep -q "server ntp.evolix.net" /etc/ntpd.conf; then
+    if grep -q "servers ntp.evolix.net" /etc/ntpd.conf; then
         if [ "$(wc -l /etc/ntpd.conf | awk '{print $1}')" -ne 1 ]; then
-            failed "IS_NTP" "The /etc/ntpd.conf file should only contains \"server ntp.evolix.net\"."
+            failed "IS_NTP" "The /etc/ntpd.conf file should only contains \"servers ntp.evolix.net\"."
         fi
     else
-        failed "IS_NTP" "The configuration in /etc/ntpd.conf is not compliant. It should contains \"server ntp.evolix.net\"."
+        failed "IS_NTP" "The configuration in /etc/ntpd.conf is not compliant. It should contains \"servers ntp.evolix.net\"."
     fi
 }
 check_openvpncronlog(){

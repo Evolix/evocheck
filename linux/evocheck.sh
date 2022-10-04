@@ -684,6 +684,17 @@ check_muninapacheconf() {
             && failed "IS_MUNINAPACHECONF" "default munin configuration may be commented or disabled"
     fi
 }
+# Check if default Apache configuration file for phpMyAdmin is absent (or empty or commented).
+check_phpmyadminapacheconf() {
+    phpmyadminconf0="/etc/apache2/conf-available/phpmyadmin.conf"
+    phpmyadminconf1="/etc/apache2/conf-enabled/phpmyadmin.conf"
+    if is_installed apache2; then
+        test -e $phpmyadminconf0 && grep -vEq "^( |\t)*#" "$phpmyadminconf0" \
+            && failed "IS_PHPMYADMINAPACHECONF" "default phpmyadmin configuration ($phpmyadminconf0) may be commented or disabled"
+        test -e $phpmyadminconf1 && grep -vEq "^( |\t)*#" "$phpmyadminconf1" \
+            && failed "IS_PHPMYADMINAPACHECONF" "default phpmyadmin configuration ($phpmyadminconf1) may be commented or disabled"
+    fi
+}
 # Verification de la priorité du package samba si les backports sont utilisés
 check_sambainpriority() {
     if is_debian_lenny && is_pack_samba; then
@@ -1596,6 +1607,7 @@ main() {
     test "${IS_APACHESYMLINK:=1}" = 1 && check_apachesymlink
     test "${IS_APACHEIPINALLOW:=1}" = 1 && check_apacheipinallow
     test "${IS_MUNINAPACHECONF:=1}" = 1 && check_muninapacheconf
+    test "${IS_PHPMYADMINAPACHECONF:=1}" = 1 && check_phpmyadminapacheconf
     test "${IS_SAMBAPINPRIORITY:=1}" = 1 && check_sambainpriority
     test "${IS_KERNELUPTODATE:=1}" = 1 && check_kerneluptodate
     test "${IS_UPTIME:=1}" = 1 && check_uptime

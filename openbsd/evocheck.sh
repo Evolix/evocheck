@@ -3,7 +3,7 @@
 # EvoCheck
 # Script to verify compliance of an OpenBSD server powered by Evolix
 
-readonly VERSION="22.08"
+readonly VERSION="22.10"
 
 # base functions
 

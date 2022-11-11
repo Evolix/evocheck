@@ -9,6 +9,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
+* IS_DEBIANSECURITY: check Debian Security repository from apt-cache policy output
+
 ### Deprecated
 
 ### Removed

@@ -999,7 +999,7 @@ check_redis_backup() {
         # You could change the default path in /etc/evocheck.cf
         # REDIS_BACKUP_PATH may contain space-separated paths, example:
         # REDIS_BACKUP_PATH='/home/backup/redis-instance1/dump.rdb /home/backup/redis-instance2/dump.rdb'
-        REDIS_BACKUP_PATH=${REDIS_BACKUP_PATH:-"/home/backup/dump.rdb"}
+        REDIS_BACKUP_PATH=${REDIS_BACKUP_PATH:-"/home/backup/redis/dump.rdb"}
         for file in ${REDIS_BACKUP_PATH}; do
             test -f "${file}" || failed "IS_REDIS_BACKUP" "Redis dump is missing (${file})"
         done

@@ -5,6 +5,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* Additional scripts for Debian 7- and Debian 8
 * IS_PHPMYADMINAPACHECONF: check that package configuration has not been pulled in
 
 ### Changed
@@ -14,6 +15,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Deprecated
 
 ### Removed
+
+* Main script ic compatible with Debian 9+
 
 ### Fixed
 

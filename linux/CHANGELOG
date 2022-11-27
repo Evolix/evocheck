@@ -5,6 +5,20 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [22.11] 2022-11-27
+
+### Added
+
 * Additional scripts for Debian 7- and Debian 8
 * IS_PHPMYADMINAPACHECONF: check that package configuration has not been pulled in
 
@@ -12,15 +26,10 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 * IS_DEBIANSECURITY: check Debian Security repository from apt-cache policy output
 
-### Deprecated
-
 ### Removed
 
-* Main script ic compatible with Debian 9+
+* Main script is compatible with Debian 9+
 
-### Fixed
-
-### Security
 
 ## [22.09] 2022-09-14
 

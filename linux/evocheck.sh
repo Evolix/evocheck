@@ -131,6 +131,12 @@ check_dpkgwarning() {
     test -e /etc/apt/apt.conf.d/z-evolinux.conf \
         || failed "IS_DPKGWARNING" "/etc/apt/apt.conf.d/z-evolinux.conf is missing"
 }
+# Check if localhost and localhost.localdomain are set in Postfix mydestination option.
+check_localhost_in_postfix_mydestination() {
+    if ! grep mydestination /etc/postfix/main.cf | grep -qE '(localhost[^\\.]?|localhost\\.localdomain)'; then
+        failed "IS_LOCALHOST_IN_POSTFIX_MYDESTINATION" "'localhost' and/or 'localhost.localdomain' are missing in Postfix mydestination option. Consider adding then."
+    fi
+}
 # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
 check_nrpepostfix() {
     if is_installed postfix; then
@@ -463,12 +469,20 @@ check_evobackup() {
     evobackup_found=$(find /etc/cron* -name '*evobackup*' | wc -l)
     test "$evobackup_found" -gt 0 || failed "IS_EVOBACKUP" "missing evobackup cron"
 }
-# Vérification de la mise en place de la purge pour fail2ban
-check_purge_fail2ban() {
+# Vérification de la mise en place d'un cron de purge de la base SQLite de Fail2ban
+check_fail2ban_purge() {
     if is_debian_stretch || is_debian_buster; then
       if is_installed fail2ban; then
         test -f /etc/cron.daily/fail2ban_dbpurge || failed "IS_FAIL2BAN_PURGE" "missing script fail2ban_dbpurge cron"
       fi
+    fi
+}
+# Vérification qu'il ne reste pas des jails nommées ssh non renommée rn sshd
+check_ssh_fail2ban_jail_renamed() {
+    if is_installed fail2ban && [ -f /etc/fail2ban/jail.local ]; then
+        if grep "\[ssh\]" /etc/fail2ban/jail.local; then
+            failed "IS_SSH_FAIL2BAN_JAIL_RENAMED" "Jail ssh must be renamed sshd in fail2ban >= 0.9."
+        fi
     fi
 }
 # Vérification de l'exclusion des montages (NFS) dans les sauvegardes
@@ -1104,8 +1118,8 @@ check_evobackup_incs() {
         bkctld_cron_file=${bkctld_cron_file:-/etc/cron.d/bkctld}
         if [ -f "${bkctld_cron_file}" ]; then
             root_crontab=$(grep -v "^#" "${bkctld_cron_file}")
-            echo "${root_crontab}" | grep -q "bkctld inc" || failed "IS_EVOBACKUP_INCS" "\`bkctld inc' is missing in ${bkctld_cron_file}"
-            echo "${root_crontab}" | grep -qE "(check-incs.sh|bkctld check-incs)" || failed "IS_EVOBACKUP_INCS" "\`check-incs.sh' is missing in ${bkctld_cron_file}"
+            echo "${root_crontab}" | grep -q "bkctld inc" || failed "IS_EVOBACKUP_INCS" "'bkctld inc' is missing in ${bkctld_cron_file}"
+            echo "${root_crontab}" | grep -qE "(check-incs.sh|bkctld check-incs)" || failed "IS_EVOBACKUP_INCS" "'check-incs.sh' is missing in ${bkctld_cron_file}"
         else
             failed "IS_EVOBACKUP_INCS" "Crontab \`${bkctld_cron_file}' is missing"
         fi
@@ -1164,7 +1178,6 @@ check_nginx_letsencrypt_uptodate() {
         fi
     fi
 }
-
 check_lxc_container_resolv_conf() {
     if is_installed lxc; then
         container_list=$(lxc-ls)
@@ -1185,6 +1198,37 @@ check_lxc_container_resolv_conf() {
         done 
     fi
 }
+# Check that there are containers if lxc is installed.
+check_no_lxc_container() {
+    if is_installed lxc; then
+        containers_list=$(lxc-ls | xargs)
+        if [ -z "$containers_list" ]; then
+            failed "IS_NO_LXC_CONTAINER" "LXC is installed but have not container. Consider removing it."
+        fi
+    fi
+}
+# Check that in LXC containers, phpXX-fpm services have UMask set to 0007.
+check_lxc_php_fpm_service_umask_set() {
+    if is_installed lxc; then
+        php_containers_list=$(lxc-ls | xargs -n1 | grep php)
+        missing_umask=""
+        for c in $php_containers_list; do
+            # Translate container name in service name
+            if [ "$c" = "php56" ]; then
+                srv="php5-fpm"
+            else
+                srv="${c:0:4}.${c:4}-fpm"
+            fi
+            if ! lxc-attach -n "$c" -- systemctl cat "$srv" | grep UMask | grep -q 0007; then
+                missing_umask="${missing_umask} ${c}"
+            fi
+        done
+        if [ -n "${missing_umask}" ]; then
+            failed "IS_LXC_PHP_FPM_SERVICE_UMASK_SET" "UMask is not set to 0007 in PHP-FPM services of theses containers : ${missing_umask}."
+        fi
+    fi
+}
+
 download_versions() {
     local file
     file=${1:-}
@@ -1329,6 +1373,7 @@ main() {
 
     test "${IS_LSBRELEASE:=1}" = 1 && check_lsbrelease
     test "${IS_DPKGWARNING:=1}" = 1 && check_dpkgwarning
+    test "${IS_LOCALHOST_IN_POSTFIX_MYDESTINATION:=1}" = 1 && check_localhost_in_postfix_mydestination
     test "${IS_NRPEPOSTFIX:=1}" = 1 && check_nrpepostfix
     test "${IS_CUSTOMSUDOERS:=1}" = 1 && check_customsudoers
     test "${IS_VARTMPFS:=1}" = 1 && check_vartmpfs
@@ -1374,6 +1419,8 @@ main() {
     test "${IS_INTERFACESGW:=1}" = 1 && check_interfacesgw
     test "${IS_NETWORKING_SERVICE:=1}" = 1 && check_networking_service
     test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
+    test "${IS_PURGE_FAIL2BAN:=1}" = 1 && check_fail2ban_purge
+    test "${IS_SSH_FAIL2BAN_JAIL_RENAMED:=1}" = 1 && check_ssh_fail2ban_jail_renamed
     test "${IS_EVOBACKUP_EXCLUDE_MOUNT:=1}" = 1 && check_evobackup_exclude_mount
     test "${IS_USERLOGROTATE:=1}" = 1 && check_userlogrotate
     test "${IS_APACHECTL:=1}" = 1 && check_apachectl
@@ -1425,6 +1472,8 @@ main() {
     test "${IS_CHROOTED_BINARY_UPTODATE:=1}" = 1 && check_chrooted_binary_uptodate
     test "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" = 1 && check_nginx_letsencrypt_uptodate
     test "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" = 1 && check_lxc_container_resolv_conf
+    test "${IS_NO_LXC_CONTAINER:=1}" = 1 && check_no_lxc_container
+    test "${IS_LXC_PHP_FPM_SERVICE_UMASK_SET:=1}" = 1 && check_lxc_php_fpm_service_umask_set
     test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
 
     if [ -f "${main_output_file}" ]; then

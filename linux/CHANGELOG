@@ -5,6 +5,13 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+New checks :
+
+* IS_LOCALHOST_IN_POSTFIX_MYDESTINATION
+* IS_SSH_FAIL2BAN_JAIL_RENAMED
+* IS_NO_LXC_CONTAINER
+* IS_LXC_PHP_FPM_SERVICE_UMASK_SET
+
 ### Changed
 
 ### Deprecated
@@ -12,6 +19,9 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Removed
 
 ### Fixed
+
+* IS_EVOBACKUP_INCS: fix quote.
+* IS_PURGE_FAIL2BAN: fix function never called in main().
 
 ### Security
 

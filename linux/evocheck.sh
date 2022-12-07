@@ -133,7 +133,7 @@ check_dpkgwarning() {
 }
 # Check if localhost and localhost.localdomain are set in Postfix mydestination option.
 check_localhost_in_postfix_mydestination() {
-    if ! grep mydestination /etc/postfix/main.cf | grep -qE '(localhost[^\\.]?|localhost\\.localdomain)'; then
+    if ! grep mydestination /etc/postfix/main.cf | grep --quiet --extended-regexp '(localhost[^\\.]?|localhost\\.localdomain)'; then
         failed "IS_LOCALHOST_IN_POSTFIX_MYDESTINATION" "'localhost' and/or 'localhost.localdomain' are missing in Postfix mydestination option. Consider adding then."
     fi
 }
@@ -857,13 +857,13 @@ check_redis_backup() {
         # REDIS_BACKUP_PATH='/home/backup/redis-instance1/dump.rdb /home/backup/redis-instance2/dump.rdb'
         # Old default path: /home/backup/dump.rdb
         # New default path: /home/backup/redis/dump.rdb
-        if [ -z ${REDIS_BACKUP_PATH:+"REDIS_BACKUP_PATH is set"} ]; then
+        if [ -z "${REDIS_BACKUP_PATH}" ]; then
             if ! [ -f "/home/backup/dump.rdb" ] && ! [ -f "/home/backup/redis/dump.rdb" ]; then
-                failed "IS_REDIS_BACKUP" "Redis dump is missing (/home/backup/dump.rdb or /home/backup/redis/dump.rdb)"
+                failed "IS_REDIS_BACKUP" "Redis dump is missing (/home/backup/dump.rdb or /home/backup/redis/dump.rdb)."
             fi
         else
             for file in ${REDIS_BACKUP_PATH}; do
-                test -f "${file}" || failed "IS_REDIS_BACKUP" "Redis dump is missing (${file})"
+                test -f "${file}" || failed "IS_REDIS_BACKUP" "Redis dump ${file} is missing."
             done
         fi
     fi
@@ -1198,28 +1198,29 @@ check_lxc_container_resolv_conf() {
         done 
     fi
 }
-# Check that there are containers if lxc is installed.
+# Check that there are containers if lxc is installed.
 check_no_lxc_container() {
     if is_installed lxc; then
-        containers_list=$(lxc-ls | xargs)
-        if [ -z "$containers_list" ]; then
-            failed "IS_NO_LXC_CONTAINER" "LXC is installed but have not container. Consider removing it."
+        containers_count=$(lxc-ls | wc -l)
+        if [ -z "$containers_count" -eq 0 ]; then
+            failed "IS_NO_LXC_CONTAINER" "LXC is installed but have no container. Consider removing it."
         fi
     fi
 }
 # Check that in LXC containers, phpXX-fpm services have UMask set to 0007.
 check_lxc_php_fpm_service_umask_set() {
     if is_installed lxc; then
-        php_containers_list=$(lxc-ls | xargs -n1 | grep php)
+        php_containers_list=$(lxc-ls | grep php)
         missing_umask=""
         for c in $php_containers_list; do
             # Translate container name in service name
             if [ "$c" = "php56" ]; then
-                srv="php5-fpm"
+                service="php5-fpm"
             else
-                srv="${c:0:4}.${c:4}-fpm"
+                service="${c:0:4}.${c:4}-fpm"
             fi
-            if ! lxc-attach -n "$c" -- systemctl cat "$srv" | grep UMask | grep -q 0007; then
+            umask=$(lxc-attach --name "$c" -- systemctl show -p UMask "$service" | cut -d "=" -f2)
+            if ! [ "$umask" != "0007" ]; then
                 missing_umask="${missing_umask} ${c}"
             fi
         done

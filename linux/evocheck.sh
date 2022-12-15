@@ -397,7 +397,7 @@ check_log2mailrunning() {
     fi
 }
 check_log2mailapache() {
-    conf=/etc/log2mail/config/Apache
+    conf=/etc/log2mail/config/apache
     if is_pack_web && is_installed log2mail; then
         grep -s -q "^file = /var/log/apache2/error.log" $conf \
             || failed "IS_LOG2MAILAPACHE" "missing log2mail directive for apache"

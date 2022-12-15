@@ -131,10 +131,10 @@ check_dpkgwarning() {
     test -e /etc/apt/apt.conf.d/z-evolinux.conf \
         || failed "IS_DPKGWARNING" "/etc/apt/apt.conf.d/z-evolinux.conf is missing"
 }
-# Check if localhost and localhost.localdomain are set in Postfix mydestination option.
+# Check if localhost, localhost.localdomain and localhost.$mydomain are set in Postfix mydestination option.
 check_localhost_in_postfix_mydestination() {
-    if ! grep mydestination /etc/postfix/main.cf | grep --quiet --extended-regexp '(localhost[^\\.]?|localhost\\.localdomain)'; then
-        failed "IS_LOCALHOST_IN_POSTFIX_MYDESTINATION" "'localhost' and/or 'localhost.localdomain' are missing in Postfix mydestination option. Consider adding then."
+    if ! grep mydestination /etc/postfix/main.cf | grep --extended-regexp 'localhost[^\\.]' | grep 'localhost.localdomain' | grep 'localhost.$mydomain'; then
+        failed "IS_LOCALHOST_IN_POSTFIX_MYDESTINATION" "'localhost' and/or 'localhost.localdomain' and/or 'localhost.\$mydomain' are missing in Postfix mydestination option. Consider adding then."
     fi
 }
 # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)

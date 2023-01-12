@@ -480,7 +480,7 @@ check_fail2ban_purge() {
 # Vérification qu'il ne reste pas des jails nommées ssh non renommées en sshd
 check_ssh_fail2ban_jail_renamed() {
     if is_installed fail2ban && [ -f /etc/fail2ban/jail.local ]; then
-        if grep "\[ssh\]" /etc/fail2ban/jail.local; then
+        if grep --quiet --fixed-strings "[ssh]" /etc/fail2ban/jail.local; then
             failed "IS_SSH_FAIL2BAN_JAIL_RENAMED" "Jail ssh must be renamed sshd in fail2ban >= 0.9."
         fi
     fi

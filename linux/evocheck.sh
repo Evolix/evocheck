@@ -923,8 +923,8 @@ check_phpevolinuxconf() {
     is_debian_buster   && phpVersion="7.3"
     is_debian_bullseye && phpVersion="7.4"
     if is_installed php; then
-        { test -f /etc/php/${phpVersion}/cli/conf.d/z-evolinux-defaults.ini \
-            && test -f /etc/php/${phpVersion}/cli/conf.d/zzz-evolinux-custom.ini
+        { test -f "/etc/php/${phpVersion}/cli/conf.d/z-evolinux-defaults.ini" \
+            && test -f "/etc/php/${phpVersion}/cli/conf.d/zzz-evolinux-custom.ini"
         } || failed "IS_PHPEVOLINUXCONF" "missing php evolinux config"
     fi
 }
@@ -1150,7 +1150,7 @@ check_chrooted_binary_uptodate() {
     for process_name in ${process_list}; do
         # what is the binary path?
         original_bin=$(command -v "${process_name}")
-        for pid in $(pgrep ${process_name}); do
+        for pid in $(pgrep "${process_name}"); do
             process_bin=$(realpath "/proc/${pid}/exe")
             # Is the process chrooted?
             real_root=$(realpath "/proc/${pid}/root")
@@ -1489,7 +1489,7 @@ main() {
     exit ${RC}
 }
 cleanup_temp_files() {
-    # shellcheck disable=SC2086
+    # shellcheck disable=SC2086,SC2317
     rm -f ${files_to_cleanup}
 }
 

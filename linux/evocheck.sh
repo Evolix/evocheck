@@ -916,7 +916,7 @@ check_mysqlnrpe() {
             grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql" /etc/nagios/nrpe.d/evolix.cfg \
             || failed "IS_MYSQLNRPE" "check_mysql is missing"
         fi
-        fi
+    fi
 }
 check_phpevolinuxconf() {
     is_debian_stretch  && phpVersion="7.0"

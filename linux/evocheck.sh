@@ -487,8 +487,8 @@ check_ssh_fail2ban_jail_renamed() {
 }
 # Vérification de l'exclusion des montages (NFS) dans les sauvegardes
 check_evobackup_exclude_mount() {
-    excludes_file=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.evobackup_exclude_mount.XXXXX")
-    files_to_cleanup="${files_to_cleanup} ${excludes_file}"
+    excludes_file=$(mktemp --tmpdir "evocheck.evobackup_exclude_mount.XXXXX")
+    files_to_cleanup+=("${excludes_file}")
 
     # shellcheck disable=SC2044
     for evobackup_file in $(find /etc/cron* -name '*evobackup*' | grep -v -E ".disabled$"); do
@@ -950,8 +950,8 @@ check_duplicate_fs_label() {
     # Do it only if thereis blkid binary
     BLKID_BIN=$(command -v blkid)
     if [ -n "$BLKID_BIN" ]; then
-        tmpFile=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.duplicate_fs_label.XXXXX")
-        files_to_cleanup="${files_to_cleanup} ${tmpFile}"
+        tmpFile=$(mktemp --tmpdir "evocheck.duplicate_fs_label.XXXXX")
+        files_to_cleanup+=("${tmpFile}")
 
         parts=$($BLKID_BIN -c /dev/null | grep -ve raid_member -e EFI_SYSPART | grep -Eo ' LABEL=".*"' | cut -d'"' -f2)
         for part in $parts; do
@@ -1332,8 +1332,8 @@ add_to_path() {
     echo "$PATH" | grep -qF "${new_path}" || export PATH="${PATH}:${new_path}"
 }
 check_versions() {
-    versions_file=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.versions.XXXXX")
-    files_to_cleanup="${files_to_cleanup} ${versions_file}"
+    versions_file=$(mktemp --tmpdir "evocheck.versions.XXXXX")
+    files_to_cleanup+=("${versions_file}")
 
     download_versions "${versions_file}"
     add_to_path "/usr/share/scripts"
@@ -1360,8 +1360,8 @@ main() {
     # Detect operating system name, version and release
     detect_os
 
-    main_output_file=$(mktemp --tmpdir="${TMPDIR:-/tmp}" "evocheck.main.XXXXX")
-    files_to_cleanup="${files_to_cleanup} ${main_output_file}"
+    main_output_file=$(mktemp --tmpdir "evocheck.main.XXXXX")
+    files_to_cleanup+=("${main_output_file}")
 
     test "${IS_TMP_1777:=1}" = 1 && check_tmp_1777
     test "${IS_ROOT_0700:=1}" = 1 && check_root_0700
@@ -1490,7 +1490,7 @@ main() {
 }
 cleanup_temp_files() {
     # shellcheck disable=SC2086,SC2317
-    rm -f ${files_to_cleanup}
+    rm -f ${files_to_cleanup[@]}
 }
 
 PROGNAME=$(basename "$0")
@@ -1505,7 +1505,7 @@ readonly ARGS
 export LANG=C
 export LANGUAGE=C
 
-files_to_cleanup=""
+declare -a files_to_cleanup
 # shellcheck disable=SC2064
 trap cleanup_temp_files 0
 

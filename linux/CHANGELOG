@@ -11,6 +11,7 @@ New checks :
 * IS_SSH_FAIL2BAN_JAIL_RENAMED
 * IS_NO_LXC_CONTAINER
 * IS_LXC_PHP_FPM_SERVICE_UMASK_SET
+* use bash array for tmp files to cleanup
 
 ### Changed
 

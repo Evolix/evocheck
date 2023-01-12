@@ -1202,7 +1202,7 @@ check_lxc_container_resolv_conf() {
 check_no_lxc_container() {
     if is_installed lxc; then
         containers_count=$(lxc-ls | wc -l)
-        if [ -z "$containers_count" -eq 0 ]; then
+        if [ "$containers_count" -eq 0 ]; then
             failed "IS_NO_LXC_CONTAINER" "LXC is installed but have no container. Consider removing it."
         fi
     fi

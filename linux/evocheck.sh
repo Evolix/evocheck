@@ -1210,18 +1210,18 @@ check_no_lxc_container() {
 # Check that in LXC containers, phpXX-fpm services have UMask set to 0007.
 check_lxc_php_fpm_service_umask_set() {
     if is_installed lxc; then
-        php_containers_list=$(lxc-ls | grep php)
+        php_containers_list=$(lxc-ls --filter php)
         missing_umask=""
-        for c in $php_containers_list; do
+        for container in $php_containers_list; do
             # Translate container name in service name
-            if [ "$c" = "php56" ]; then
+            if [ "$container" = "php56" ]; then
                 service="php5-fpm"
             else
-                service="${c:0:4}.${c:4}-fpm"
+                service="${container:0:4}.${container:4}-fpm"
             fi
-            umask=$(lxc-attach --name "$c" -- systemctl show -p UMask "$service" | cut -d "=" -f2)
+            umask=$(lxc-attach --name "${container}" -- systemctl show -p UMask "$service" | cut -d "=" -f2)
             if ! [ "$umask" != "0007" ]; then
-                missing_umask="${missing_umask} ${c}"
+                missing_umask="${missing_umask} ${container}"
             fi
         done
         if [ -n "${missing_umask}" ]; then

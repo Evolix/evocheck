@@ -194,7 +194,7 @@ check_wheel(){
     fi
 }
 check_pkgmirror(){
-    grep -qE "^https?://ftp\.evolix\.org/openbsd/" /etc/installurl || failed "IS_PKGMIRROR" "Check whether the right repo is present in the /etc/installurl file"
+    grep -qE "^https?://ftp\.evolix\.org/openbsd" /etc/installurl || failed "IS_PKGMIRROR" "Check whether the right repo is present in the /etc/installurl file"
 }
 check_history(){
     file=/root/.profile

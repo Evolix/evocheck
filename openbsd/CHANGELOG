@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - check_history: escape $HOME variable
+- check_pkgmirror: fix openbsd mirror
 
 ## [22.11] - 2022-11-28
 

@@ -7,10 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced check_sudomaint with check_doasmaint because evomaintenance is used with doas, not with sudo
+
 ### Fixed
 
 - check_history: escape $HOME variable
 - check_pkgmirror: fix openbsd mirror
+
+### Removed
+
+- check_wheel: wheel group mustn't be sudo because we use the evolinux-sudo group
 
 ## [22.11] - 2022-11-28
 

@@ -188,11 +188,6 @@ check_pfenabled(){
         failed "IS_PFENABLED" "PF is disabled! Make sure pf=NO is absent from /etc/rc.conf.local and carefully run pfctl -e"
     fi
 }
-check_wheel(){
-    if [ -f /etc/sudoers ]; then
-        grep -qE "^%wheel.*$" /etc/sudoers || failed "IS_WHEEL" ""
-    fi
-}
 check_pkgmirror(){
     grep -qE "^https?://ftp\.evolix\.org/openbsd" /etc/installurl || failed "IS_PKGMIRROR" "Check whether the right repo is present in the /etc/installurl file"
 }
@@ -212,12 +207,9 @@ check_ttyc0secure(){
 check_customsyslog(){
     grep -q EvoBSD /etc/newsyslog.conf || failed "IS_CUSTOMSYSLOG" ""
 }
-check_sudomaint(){
-    file=/etc/sudoers
+check_doasmaint(){
     # shellcheck disable=SC2015
-    grep -q "Cmnd_Alias MAINT = /usr/share/scripts/evomaintenance.sh" $file \
-    && grep -q "%wheel ALL=NOPASSWD: MAINT" $file \
-    || failed "IS_SUDOMAINT" ""
+    grep -q "permit setenv {ENV PS1 SSH_AUTH_SOCK SSH_TTY} nopass :evolinux-ssh as root cmd /usr/share/scripts/evomaintenance.sh" /etc/doas.conf || failed "IS_DOASMAINT" "Make sure evomaintenance.sh permission are properly configured in /etc/doas.conf"
 }
 check_nrpe(){
     if ! is_installed monitoring-plugins || ! is_installed nrpe; then
@@ -540,13 +532,12 @@ main() {
     test "${IS_CARPPREEMPT:=1}" = 1 && check_carppreempt
     test "${IS_REBOOTMAIL:=1}" = 1 && check_rebootmail
     test "${IS_PFENABLED:=1}" = 1 && check_pfenabled
-    test "${IS_WHEEL:=1}" = 1 && check_wheel
     test "${IS_PKGMIRROR:=1}" = 1 && check_pkgmirror
     test "${IS_HISTORY:=1}" = 1 && check_history
     test "${IS_VIM:=1}" = 1 && check_vim
     test "${IS_TTYC0SECURE:=1}" = 1 && check_ttyc0secure
     test "${IS_CUSTOMSYSLOG:=1}" = 1 && check_customsyslog
-    test "${IS_SUDOMAINT:=1}" = 1 && check_sudomaint
+    test "${IS_DOASMAINT:=1}" = 1 && check_doasmaint
     test "${IS_NRPE:=1}" = 1 && check_nrpe
     test "${IS_RSYNC:=1}" = 1 && check_rsync
     test "${IS_CRONPATH:=1}" = 1 && check_cronpath

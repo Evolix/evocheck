@@ -15,6 +15,12 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
+## [23.02] 2023-02-10
+
+### Fixed
+
+* Release with the correct version number.
+
 ## [22.12] 2023-02-10
 
 ### Added

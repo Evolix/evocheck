@@ -72,7 +72,18 @@ test "$expected" = "$actual" || failed "IS_MINIFWPERMS"
 
 It's better to verify that a file, a directory or a command is present before using it, even if it's true in more than 99% of situations.
 
+
 ## How to build the package for a new Debian release
+
+Pre-tasks:
+
+* Execute shellcheck on scripts `*.sh` and fix or disable the relevant checks.
+* Prepare `linux/CHANGELOG` and `openbsd/CHANGELOG` for release.
+* Update version number is scripts :
+
+```
+sed -i 's/VERSION=".*"/VERSION="<MAJOR>.<MINOR>"/g' */evocheck*.sh
+```
 
 On the master branch, add the last stable version with a release tag.
 ```

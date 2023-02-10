@@ -4,7 +4,7 @@
 # Script to verify compliance of a Linux (Debian) server
 # powered by Evolix
 
-VERSION="22.11"
+VERSION="22.12"
 readonly VERSION
 
 # base functions
@@ -133,6 +133,7 @@ check_dpkgwarning() {
 }
 # Check if localhost, localhost.localdomain and localhost.$mydomain are set in Postfix mydestination option.
 check_localhost_in_postfix_mydestination() {
+    # shellcheck disable=SC2016
     if ! grep mydestination /etc/postfix/main.cf | grep --extended-regexp 'localhost[^\\.]' | grep 'localhost.localdomain' | grep 'localhost.$mydomain'; then
         failed "IS_LOCALHOST_IN_POSTFIX_MYDESTINATION" "'localhost' and/or 'localhost.localdomain' and/or 'localhost.\$mydomain' are missing in Postfix mydestination option. Consider adding then."
     fi

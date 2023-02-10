@@ -657,7 +657,7 @@ check_notupgraded() {
         fi
     done
     if $upgraded; then
-        last_upgrade=$(date +%s -d "$(zgrep -h upgrade /var/log/dpkg.log* | sort -n | tail -1 | cut -f1 -d ' ')")
+        last_upgrade=$(date +%s -d "$(zgrep --no-filename --no-messages upgrade /var/log/dpkg.log* | sort -n | tail -1 | cut -f1 -d ' ')")
     fi
     if grep -qs '^mailto="listupgrade-todo@' /etc/evolinux/listupgrade.cnf \
         || grep -qs -E '^[[:digit:]]+[[:space:]]+[[:digit:]]+[[:space:]]+[^\*]' /etc/cron.d/listupgrade; then

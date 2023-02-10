@@ -23,6 +23,7 @@ New checks :
 
 * IS_EVOBACKUP_INCS: fix quote.
 * IS_PURGE_FAIL2BAN: fix function never called in main().
+* IS_NOTUPGRADED: silence "grep: (...) binary file matches" messages.
 
 ### Security
 

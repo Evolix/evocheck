@@ -12,6 +12,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Removed
 
 ### Fixed
+* IS_LOCALHOST_IN_POSTFIX_MYDESTINATION: set grep quiet.
+
 
 ### Security
 

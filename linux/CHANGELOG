@@ -5,6 +5,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* Log output to /var/log/evocheck.log.
+
 ### Changed
 
 ### Deprecated

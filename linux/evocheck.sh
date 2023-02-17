@@ -100,6 +100,12 @@ is_installed(){
 
 # logging
 
+log() {
+    msg="${1}"
+    date=$(/bin/date +"${DATE_FORMAT}")
+    printf "[%s] %s: %s\\n" "$date" "${PROGNAME}" "${msg}" >> "${LOGFILE}"
+}
+
 failed() {
     check_name=$1
     shift
@@ -113,6 +119,9 @@ failed() {
             printf "%s FAILED!\n" "${check_name}" >> "${main_output_file}"
         fi
     fi
+
+    # Always log verbose
+    log "${check_name} FAILED! ${check_comments}"
 }
 
 # check functions
@@ -1502,6 +1511,13 @@ readonly PROGNAME
 ARGS=$@
 readonly ARGS
 
+LOGFILE="/var/log/evocheck.log"
+readonly LOGFILE
+
+DATE_FORMAT="%Y-%m-%d %H:%M:%S"
+# shellcheck disable=SC2034
+readonly DATEFORMAT
+
 # Disable LANG*
 export LANG=C
 export LANGUAGE=C
@@ -1560,5 +1576,10 @@ while :; do
     shift
 done
 
+log "Running $PROGNAME $VERSION..."
+
 # shellcheck disable=SC2086
 main ${ARGS}
+
+log "End of $PROGNAME execution."
+

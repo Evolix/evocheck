@@ -1503,9 +1503,12 @@ main() {
 
     exit ${RC}
 }
-cleanup_temp_files() {
+cleanup() {
+    # Cleanup tmp files
     # shellcheck disable=SC2086,SC2317
     rm -f ${files_to_cleanup[@]}
+
+    log "$PROGNAME exit."
 }
 
 PROGNAME=$(basename "$0")
@@ -1529,10 +1532,6 @@ readonly DATEFORMAT
 # Disable LANG*
 export LANG=C
 export LANGUAGE=C
-
-declare -a files_to_cleanup
-# shellcheck disable=SC2064
-trap cleanup_temp_files 0
 
 # Source configuration file
 # shellcheck disable=SC1091
@@ -1584,6 +1583,14 @@ while :; do
     shift
 done
 
+# Keep this after "show_version(); exit 0" which is called by check_versions
+# to avoid logging exit twice.
+declare -a files_to_cleanup
+files_to_cleanup=""
+# shellcheck disable=SC2064
+trap cleanup EXIT INT TERM
+
+log '-----------------------------------------------'
 log "Running $PROGNAME $VERSION..."
 
 # Log config file content

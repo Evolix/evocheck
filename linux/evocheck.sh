@@ -101,9 +101,14 @@ is_installed(){
 # logging
 
 log() {
-    msg="${1}"
     date=$(/bin/date +"${DATE_FORMAT}")
-    printf "[%s] %s: %s\\n" "$date" "${PROGNAME}" "${msg}" >> "${LOGFILE}"
+    if [ "${1}" != '' ]; then
+        printf "[%s] %s: %s\\n" "$date" "${PROGNAME}" "${1}" >> "${LOGFILE}"
+    else
+        while read line; do
+            printf "[%s] %s: %s\\n" "$date" "${PROGNAME}" "${line}" >> "${LOGFILE}"
+        done < /dev/stdin
+    fi
 }
 
 failed() {
@@ -1514,6 +1519,9 @@ readonly ARGS
 LOGFILE="/var/log/evocheck.log"
 readonly LOGFILE
 
+CONFIGFILE="/etc/evocheck.cf"
+readonly CONFIGFILE
+
 DATE_FORMAT="%Y-%m-%d %H:%M:%S"
 # shellcheck disable=SC2034
 readonly DATEFORMAT
@@ -1528,7 +1536,7 @@ trap cleanup_temp_files 0
 
 # Source configuration file
 # shellcheck disable=SC1091
-test -f /etc/evocheck.cf && . /etc/evocheck.cf
+test -f "${CONFIGFILE}" && . "${CONFIGFILE}"
 
 # Parse options
 # based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
@@ -1577,6 +1585,12 @@ while :; do
 done
 
 log "Running $PROGNAME $VERSION..."
+
+# Log config file content
+if [ -f "${CONFIGFILE}" ]; then
+    log "Runtime configuration (${CONFIGFILE}):"
+    sed -e '/^[[:blank:]]*#/d; s/#.*//; /^[[:blank:]]*$/d' "${CONFIGFILE}" | log
+fi
 
 # shellcheck disable=SC2086
 main ${ARGS}

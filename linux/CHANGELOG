@@ -5,7 +5,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
-* Log output to /var/log/evocheck.log.
+* Log output and runtime config to /var/log/evocheck.log.
 
 ### Changed
 

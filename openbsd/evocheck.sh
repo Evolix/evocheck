@@ -51,6 +51,17 @@ is_installed(){
 
 # logging
 
+log() {
+    date=$(/bin/date +"${DATE_FORMAT}")
+    if [ "${1}" != '' ]; then
+        printf "[%s] %s: %s\\n" "$date" "${PROGNAME}" "${1}" >> "${LOGFILE}"
+    else
+        while read line; do
+            printf "[%s] %s: %s\\n" "$date" "${PROGNAME}" "${line}" >> "${LOGFILE}"
+        done < /dev/stdin
+    fi
+}
+
 failed() {
     check_name=$1
     shift
@@ -64,6 +75,9 @@ failed() {
             printf "%s FAILED!\n" "${check_name}" 2>&1
         fi
     fi
+
+    # Always log verbose
+    log "${check_name} FAILED! ${check_comments}"
 }
 
 # check functions
@@ -415,7 +429,7 @@ get_command() {
         evocheck) echo "${0}" ;;
         evomaintenance) command -v "evomaintenance.sh" ;;
         motd-carp-state) command -v "motd-carp-state.sh" ;;
-        
+
         ## General case, where the program name is the same as the command name
         *) command -v "${program}" ;;
     esac
@@ -564,21 +578,29 @@ main() {
 
     exit ${RC}
 }
-cleanup_temp_files() {
+cleanup() {
+    # Cleanup tmp files
     # shellcheck disable=SC2086
     rm -f ${files_to_cleanup}
+
+    log "$PROGNAME exit."
 }
+
+PROGNAME=$(basename "$0")
+
+LOGFILE="/var/log/evocheck.log"
+
+CONFIGFILE="/etc/evocheck.cf"
+
+DATE_FORMAT="%Y-%m-%d %H:%M:%S"
 
 # Disable LANG*
 export LANG=C
 export LANGUAGE=C
 
-files_to_cleanup=""
-trap cleanup_temp_files 0
-
 # Source configuration file
 # shellcheck disable=SC1091
-test -f /etc/evocheck.cf && . /etc/evocheck.cf
+test -f "${CONFIGFILE}" && . "${CONFIGFILE}"
 
 # Parse options
 # based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
@@ -621,5 +643,25 @@ while :; do
     shift
 done
 
+# Keep this after "show_version(); exit 0" which is called by check_versions
+# to avoid logging exit twice.
+files_to_cleanup=""
+trap cleanup EXIT INT TERM
+
+log '-----------------------------------------------'
+log "Running $PROGNAME $VERSION..."
+
+# Log config file content
+if [ -f "${CONFIGFILE}" ]; then
+    log "Runtime configuration (${CONFIGFILE}):"
+    conf=$(sed -e '/^[[:blank:]]*#/d; s/#.*//; /^[[:blank:]]*$/d' "${CONFIGFILE}")
+    if [ ! -z "${conf}" ]; then
+        sed -e '/^[[:blank:]]*#/d; s/#.*//; /^[[:blank:]]*$/d' "${CONFIGFILE}" | log
+    else
+        log "${CONFIGFILE} is empty."
+    fi
+fi
+
 # shellcheck disable=SC2086
 main ${ARGS}
+

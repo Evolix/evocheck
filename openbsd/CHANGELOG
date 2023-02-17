@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+* Log output and runtime config to /var/log/evocheck.log.
+
 ## [23.02] - 2023-02-10
 
 ### Fixed

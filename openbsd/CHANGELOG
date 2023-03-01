@@ -22,194 +22,194 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Replaced check_sudomaint with check_doasmaint because evomaintenance is used with doas, not with sudo
+* Replaced check_sudomaint with check_doasmaint because evomaintenance is used with doas, not with sudo
 
 ### Fixed
 
-- check_history: escape $HOME variable
-- check_pkgmirror: fix openbsd mirror
+* check_history: escape $HOME variable
+* check_pkgmirror: fix openbsd mirror
 
 ### Removed
 
-- check_wheel: wheel group mustn't be sudo because we use the evolinux-sudo group
+* check_wheel: wheel group mustn't be sudo because we use the evolinux-sudo group
 
 ## [22.11] - 2022-11-28
 
 ### Changed
 
-- check_pkgmirror: use our own openbsd mirror
+* check_pkgmirror: use our own openbsd mirror
 
 ## [22.10] - 2022-10-14
 
 ### Changed
 
-- check_evobackup_exclude_mount: skip if --one-file-system is used, and exclude scripts without Rsync command
-- check_backupuptodate: use find with --max-depth=1 to limit the number of evaluated files
-- check_sshpermitrootno: do not display sshd errors
-- check_ntp: comply with ntp configuration change on EvoBSD
+* check_evobackup_exclude_mount: skip if --one-file-system is used, and exclude scripts without Rsync command
+* check_backupuptodate: use find with --max-depth=1 to limit the number of evaluated files
+* check_sshpermitrootno: do not display sshd errors
+* check_ntp: comply with ntp configuration change on EvoBSD
 
 ## [22.08] - 2022-08-04
 
 ### Fixed
 
-- Fixed check_sshpermitrootno to check real configuration
+* Fixed check_sshpermitrootno to check real configuration
 
 ## [22.06] - 2022-06-16
 
 ### Changed
 
-- Fixed various shellcheck violations
-- Added a function to cleanup files at once instead of using multiple trap rm
+* Fixed various shellcheck violations
+* Added a function to cleanup files at once instead of using multiple trap rm
 
 ## [22.04] - 2022-04-13
 
 ### Added
 
-- Added check_root_user: make sure that root user does not have a password
+* Added check_root_user: make sure that root user does not have a password
 
 ## [22.03] - 2022-03-10
 
 ### Added
 
-- check_evomaintenanceconf: check existence and rights of evomaintenance conf file
-- Added check_nrpeopensmtpd to ensure that opensmtpd is used for mailq nrpe check
-- Added check_sshallowusers to ensure that AllowUsers or AllowGroups directive is present in sshd_config
-- Added check_evobackup_exclude_mount to ensure that NFS mounts are excluded from backup
-- Added check_etcgit to ensure that /etc is a git repository
-- Added check_evolinuxsudogroup to ensure that evolinux-sudo is properly configured in sudo if group exist
-- Added check_bind9munin to ensure that a plugin for bind is configured when munin is installed
-- Added check_evolix_user to ensure that evolix user does not exist
-- Added check_versions and its functions (download_versions, get_command, get_version, check_version, add_to_path) to ensure that custom scripts are up to date
+* check_evomaintenanceconf: check existence and rights of evomaintenance conf file
+* Added check_nrpeopensmtpd to ensure that opensmtpd is used for mailq nrpe check
+* Added check_sshallowusers to ensure that AllowUsers or AllowGroups directive is present in sshd_config
+* Added check_evobackup_exclude_mount to ensure that NFS mounts are excluded from backup
+* Added check_etcgit to ensure that /etc is a git repository
+* Added check_evolinuxsudogroup to ensure that evolinux-sudo is properly configured in sudo if group exist
+* Added check_bind9munin to ensure that a plugin for bind is configured when munin is installed
+* Added check_evolix_user to ensure that evolix user does not exist
+* Added check_versions and its functions (download_versions, get_command, get_version, check_version, add_to_path) to ensure that custom scripts are up to date
 
 ### Changed
 
-- Overall improvement of evocheck: reordering, splitting version and help options, adding comments, developping some functions so they are more comprehensible
-- Improved check_umasksudoers to have a more complete grep
-- Updated check_history to reflect the new HISTSIZE value
-- Renamed check_tmp1777 and check_root0700 respectively to check_tmp_1777 and check_root_0700
-- Improved check_tmp_1777, check_root_0700, check_usrsharescripts in the way the folders rights are checked
+* Overall improvement of evocheck: reordering, splitting version and help options, adding comments, developping some functions so they are more comprehensible
+* Improved check_umasksudoers to have a more complete grep
+* Updated check_history to reflect the new HISTSIZE value
+* Renamed check_tmp1777 and check_root0700 respectively to check_tmp_1777 and check_root_0700
+* Improved check_tmp_1777, check_root_0700, check_usrsharescripts in the way the folders rights are checked
 
 ### Fixed
 
-- Fixed check_uptime: it didn't work at all, and tried to get uptime in the wrong way
-- Fixed check_evomaintenanceusers: sudo is not used for the evomaintenance trap, doas is ; and users were not found the better way
+* Fixed check_uptime: it didn't work at all, and tried to get uptime in the wrong way
+* Fixed check_evomaintenanceusers: sudo is not used for the evomaintenance trap, doas is ; and users were not found the better way
 
 ### Removed
 
-- Removed empty check_pfcustom
+* Removed empty check_pfcustom
 
 ## [21.10] - 2021-10-07
 
 ### Fixed
 
-- Fixed check_tmoutprofile: syntax error on if/else/fi test
+* Fixed check_tmoutprofile: syntax error on if/else/fi test
 
 ## [21.09] - 2021-09-17
 
 ### Changed
 
-- Changed version numbering to use year.month and be capable to know the age of the script
+* Changed version numbering to use year.month and be capable to know the age of the script
 
 ### Fixed
 
-- Fixed check_tmoutprofile: Add "if" to check if file exists
+* Fixed check_tmoutprofile: Add "if" to check if file exists
 
 ## [6.9.1] - 2021-07-23
 
 ### Changed
 
-- Renamed check_advskew, check_preempt, check_advbase and their alert to add "carp" in them
+* Renamed check_advskew, check_preempt, check_advbase and their alert to add "carp" in them
 
 ## [6.9.0] - 2021-07-16
 
 ### Added
 
-- Add check_advskew: convention for CARP interfaces. CARP in master state must have advskew parameter between 1 and 50, CARP in backup state must have advskew parameter between 100 and 150, preventing a configuration error with the same value for master and backup
+* Add check_advskew: convention for CARP interfaces. CARP in master state must have advskew parameter between 1 and 50, CARP in backup state must have advskew parameter between 100 and 150, preventing a configuration error with the same value for master and backup
 
 ## [6.8.0] - 2020-10-23
 
 ### Fixed
 
-- Fix check_noatime: do not take into account commented entry in fstab
+* Fix check_noatime: do not take into account commented entry in fstab
 
 ## [6.7.7] - 2020-10-22
 
 ### Added
 
-- Add check_openvpncronlog: a cron is needed to rotate logs, because a restart of OpenVPN would be needed with the use of newsyslog to rotate logs
+* Add check_openvpncronlog: a cron is needed to rotate logs, because a restart of OpenVPN would be needed with the use of newsyslog to rotate logs
 
 ### Fixed
 
-- Fix check_uptodate: properly check that syspatch exists
-- Fix check_raidok: the same device could be displayed multiple times
+* Fix check_uptodate: properly check that syspatch exists
+* Fix check_raidok: the same device could be displayed multiple times
 
 ## [6.7.6] - 2020-10-15
 
 ### Added
 
-- Add check_noatime - Check that all ffs partitions are mounted with the noatime option
+* Add check_noatime - Check that all ffs partitions are mounted with the noatime option
 
 ### Fixed
 
-- Fix check_softdep - We now check the number of ffs partitions and we compare it to the number of softdep options currently there
+* Fix check_softdep - We now check the number of ffs partitions and we compare it to the number of softdep options currently there
 
 ## [6.7.5] - 2020-10-09
 
 ### Fixed
 
-- Fix check_cronpath - Do not check PATH=XXX but only XXX because XXX can also be in quotes (PATH="XXX" would not be matched)
+* Fix check_cronpath - Do not check PATH=XXX but only XXX because XXX can also be in quotes (PATH="XXX" would not be matched)
 
 ## [6.7.4] - 2020-08-04
 
 ### Added
 
-- Add check_backupuptodate - Check that /home/backup is not older than 2 days
+* Add check_backupuptodate - Check that /home/backup is not older than 2 days
 
 ## [6.7.3] - 2020-07-23
 
 ### Added
 
-- Add check_ntp - Check the ntpd configuration
+* Add check_ntp - Check the ntpd configuration
 
 ### Fixed
 
-- Fix check_defaultroute - We need to check if the /etc/mygate file exists before comparing it
+* Fix check_defaultroute - We need to check if the /etc/mygate file exists before comparing it
 
 ### Removed
 
-- Removed check_postgresql - Deprecated since we now use an API
+* Removed check_postgresql - Deprecated since we now use an API
 
 ## [6.7.2] - 2020-07-22
 
 ### Added
 
-- Add check_defaultroute function - Make sure the default route in /etc/mygate file is the same that the one currently used
+* Add check_defaultroute function - Make sure the default route in /etc/mygate file is the same that the one currently used
 
 ## [6.7.1] - 2020-07-15
 
 ### Fixed
 
-- Fix check_customsyslog - We have to check whether EvoBSD is present in newsyslog.conf file
-- Fix check_sudomaint function - ADMIN group does not exist anymore, we now check that the wheel group has NOPASSWD to run the evomaintenance command alias
-- Fix check_advbase - We want the evocheck advbase function output to be uniq
+* Fix check_customsyslog - We have to check whether EvoBSD is present in newsyslog.conf file
+* Fix check_sudomaint function - ADMIN group does not exist anymore, we now check that the wheel group has NOPASSWD to run the evomaintenance command alias
+* Fix check_advbase - We want the evocheck advbase function output to be uniq
 
 ## [6.6.2] - 2020-04-27
 
 ### Added
 
-- Add check_sync function - If a server is a Carp member we check whether the sync.sh script is present or not
-- Add check_pfenabled function - We make sure PF is enabled
-- Add check_uptodate function - Use syspatch(8) to check if security updates are available
+* Add check_sync function - If a server is a Carp member we check whether the sync.sh script is present or not
+* Add check_pfenabled function - We make sure PF is enabled
+* Add check_uptodate function - Use syspatch(8) to check if security updates are available
 
 ### Changed
 
-- Remove check_oldhomedir - This information is irrelevant since we always keep home directories of former sysadmins
-- Now use a version-naming scheme based on OpenBSD's one
+* Remove check_oldhomedir - This information is irrelevant since we always keep home directories of former sysadmins
+* Now use a version-naming scheme based on OpenBSD's one
 
 ## [6.6.1] - 2020-04-21
 
 ### Changed
 
-- Rewrite if statements to functions
-- Add a main function
-- New help message
+* Rewrite if statements to functions
+* Add a main function
+* New help message

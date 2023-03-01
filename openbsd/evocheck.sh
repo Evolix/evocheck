@@ -526,6 +526,17 @@ check_root_user() {
         failed "IS_ROOT_USER" "root user should not have a password ; replace the password field with 'vipw' for the root user with '*************' (exactly 13 asterisks) "
     fi
 }
+check_mount(){
+    for fstab_entry in $(grep ffs /etc/fstab | grep -v "^#" | awk '{print $2}'); do
+        echo "$(mount | awk '{print $3}')" | grep -q "^$fstab_entry$" || failed "IS_MOUNT" "Local OpenBSD partition(s) detected in /etc/fstab but not mounted"
+    done
+}
+check_mountfstab() {
+    for mount_point in $(mount | awk '{print $3}'); do
+        grep -q " $mount_point " /etc/fstab || failed "IS_MOUNT_FSTAB" "Partition(s) detected mounted but no presence in /etc/fstab"
+    done
+}
+
 
 main() {
     # Default return code : 0 = no error
@@ -575,6 +586,8 @@ main() {
     test "${IS_EVOLIX_USER:=1}" = 1 && check_evolix_user
     test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
     test "${IS_ROOT_USER:=1}" = 1 && check_root_user
+    test "${IS_MOUNT:=1}" = 1 && check_mount
+    test "${IS_MOUNT_FSTAB:=1}" = 1 && check_mountfstab
 
     exit ${RC}
 }

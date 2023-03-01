@@ -15,6 +15,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 * IS_LOCALHOST_IN_POSTFIX_MYDESTINATION: set grep quiet.
+* IS_LXC_PHP_FPM_SERVICE_UMASK_SET: fix inverted test condition.
 
 
 ### Security

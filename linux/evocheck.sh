@@ -1235,7 +1235,7 @@ check_lxc_php_fpm_service_umask_set() {
                 service="${container:0:4}.${container:4}-fpm"
             fi
             umask=$(lxc-attach --name "${container}" -- systemctl show -p UMask "$service" | cut -d "=" -f2)
-            if ! [ "$umask" != "0007" ]; then
+            if [ "$umask" != "0007" ]; then
                 missing_umask="${missing_umask} ${container}"
             fi
         done

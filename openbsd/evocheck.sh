@@ -118,9 +118,9 @@ check_raidok(){
 }
 check_evobackup(){
     if [ -f /etc/daily.local ]; then
-        grep -qE "^sh /usr/share/scripts/zzz_evobackup" /etc/daily.local || failed "IS_EVOBACKUP" "Make sure 'sh /usr/share/scripts/zzz_evobackup' is present and activated in /etc/daily.local"
+        grep -qE "^(ba)?sh /usr/share/scripts/zzz_evobackup" /etc/daily.local || failed "IS_EVOBACKUP" "Make sure 'bash or sh /usr/share/scripts/zzz_evobackup' is present and activated in /etc/daily.local"
     else
-        failed "IS_EVOBACKUP" "Make sure /etc/daily.local exists and 'sh /usr/share/scripts/zzz_evobackup' is present and activated in /etc/daily.local"
+        failed "IS_EVOBACKUP" "Make sure /etc/daily.local exists and 'bash or sh /usr/share/scripts/zzz_evobackup' is present and activated in /etc/daily.local"
     fi
 }
 check_uptodate(){

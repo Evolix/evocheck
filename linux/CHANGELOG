@@ -15,6 +15,11 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
+## [23.04.01] 2023-04-07
+
+### Fixed
+* IS_POSTFIX_MYDESTINATION: fix regex not working (again).
+
 ## [23.04] 2023-04-07
 
 ### Changed

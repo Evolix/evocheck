@@ -528,7 +528,7 @@ check_root_user() {
 }
 check_mount(){
     for fstab_entry in $(grep ffs /etc/fstab | grep -v "^#" | awk '{print $2}'); do
-        echo "$(mount | awk '{print $3}')" | grep -q "^$fstab_entry$" || failed "IS_MOUNT" "Local OpenBSD partition(s) detected in /etc/fstab but not mounted"
+        mount | awk '{print $3}' | grep -q "^$fstab_entry$" || failed "IS_MOUNT" "Local OpenBSD partition(s) detected in /etc/fstab but not mounted"
     done
 }
 check_mountfstab() {

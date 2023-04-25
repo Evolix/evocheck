@@ -168,9 +168,9 @@ check_carpadvbase(){
     if ls /etc/hostname.carp* 1> /dev/null 2>&1; then
         bad_advbase=0
         for advbase in $(ifconfig carp | grep advbase | awk -F 'advbase' '{print $2}' | awk '{print $1}' | xargs); do
-        if [ "$advbase" -gt 5 ]; then
-            bad_advbase=1
-        fi
+            if [ "$advbase" -gt 5 ]; then
+                bad_advbase=1
+            fi
         done
         if [ "$bad_advbase" -eq 1 ]; then
             failed "IS_CARPADVBASE" "At least one CARP interface has advbase greater than 5 seconds!"
@@ -186,7 +186,7 @@ check_carppreempt(){
         if [ -f /etc/sysctl.conf ]; then
             grep -qE "^net.inet.carp.preempt=1" /etc/sysctl.conf || failed "IS_CARPPREEMPT" "The preempt parameter is not permanently activated! Please add 'net.inet.carp.preempt=1' in /etc/sysctl.conf"
         else
-        failed "IS_CARPPREEMPT" "Make sure /etc/sysctl.conf exists and contains the line 'net.inet.carp.preempt=1'"
+            failed "IS_CARPPREEMPT" "Make sure /etc/sysctl.conf exists and contains the line 'net.inet.carp.preempt=1'"
         fi
     fi
 }

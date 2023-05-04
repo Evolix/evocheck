@@ -55,7 +55,7 @@ detect_os() {
         DEBIAN_MAIN_VERSION=$(cut -d "." -f 1 < /etc/debian_version)
 
         if [ "${DEBIAN_MAIN_VERSION}" -lt "9" ]; then
-            echo "Debian ${DEBIAN_MAIN_VERSION} is incompatible with this version of evocheck." >&2 
+            echo "Debian ${DEBIAN_MAIN_VERSION} is incompatible with this version of evocheck." >&2
             echo "This version is built for Debian 9 and later." >&2
             exit
         fi
@@ -1076,14 +1076,14 @@ check_usrsharescripts() {
 check_sshpermitrootno() {
     sshd_args="-C addr=,user=,host=,laddr=,lport=0"
     if is_debian_stretch; then
-	    # Noop, we'll use the default $sshd_args
+        # Noop, we'll use the default $sshd_args
         :
     elif is_debian_buster; then
-	    sshd_args="${sshd_args},rdomain="
+        sshd_args="${sshd_args},rdomain="
     else
-	    # NOTE: From Debian Bullseye 11 onward, with OpenSSH 8.1, the argument
+        # NOTE: From Debian Bullseye 11 onward, with OpenSSH 8.1, the argument
         # -T doesn't require the additional -C.
-	    sshd_args=
+        sshd_args=
     fi
     # shellcheck disable=SC2086
     if ! (sshd -T ${sshd_args} 2> /dev/null | grep -qi 'permitrootlogin no'); then
@@ -1216,7 +1216,7 @@ check_lxc_container_resolv_conf() {
             else
                 failed "IS_LXC_CONTAINER_RESOLV_CONF" "resolv.conf missing in container ${container}"
             fi
-        done 
+        done
     fi
 }
 # Check that there are containers if lxc is installed.
@@ -1302,7 +1302,7 @@ get_version() {
     case "${program}" in
         ## Special case if `command --version => 'command` is not the standard way to get the version
         # my_command)
-        #    /path/to/my_command --get-version 
+        #    /path/to/my_command --get-version
         #    ;;
 
         add-vm)

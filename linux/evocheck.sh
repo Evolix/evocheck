@@ -307,7 +307,7 @@ check_nrpedisks() {
     test "$NRPEDISKS" = "$DFDISKS" || failed "IS_NRPEDISKS" "there must be $DFDISKS check_disk in nrpe.cfg"
 }
 check_nrpepid() {
-    if is_debian_bullseye; then
+    if { is_debian_bullseye || is_debian_bookworm ; }; then
         { test -e /etc/nagios/nrpe.cfg \
             && grep -q "^pid_file=/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
         } || failed "IS_NRPEPID" "missing or wrong pid_file directive in nrpe.cfg"

@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+### Security
+
+## [23.06] - 2023-06-05
+
+### Added
+
 * Log output and runtime config to /var/log/evocheck.log.
 * check_mountfstab and check_mount: make sure all mounted partitions are in fstab and all partitions in fstab are mounted
 

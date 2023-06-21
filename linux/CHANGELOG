@@ -12,6 +12,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Removed
 
 ### Fixed
+* IS_REDIS_BACKUP: full rewrite of the check to be more flexible, and also check time of dump.
 
 ### Security
 

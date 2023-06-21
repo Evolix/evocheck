@@ -874,19 +874,27 @@ check_ldap_backup() {
 check_redis_backup() {
     if is_installed redis-server; then
         # You could change the default path in /etc/evocheck.cf
-        # REDIS_BACKUP_PATH may contain space-separated paths, example:
+        # REDIS_BACKUP_PATH may contain space-separated paths, for example:
         # REDIS_BACKUP_PATH='/home/backup/redis-instance1/dump.rdb /home/backup/redis-instance2/dump.rdb'
-        # Old default path: /home/backup/dump.rdb
-        # New default path: /home/backup/redis/dump.rdb
-        if [ -z "${REDIS_BACKUP_PATH}" ]; then
-            if ! [ -f "/home/backup/dump.rdb" ] && ! [ -f "/home/backup/redis/dump.rdb" ]; then
-                failed "IS_REDIS_BACKUP" "Redis dump is missing (/home/backup/dump.rdb or /home/backup/redis/dump.rdb)."
-            fi
-        else
-            for file in ${REDIS_BACKUP_PATH}; do
-                test -f "${file}" || failed "IS_REDIS_BACKUP" "Redis dump ${file} is missing."
-            done
+        # Warning : this script doesn't handle spaces in file paths !
+
+        REDIS_BACKUP_PATH="${REDIS_BACKUP_PATH:-$(find /home/backup/ -iname "*.rdb*")}"
+
+        # Check number of dumps
+        n_instances=$(pgrep 'redis-server' | wc -l)
+        n_dumps=$(echo $REDIS_BACKUP_PATH | wc -w)
+        if [ ${n_dumps} -lt ${n_instances} ]; then
+            failed "IS_REDIS_BACKUP" "Missing Redis dump : ${n_instances} instance(s) found versus ${n_dumps} dump(s) found."
         fi
+
+        # Check last dump date
+        age_threshold=$(date +"%s" -d "now - 2 days")
+        for dump in ${REDIS_BACKUP_PATH}; do
+            last_update=$(stat -c "%Z" $dump)
+            if [ "${last_update}" -lt "${age_threshold}" ]; then
+                failed "IS_REDIS_BACKUP" "Redis dump ${dump} is older than 2 days."
+            fi
+        done
     fi
 }
 check_elastic_backup() {

@@ -440,7 +440,11 @@ check_log2mailsquid() {
 check_bindchroot() {
     if is_installed bind9; then
         if netstat -utpln | grep "/named" | grep :53 | grep -qvE "(127.0.0.1|::1)"; then
-            if grep -q '^OPTIONS=".*-t' /etc/default/bind9 && grep -q '^OPTIONS=".*-u' /etc/default/bind9; then
+            default_conf=/etc/default/named
+            if is_debian_buster || is_debian_stretch; then
+                default_conf=/etc/default/bind9
+            fi
+            if grep -q '^OPTIONS=".*-t' "${default_conf}" && grep -q '^OPTIONS=".*-u' "${default_conf}"; then
                 md5_original=$(md5sum /usr/sbin/named | cut -f 1 -d ' ')
                 md5_chrooted=$(md5sum /var/chroot-bind/usr/sbin/named | cut -f 1 -d ' ')
                 if [ "$md5_original" != "$md5_chrooted" ]; then

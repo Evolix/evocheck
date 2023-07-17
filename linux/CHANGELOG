@@ -12,6 +12,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Removed
 
 ### Fixed
+* IS_BINDCHROOT: fix /etc/default path for Debian >= 11 (renamed from bind9 to named)
 
 ### Security
 

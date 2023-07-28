@@ -4,6 +4,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ## [Unreleased]
 
 ### Added
+* IS_OLDPUB: pub.evolix.net has been supersed by pub.evolix.org since Stretch
 
 ### Changed
 

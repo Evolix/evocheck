@@ -281,8 +281,17 @@ check_alert5minifw() {
     fi
 }
 check_minifw() {
-    /sbin/iptables -L -n | grep -q -E "^ACCEPT\s*(all|0)\s*--\s*31\.170\.8\.4\s*0\.0\.0\.0/0\s*$" \
-        || failed "IS_MINIFW" "minifirewall seems not started"
+    {
+        if [ -f /etc/systemd/system/minifirewall.service ]; then
+            systemctl is-active minifirewall > /dev/null 2>&1
+        else
+            if test -x /usr/share/scripts/minifirewall_status; then
+                /usr/share/scripts/minifirewall_status > /dev/null 2>&1
+            else
+                /sbin/iptables -L -n 2> /dev/null | grep -q -E "^(DROP\s+(udp|17)|ACCEPT\s+(icmp|1))\s+--\s+0\.0\.0\.0\/0\s+0\.0\.0\.0\/0\s*$"
+            fi
+        fi
+    } || failed "IS_MINIFW" "minifirewall seems not started"
 }
 check_minifw_includes() {
     if is_debian_bullseye; then

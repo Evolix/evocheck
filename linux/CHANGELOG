@@ -4,8 +4,9 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ## [Unreleased]
 
 ### Added
-* IS_OLDPUB: pub.evolix.net has been supersed by pub.evolix.org since Stretch
 
+* IS_MINIFW: better detection of minifirewall status
+* IS_OLDPUB: pub.evolix.net has been supersed by pub.evolix.org since Stretch
 ### Changed
 
 ### Deprecated
@@ -13,6 +14,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Removed
 
 ### Fixed
+
 * IS_BINDCHROOT: fix /etc/default path for Debian >= 11 (renamed from bind9 to named)
 
 ### Security

@@ -196,7 +196,12 @@ check_debiansecurity() {
 check_oldpub() {
     # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Stretch)
     apt-cache policy | grep --quiet pub.evolix.net
-    test $? -eq 1 || failed "IS_OLDPUB" "Old pub.evolix.net repository enabled"
+    test $? -eq 1 || failed "IS_OLDPUB" "Old pub.evolix.net repository is still enabled"
+}
+check_newpub() {
+    # Look for enabled pub.evolix.org sources
+    apt-cache policy | grep --quiet pub.evolix.org
+    test $? -eq 0 || failed "IS_NEWPUB" "New pub.evolix.org repository is missing"
 }
 check_aptitude() {
     test -e /usr/bin/aptitude && failed "IS_APTITUDE" "aptitude may not be installed on Debian >=8"
@@ -1430,6 +1435,7 @@ main() {
     test "${IS_SYSLOGCONF:=1}" = 1 && check_syslogconf
     test "${IS_DEBIANSECURITY:=1}" = 1 && check_debiansecurity
     test "${IS_OLDPUB:=1}" = 1 && check_oldpub
+    test "${IS_NEWPUB:=1}" = 1 && check_newpub
     test "${IS_APTITUDE:=1}" = 1 && check_aptitude
     test "${IS_APTGETBAK:=1}" = 1 && check_aptgetbak
     test "${IS_USRRO:=1}" = 1 && check_usrro

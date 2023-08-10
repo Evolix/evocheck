@@ -7,6 +7,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 * IS_MINIFW: better detection of minifirewall status
 * IS_OLDPUB: pub.evolix.net has been supersed by pub.evolix.org since Stretch
+* IS_NEWPUB: verify that the new public repository is present
 ### Changed
 
 ### Deprecated

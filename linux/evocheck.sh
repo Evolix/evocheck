@@ -541,7 +541,16 @@ check_evobackup_exclude_mount() {
             # If rsync is not limited by "one-file-system"
             # then we verify that every mount is excluded
             if ! grep -q -- "^\s*--one-file-system" "${evobackup_file}"; then
-                grep -- "--exclude " "${evobackup_file}" | grep -E -o "\"[^\"]+\"" | tr -d '"' > "${excludes_file}"
+                # old releases of evobackups don't have version
+                if grep -q  "^VERSION=" "${evobackup_file}"; then
+                  evobackup_version=$(sed -E -n 's/VERSION="(.*)"/\1/p' "${evobackup_file}")
+                  # versions over 22.12 use a new syntax to exclude rsync files
+                  if dpkg --compare-versions "$evobackup_version" ge 22.12 ; then
+                    sed -En '/RSYNC_EXCLUDES="/,/"/ {s/(RSYNC_EXCLUDES=|")//g;p}' > "${excludes_file}"
+                  else
+                    grep -- "--exclude " "${evobackup_file}" | grep -E -o "\"[^\"]+\"" | tr -d '"' > "${excludes_file}"
+                  fi
+                fi
                 not_excluded=$(findmnt --type nfs,nfs4,fuse.sshfs, -o target --noheadings | grep -v -f "${excludes_file}")
                 for mount in ${not_excluded}; do
                     failed "IS_EVOBACKUP_EXCLUDE_MOUNT" "${mount} is not excluded from ${evobackup_file} backup script"

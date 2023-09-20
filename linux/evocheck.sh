@@ -802,6 +802,19 @@ check_bind9logrotate() {
         test -e /etc/logrotate.d/bind9 || failed "IS_BIND9LOGROTATE" "missing bind logrotate file"
     fi
 }
+check_drbd_two_primaries() {
+    if is_installed drbd-utils; then
+        if command -v drbd-overview >/dev/null; then
+            if drbd-overview 2>&1 | grep -q "Primary/Primary"; then
+                failed "IS_DRBDTWOPRIMARIES" "Some DRBD ressources have two primaries, you risk a split brain!"
+            fi
+        elif command -v drbdadm >/dev/null; then
+            if drbdadm status | grep Primary -A2 | grep peer | grep -q Primary; then
+                failed "IS_DRBDTWOPRIMARIES" "Some DRBD ressources have two primaries, you risk a split brain!"
+            fi
+        fi
+    fi
+}
 check_broadcomfirmware() {
     LSPCI_BIN=$(command -v lspci)
     if [ -x "${LSPCI_BIN}" ]; then
@@ -1506,6 +1519,7 @@ main() {
     test "${IS_BACKPORTSCONF:=1}" = 1 && check_backportsconf
     test "${IS_BIND9MUNIN:=1}" = 1 && check_bind9munin
     test "${IS_BIND9LOGROTATE:=1}" = 1 && check_bind9logrotate
+    test "${IS_DRBDTWOPRIMARIES:=1}" = 1 && check_drbd_two_primaries
     test "${IS_BROADCOMFIRMWARE:=1}" = 1 && check_broadcomfirmware
     test "${IS_HARDWARERAIDTOOL:=1}" = 1 && check_hardwareraidtool
     test "${IS_LOG2MAILSYSTEMDUNIT:=1}" = 1 && check_log2mailsystemdunit

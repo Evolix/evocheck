@@ -785,10 +785,6 @@ check_apache2evolinuxconf() {
 check_backportsconf() {
     grep -qsE "^[^#].*backports" /etc/apt/sources.list \
         && failed "IS_BACKPORTSCONF" "backports can't be in main sources list"
-    if grep -qsE "^[^#].*backports" /etc/apt/sources.list.d/*.list; then
-        grep -qsE "^[^#].*backports" /etc/apt/preferences.d/* \
-            || failed "IS_BACKPORTSCONF" "backports must have preferences"
-    fi
 }
 check_bind9munin() {
     if is_installed bind9; then

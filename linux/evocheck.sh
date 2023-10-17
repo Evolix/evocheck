@@ -200,8 +200,16 @@ check_oldpub() {
 }
 check_newpub() {
     # Look for enabled pub.evolix.org sources
-    apt-cache policy | grep --quiet pub.evolix.org
+    apt-cache policy | grep "\bl=Evolix\b" | grep --quiet -v php
     test $? -eq 0 || failed "IS_NEWPUB" "New pub.evolix.org repository is missing"
+}
+check_sury() {
+    # Look for enabled packages.sury.org sources
+    apt-cache policy | grep --quiet packages.sury.org
+    if [ $? -eq 0 ]; then
+         apt-cache policy | grep "\bl=Evolix\b" | grep php --quiet
+	 test $? -eq 0 || failed "IS_SURY" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing"
+    fi
 }
 check_aptitude() {
     test -e /usr/bin/aptitude && failed "IS_APTITUDE" "aptitude may not be installed on Debian >=8"
@@ -1454,6 +1462,7 @@ main() {
     test "${IS_DEBIANSECURITY:=1}" = 1 && check_debiansecurity
     test "${IS_OLDPUB:=1}" = 1 && check_oldpub
     test "${IS_NEWPUB:=1}" = 1 && check_newpub
+    test "${IS_SURY:=1}" = 1 && check_sury
     test "${IS_APTITUDE:=1}" = 1 && check_aptitude
     test "${IS_APTGETBAK:=1}" = 1 && check_aptgetbak
     test "${IS_USRRO:=1}" = 1 && check_usrro

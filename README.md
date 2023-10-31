@@ -52,7 +52,7 @@ For Debian versions : `is_debian`, `is_debian_stretch`, `is_debian_jessie`…
 For packs : `is_pack_web`, `is_pack_samba`.
 For installed packages : `is_installed <package> [<package>]`.
 
-### Extact variables
+### Extract variables
 
 It's better not to inline function calls inside tests. Instead of this :
 

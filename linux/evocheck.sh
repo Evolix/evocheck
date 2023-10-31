@@ -68,6 +68,8 @@ detect_os() {
                 10) DEBIAN_RELEASE="buster";;
                 11) DEBIAN_RELEASE="bullseye";;
                 12) DEBIAN_RELEASE="bookworm";;
+                13) DEBIAN_RELEASE="trixie";;
+                14) DEBIAN_RELEASE="forky";;
             esac
         fi
     fi
@@ -84,6 +86,12 @@ is_debian_bullseye() {
 }
 is_debian_bookworm() {
     test "${DEBIAN_RELEASE}" = "bookworm"
+}
+is_debian_trixie() {
+    test "${DEBIAN_RELEASE}" = "trixie"
+}
+is_debian_forky() {
+    test "${DEBIAN_RELEASE}" = "forky"
 }
 
 is_pack_web(){

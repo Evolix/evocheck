@@ -225,7 +225,19 @@ check_sury() {
     apt-cache policy | grep --quiet packages.sury.org
     if [ $? -eq 0 ]; then
          apt-cache policy | grep "\bl=Evolix\b" | grep php --quiet
-	 test $? -eq 0 || failed "IS_SURY" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing"
+         test $? -eq 0 || failed "IS_SURY" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing"
+    fi
+}
+check_sury_lxc() {
+    if is_installed lxc; then
+        container_list=$(lxc-ls)
+        for container in $container_list; do
+            lxc-attach --name $container apt-cache policy | grep --quiet packages.sury.org
+            if [ $? -eq 0 ]; then
+                 lxc-attach --name $container apt-cache policy | grep "\bl=Evolix\b" | grep php --quiet
+                 test $? -eq 0 || failed "IS_SURY_LXC" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing in container ${container}"
+            fi
+        done
     fi
 }
 check_aptitude() {
@@ -1489,6 +1501,7 @@ main() {
     test "${IS_OLDPUB:=1}" = 1 && check_oldpub
     test "${IS_NEWPUB:=1}" = 1 && check_newpub
     test "${IS_SURY:=1}" = 1 && check_sury
+    test "${IS_SURY_LXC:=1}" = 1 && check_sury_lxc
     test "${IS_APTITUDE:=1}" = 1 && check_aptitude
     test "${IS_APTGETBAK:=1}" = 1 && check_aptgetbak
     test "${IS_USRRO:=1}" = 1 && check_usrro

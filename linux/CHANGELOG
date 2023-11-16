@@ -6,6 +6,10 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Added
 
 * trixie and forky support (Debian 13, 14)
+* IS_LXC_OPENSSH: check in openssh is installed in containers
+* IS_LXC_PHP_BAD_DEBIAN_VERSION: check if php containers use the expected Debian release
+* IS_DEBIANSECURITY_LXC: IS_DEBIANSECURITY in containers
+* IS_SURY_LXC: in containers
 
 ### Changed
 

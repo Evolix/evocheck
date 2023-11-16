@@ -1324,6 +1324,14 @@ check_lxc_php_fpm_service_umask_set() {
         fi
     fi
 }
+check_lxc_openssh() {
+    if is_installed lxc; then
+        container_list=$(lxc-ls)
+        for container in $container_list; do
+            test -e /var/lib/lxc/${container}/rootfs/usr/sbin/sshd && failed "IS_LXC_OPENSSH" "openssh-server should not be installed in container ${container}"
+        done
+    fi
+}
 
 download_versions() {
     local file
@@ -1575,6 +1583,7 @@ main() {
     test "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" = 1 && check_lxc_container_resolv_conf
     test "${IS_NO_LXC_CONTAINER:=1}" = 1 && check_no_lxc_container
     test "${IS_LXC_PHP_FPM_SERVICE_UMASK_SET:=1}" = 1 && check_lxc_php_fpm_service_umask_set
+    test "${IS_LXC_OPENSSH:=1}" = 1 && check_lxc_openssh
     test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
 
     if [ -f "${main_output_file}" ]; then

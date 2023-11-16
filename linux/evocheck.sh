@@ -201,6 +201,15 @@ check_debiansecurity() {
     apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
     test $? -eq 0 || failed "IS_DEBIANSECURITY" "missing Debian-Security repository"
 }
+check_debiansecurity_lxc() {
+    if is_installed lxc; then
+        container_list=$(lxc-ls)
+        for container in $container_list; do
+            lxc-attach --name $container apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
+            test $? -eq 0 || failed "IS_DEBIANSECURITY_LXC" "missing Debian-Security repository in container ${container}"
+        done
+    fi
+}
 check_oldpub() {
     # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Stretch)
     apt-cache policy | grep --quiet pub.evolix.net
@@ -1269,7 +1278,7 @@ check_lxc_container_resolv_conf() {
         container_list=$(lxc-ls)
         current_resolvers=$(grep nameserver /etc/resolv.conf | sed 's/nameserver//g' )
 
-       for container in $container_list; do
+        for container in $container_list; do
             if [ -f "/var/lib/lxc/${container}/rootfs/etc/resolv.conf" ]; then
 
                 while read -r resolver; do
@@ -1468,6 +1477,7 @@ main() {
     test "${IS_LOGROTATECONF:=1}" = 1 && check_logrotateconf
     test "${IS_SYSLOGCONF:=1}" = 1 && check_syslogconf
     test "${IS_DEBIANSECURITY:=1}" = 1 && check_debiansecurity
+    test "${IS_DEBIANSECURITY_LXC:=1}" = 1 && check_debiansecurity_lxc
     test "${IS_OLDPUB:=1}" = 1 && check_oldpub
     test "${IS_NEWPUB:=1}" = 1 && check_newpub
     test "${IS_SURY:=1}" = 1 && check_sury

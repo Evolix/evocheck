@@ -1336,6 +1336,26 @@ check_lxc_php_fpm_service_umask_set() {
         fi
     fi
 }
+# Check that LXC containers have the proper Debian version.
+check_lxc_php_bad_debian_version() {
+    if is_installed lxc; then
+        php_containers_list=$(lxc-ls --filter php)
+        missing_umask=""
+        for container in $php_containers_list; do
+            if [ "$container" = "php56" ]; then
+                grep --quiet 'VERSION_ID="8"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Jessie"
+            elif [ "$container" = "php70" ]; then
+                grep --quiet 'VERSION_ID="9"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Stretch"
+            elif [ "$container" = "php73" ]; then
+                grep --quiet 'VERSION_ID="10"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Buster"
+            elif [ "$container" = "php74" ]; then
+                grep --quiet 'VERSION_ID="11"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Bullseye"
+            elif [ "$container" = "php82" ]; then
+                grep --quiet 'VERSION_ID="12"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Bookworm"
+            fi
+        done
+    fi
+}
 check_lxc_openssh() {
     if is_installed lxc; then
         container_list=$(lxc-ls)
@@ -1596,6 +1616,7 @@ main() {
     test "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" = 1 && check_lxc_container_resolv_conf
     test "${IS_NO_LXC_CONTAINER:=1}" = 1 && check_no_lxc_container
     test "${IS_LXC_PHP_FPM_SERVICE_UMASK_SET:=1}" = 1 && check_lxc_php_fpm_service_umask_set
+    test "${IS_LXC_PHP_BAD_DEBIAN_VERSION:=1}" = 1 && check_lxc_php_bad_debian_version
     test "${IS_LXC_OPENSSH:=1}" = 1 && check_lxc_openssh
     test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
 

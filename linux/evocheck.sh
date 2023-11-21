@@ -583,7 +583,7 @@ check_evobackup_exclude_mount() {
                   evobackup_version=$(sed -E -n 's/VERSION="(.*)"/\1/p' "${evobackup_file}")
                   # versions over 22.12 use a new syntax to exclude rsync files
                   if dpkg --compare-versions "$evobackup_version" ge 22.12 ; then
-                    sed -En '/RSYNC_EXCLUDES="/,/"/ {s/(RSYNC_EXCLUDES=|")//g;p}' > "${excludes_file}"
+                    sed -En '/RSYNC_EXCLUDES="/,/"/ {s/(RSYNC_EXCLUDES=|")//g;p}' "${evobackup_file}" > "${excludes_file}"
                   else
                     grep -- "--exclude " "${evobackup_file}" | grep -E -o "\"[^\"]+\"" | tr -d '"' > "${excludes_file}"
                   fi

@@ -1062,6 +1062,7 @@ check_phpevolinuxconf() {
     is_debian_stretch  && phpVersion="7.0"
     is_debian_buster   && phpVersion="7.3"
     is_debian_bullseye && phpVersion="7.4"
+    is_debian_bookworm && phpVersion="8.2"
     if is_installed php; then
         { test -f "/etc/php/${phpVersion}/cli/conf.d/z-evolinux-defaults.ini" \
             && test -f "/etc/php/${phpVersion}/cli/conf.d/zzz-evolinux-custom.ini"

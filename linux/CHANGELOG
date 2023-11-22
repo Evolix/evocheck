@@ -5,6 +5,20 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [23.11]
+
+### Added
+
 * trixie and forky support (Debian 13, 14)
 * IS_LXC_OPENSSH: check in openssh is installed in containers
 * IS_LXC_PHP_BAD_DEBIAN_VERSION: check if php containers use the expected Debian release
@@ -20,15 +34,9 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 * IS_PHPEVOLINUXCONF: update for bookworm
 * IS_MINIFWINCLUDES, IS_NRPEPID: Change Debian release detection logic
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 * IS_EVOBACKUP_EXCLUDE_MOUNT: fix regression introduced in previous version
-
-### Security
 
 ## [23.10] 2023-10-26
 

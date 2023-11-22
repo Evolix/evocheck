@@ -19,6 +19,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* IS_EVOBACKUP_EXCLUDE_MOUNT: fix regression introduced in previous version
+
 ### Security
 
 ## [23.10] 2023-10-26

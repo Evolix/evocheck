@@ -346,7 +346,7 @@ check_minifw() {
     } || failed "IS_MINIFW" "minifirewall seems not started"
 }
 check_minifw_includes() {
-    if is_debian_bullseye; then
+    if { ! is_debian_stretch && ! is_debian_buster ; }; then
         if grep -q -e '/sbin/iptables' -e '/sbin/ip6tables' "/etc/default/minifirewall"; then
             failed "IS_MINIFWINCLUDES" "minifirewall has direct iptables invocations in /etc/default/minifirewall that should go in /etc/minifirewall.d/"
         fi
@@ -373,13 +373,13 @@ check_nrpedisks() {
     test "$NRPEDISKS" = "$DFDISKS" || failed "IS_NRPEDISKS" "there must be $DFDISKS check_disk in nrpe.cfg"
 }
 check_nrpepid() {
-    if { is_debian_bullseye || is_debian_bookworm ; }; then
+    if { is_debian_stretch || is_debian_buster ; }; then
         { test -e /etc/nagios/nrpe.cfg \
-            && grep -q "^pid_file=/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
+            && grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
         } || failed "IS_NRPEPID" "missing or wrong pid_file directive in nrpe.cfg"
     else
         { test -e /etc/nagios/nrpe.cfg \
-            && grep -q "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
+            && grep -q "^pid_file=/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
         } || failed "IS_NRPEPID" "missing or wrong pid_file directive in nrpe.cfg"
     fi
 }

@@ -736,6 +736,16 @@ check_etcgit() {
     git rev-parse --is-inside-work-tree > /dev/null 2>&1 \
         || failed "IS_ETCGIT" "/etc is not a git repository"
 }
+check_etcgit_lxc() {
+    if is_installed lxc; then
+        container_list=$(lxc-ls)
+        for container in $container_list; do
+            export GIT_DIR="/var/lib/lxc/${container}/etc/.git" GIT_WORK_TREE="/var/lib/lxc/${container}/etc"
+            git rev-parse --is-inside-work-tree > /dev/null 2>&1 \
+                || failed "IS_ETCGIT_LXC" "/etc is not a git repository in container ${container}"
+        done
+    fi
+}
 # Check if /etc/.git/ has read/write permissions for root only.
 check_gitperms() {
     GIT_DIR="/etc/.git"
@@ -1585,6 +1595,7 @@ main() {
     test "${IS_MUNINRUNNING:=1}" = 1 && check_muninrunning
     test "${IS_BACKUPUPTODATE:=1}" = 1 && check_backupuptodate
     test "${IS_ETCGIT:=1}" = 1 && check_etcgit
+    test "${IS_ETCGIT_LXC:=1}" = 1 && check_etcgit_lxc
     test "${IS_GITPERMS:=1}" = 1 && check_gitperms
     test "${IS_NOTUPGRADED:=1}" = 1 && check_notupgraded
     test "${IS_TUNE2FS_M5:=1}" = 1 && check_tune2fs_m5

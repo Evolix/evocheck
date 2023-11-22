@@ -9,9 +9,15 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 * IS_LXC_OPENSSH: check in openssh is installed in containers
 * IS_LXC_PHP_BAD_DEBIAN_VERSION: check if php containers use the expected Debian release
 * IS_DEBIANSECURITY_LXC: IS_DEBIANSECURITY in containers
-* IS_SURY_LXC: in containers
+* IS_SURY_LXC: IS_SURY in containers
+* IS_OLDPUB_LXC: IS_OLDPUB in containers
+* IS_ETCGIT_LXC: IS_ETCGIT in containers
+* IS_GITPERMS_LXC: IS_GITPERMS in containers
 
 ### Changed
+
+* IS_PHPEVOLINUXCONF: update for bookworm
+* IS_MINIFWINCLUDES, IS_NRPEPID: Change Debian release detection logic
 
 ### Deprecated
 

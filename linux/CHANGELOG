@@ -16,6 +16,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
+* IS_SSHALLOWUSERS: add Debian 12 condition
 * IS_PHPEVOLINUXCONF: update for bookworm
 * IS_MINIFWINCLUDES, IS_NRPEPID: Change Debian release detection logic
 

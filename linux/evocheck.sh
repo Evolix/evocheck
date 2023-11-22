@@ -215,6 +215,16 @@ check_oldpub() {
     apt-cache policy | grep --quiet pub.evolix.net
     test $? -eq 1 || failed "IS_OLDPUB" "Old pub.evolix.net repository is still enabled"
 }
+check_oldpub_lxc() {
+    # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Buster as Sury safeguard)
+    if is_installed lxc; then
+        container_list=$(lxc-ls)
+        for container in $container_list; do
+            lxc-attach --name $container apt-cache policy | grep --quiet pub.evolix.net
+            test $? -eq 1 || failed "IS_OLDPUB_LXC" "Old pub.evolix.net repository is still enabled in container ${container}"
+        done
+    fi
+}
 check_newpub() {
     # Look for enabled pub.evolix.org sources
     apt-cache policy | grep "\bl=Evolix\b" | grep --quiet -v php
@@ -1519,6 +1529,7 @@ main() {
     test "${IS_DEBIANSECURITY:=1}" = 1 && check_debiansecurity
     test "${IS_DEBIANSECURITY_LXC:=1}" = 1 && check_debiansecurity_lxc
     test "${IS_OLDPUB:=1}" = 1 && check_oldpub
+    test "${IS_OLDPUB_LXC:=1}" = 1 && check_oldpub_lxc
     test "${IS_NEWPUB:=1}" = 1 && check_newpub
     test "${IS_SURY:=1}" = 1 && check_sury
     test "${IS_SURY_LXC:=1}" = 1 && check_sury_lxc

@@ -755,6 +755,19 @@ check_gitperms() {
         [ "$expected" = "$actual" ] || failed "IS_GITPERMS" "$GIT_DIR must be $expected"
     fi
 }
+check_gitperms_lxc() {
+    if is_installed lxc; then
+        container_list=$(lxc-ls)
+        for container in $container_list; do
+            GIT_DIR="/var/lib/lxc/${container}/etc/.git"
+            if test -d $GIT_DIR; then
+                expected="700"
+                actual=$(stat -c "%a" $GIT_DIR)
+		[ "$expected" = "$actual" ] || failed "IS_GITPERMS_LXC" "$GIT_DIR must be $expected (in container ${container})"
+            fi
+        done
+    fi
+}
 # Check if no package has been upgraded since $limit.
 check_notupgraded() {
     last_upgrade=0
@@ -1597,6 +1610,7 @@ main() {
     test "${IS_ETCGIT:=1}" = 1 && check_etcgit
     test "${IS_ETCGIT_LXC:=1}" = 1 && check_etcgit_lxc
     test "${IS_GITPERMS:=1}" = 1 && check_gitperms
+    test "${IS_GITPERMS_LXC:=1}" = 1 && check_gitperms_lxc
     test "${IS_NOTUPGRADED:=1}" = 1 && check_notupgraded
     test "${IS_TUNE2FS_M5:=1}" = 1 && check_tune2fs_m5
     test "${IS_EVOLINUXSUDOGROUP:=1}" = 1 && check_evolinuxsudogroup

@@ -156,7 +156,7 @@ check_dpkgwarning() {
 # Check if localhost, localhost.localdomain and localhost.$mydomain are set in Postfix mydestination option.
 check_postfix_mydestination() {
     # shellcheck disable=SC2016
-    if ! grep mydestination /etc/postfix/main.cf | grep --quiet -E 'localhost([[:blank:]]|$)'; then
+    if ! grep mydestination /etc/postfix/main.cf | grep --quiet --extended-regexp 'localhost([[:blank:]]|$)'; then
         failed "IS_POSTFIX_MYDESTINATION" "'localhost' is missing in Postfix mydestination option."
     fi
     if ! grep mydestination /etc/postfix/main.cf | grep --quiet --fixed-strings 'localhost.localdomain'; then

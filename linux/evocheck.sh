@@ -657,7 +657,7 @@ check_apacheipinallow() {
 check_muninapacheconf() {
     muninconf="/etc/apache2/conf-available/munin.conf"
     if is_installed apache2; then
-        test -e $muninconf && grep -vEq "^( |\t)*#" "$muninconf" \
+        test -e $muninconf && grep --invert-match --extended-regexp --quiet "^( |\t)*#" "$muninconf" \
             && failed "IS_MUNINAPACHECONF" "default munin configuration may be commented or disabled"
     fi
 }
@@ -666,10 +666,10 @@ check_phpmyadminapacheconf() {
     phpmyadminconf0="/etc/apache2/conf-available/phpmyadmin.conf"
     phpmyadminconf1="/etc/apache2/conf-enabled/phpmyadmin.conf"
     if is_installed apache2; then
-        test -e $phpmyadminconf0 && grep -vEq "^( |\t)*#" "$phpmyadminconf0" \
-            && failed "IS_PHPMYADMINAPACHECONF" "default phpmyadmin configuration ($phpmyadminconf0) may be commented or disabled"
-        test -e $phpmyadminconf1 && grep -vEq "^( |\t)*#" "$phpmyadminconf1" \
-            && failed "IS_PHPMYADMINAPACHECONF" "default phpmyadmin configuration ($phpmyadminconf1) may be commented or disabled"
+        test -e $phpmyadminconf0 && grep --invert-match --extended-regexp --quiet "^( |\t)*#" "$phpmyadminconf0" \
+            && failed "IS_PHPMYADMINAPACHECONF" "default phpmyadmin configuration ($phpmyadminconf0) should be commented or disabled"
+        test -e $phpmyadminconf1 && grep --invert-match --extended-regexp --quiet "^( |\t)*#" "$phpmyadminconf1" \
+            && failed "IS_PHPMYADMINAPACHECONF" "default phpmyadmin configuration ($phpmyadminconf1) should be commented or disabled"
     fi
 }
 # Verification si le système doit redémarrer suite màj kernel.
@@ -1677,7 +1677,7 @@ main() {
 }
 cleanup() {
     # Cleanup tmp files
-    # shellcheck disable=SC2086,SC2317
+    # shellcheck disable=SC2068,SC2317
     rm -f ${files_to_cleanup[@]}
 
     log "$PROGNAME exit."

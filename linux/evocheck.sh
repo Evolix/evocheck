@@ -1201,16 +1201,10 @@ check_usrsharescripts() {
     test "$expected" = "$actual" || failed "IS_USRSHARESCRIPTS" "/usr/share/scripts must be $expected"
 }
 check_sshpermitrootno() {
-    sshd_args="-C addr=,user=,host=,laddr=,lport=0"
-    if is_debian_stretch; then
-        # Noop, we'll use the default $sshd_args
-        :
-    elif is_debian_buster; then
+    # You could change the SSH port in /etc/evocheck.cf
+    sshd_args="-C addr=,user=,host=,laddr=,lport=${SSH_PORT:-22}"
+    if is_debian_buster; then
         sshd_args="${sshd_args},rdomain="
-    else
-        # NOTE: From Debian Bullseye 11 onward, with OpenSSH 8.1, the argument
-        # -T doesn't require the additional -C.
-        sshd_args=
     fi
     # shellcheck disable=SC2086
     if ! (sshd -T ${sshd_args} 2> /dev/null | grep -qi 'permitrootlogin no'); then

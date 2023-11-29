@@ -882,7 +882,7 @@ check_drbd_two_primaries() {
                 failed "IS_DRBDTWOPRIMARIES" "Some DRBD ressources have two primaries, you risk a split brain!"
             fi
         elif command -v drbdadm >/dev/null; then
-            if drbdadm status | grep Primary -A2 | grep peer | grep -q Primary; then
+            if drbdadm role all 2>&1 | grep -q 'Primary/Primary'; then
                 failed "IS_DRBDTWOPRIMARIES" "Some DRBD ressources have two primaries, you risk a split brain!"
             fi
         fi

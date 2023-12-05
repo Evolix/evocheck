@@ -893,7 +893,7 @@ check_broadcomfirmware() {
     if [ -x "${LSPCI_BIN}" ]; then
         if ${LSPCI_BIN} | grep -q 'NetXtreme II'; then
             { is_installed firmware-bnx2 \
-                && grep -q "^deb http://mirror.evolix.org/debian.* non-free" /etc/apt/sources.list;
+                && apt-cache policy | grep "\bl=Debian\b" | grep --quiet -v "\b,c=non-free\b"
             } || failed "IS_BROADCOMFIRMWARE" "missing non-free repository"
         fi
     else

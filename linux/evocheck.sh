@@ -210,6 +210,13 @@ check_debiansecurity_lxc() {
         done
     fi
 }
+check_backports_version() {
+    # Look for enabled "Debian Backports" sources from the "Debian" origin
+    apt-cache policy | grep "\bl=Debian Backports\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
+    test $? -eq 1 || ( \
+        apt-cache policy | grep "\bl=Debian Backports\b" | grep --quiet "\bn=${DEBIAN_RELEASE}-backports\b" && \
+	test $? -eq 0 || failed "IS_BACKPORTS_VERSION" "Debian Backports enabled for another release than ${DEBIAN_RELEASE}" )
+}
 check_oldpub() {
     # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Stretch)
     apt-cache policy | grep --quiet pub.evolix.net
@@ -1553,6 +1560,7 @@ main() {
     test "${IS_SYSLOGCONF:=1}" = 1 && check_syslogconf
     test "${IS_DEBIANSECURITY:=1}" = 1 && check_debiansecurity
     test "${IS_DEBIANSECURITY_LXC:=1}" = 1 && check_debiansecurity_lxc
+    test "${IS_BACKPORTS_VERSION:=1}" = 1 && check_backports_version
     test "${IS_OLDPUB:=1}" = 1 && check_oldpub
     test "${IS_OLDPUB_LXC:=1}" = 1 && check_oldpub_lxc
     test "${IS_NEWPUB:=1}" = 1 && check_newpub

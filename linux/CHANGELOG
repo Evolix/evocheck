@@ -5,6 +5,18 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [24.01]
+
+### Added
+
 * IS_BACKPORTS_VERSION: check if the Backports release matches the Debian release
 
 ### Changed
@@ -13,12 +25,9 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 * Prefer long options
 * IS_POSTFIX_MYDESTINATION: use fixed string instead of escaping characters
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
+* IS_EVOBACKUP_EXCLUDE_MOUNT: correctly treat old versions of evobackup
 * IS_DEBIANSECURITY_LXC: don’t test older than Debian 9 containers
 * IS_KERNELUPTODATE: address false positive in case of kernel removal
 * IS_SSHPERMITROOTNO: specify lport, avoiding failure if sshd listens to more than one port

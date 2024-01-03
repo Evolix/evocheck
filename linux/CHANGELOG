@@ -13,7 +13,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
-## [24.01]
+## [24.01] 2024-01-03
 
 ### Added
 
@@ -34,7 +34,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 * IS_DRBDTWOPRIMARIES: fix false positive (#151)
 * IS_ETCGIT_LXC, IS_GITPERMS_LXC: fix path
 
-## [23.11.1]
+## [23.11.1] 2023-11-27
 
 ### Fixed
 
@@ -42,7 +42,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Security
 
-## [23.11]
+## [23.11] 2023-11-27
 
 ### Added
 

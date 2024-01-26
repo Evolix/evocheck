@@ -193,7 +193,7 @@ check_logrotateconf() {
     test -e /etc/logrotate.d/zsyslog || failed "IS_LOGROTATECONF" "missing zsyslog in logrotate.d"
 }
 check_syslogconf() {
-    grep -q "^# Syslog for Pack Evolix serveur" /etc/*syslog.conf \
+    grep --quiet --ignore-case "^Syslog for Pack Evolix" /etc/*syslog*/*.conf \
         || failed "IS_SYSLOGCONF" "syslog evolix config file missing"
 }
 check_debiansecurity() {

@@ -4,6 +4,8 @@
 # Script to verify compliance of a Linux (Debian) server
 # powered by Evolix
 
+#set -x
+
 VERSION="24.01"
 readonly VERSION
 
@@ -203,12 +205,14 @@ check_debiansecurity() {
 }
 check_debiansecurity_lxc() {
     if is_installed lxc; then
-        container_list=$(lxc-ls)
+        container_list=$(lxc-ls --active)
         for container in $container_list; do
-            DEBIAN_LXC_VERSION=$(cut -d "." -f 1 < /var/lib/lxc/${container}/rootfs/etc/debian_version)
-            if [ $DEBIAN_LXC_VERSION -ge 9 ]; then
-                lxc-attach --name $container apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
-                test $? -eq 0 || failed "IS_DEBIANSECURITY_LXC" "missing Debian-Security repository in container ${container}"
+            if [ -f /var/lib/lxc/${container}/rootfs/etc/debian_version ]; then
+                DEBIAN_LXC_VERSION=$(cut -d "." -f 1 < /var/lib/lxc/${container}/rootfs/etc/debian_version)
+                if [ $DEBIAN_LXC_VERSION -ge 9 ]; then
+                    lxc-attach --name $container apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
+                    test $? -eq 0 || failed "IS_DEBIANSECURITY_LXC" "missing Debian-Security repository in container ${container}"
+                fi
             fi
         done
     fi
@@ -228,10 +232,13 @@ check_oldpub() {
 check_oldpub_lxc() {
     # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Buster as Sury safeguard)
     if is_installed lxc; then
-        container_list=$(lxc-ls)
+        container_list=$(lxc-ls --active)
         for container in $container_list; do
-            lxc-attach --name $container apt-cache policy | grep --quiet pub.evolix.net
-            test $? -eq 1 || failed "IS_OLDPUB_LXC" "Old pub.evolix.net repository is still enabled in container ${container}"
+            APT_CACHE_BIN=$(lxc-attach --name $container -- bash -c "command -v apt-cache")
+            if [ -x "${APT_CACHE_BIN}" ]; then
+                lxc-attach --name $container apt-cache policy | grep --quiet pub.evolix.net
+                test $? -eq 1 || failed "IS_OLDPUB_LXC" "Old pub.evolix.net repository is still enabled in container ${container}"
+            fi
         done
     fi
 }
@@ -250,12 +257,15 @@ check_sury() {
 }
 check_sury_lxc() {
     if is_installed lxc; then
-        container_list=$(lxc-ls)
+        container_list=$(lxc-ls --active)
         for container in $container_list; do
-            lxc-attach --name $container apt-cache policy | grep --quiet packages.sury.org
-            if [ $? -eq 0 ]; then
-                 lxc-attach --name $container apt-cache policy | grep "\bl=Evolix\b" | grep php --quiet
-                 test $? -eq 0 || failed "IS_SURY_LXC" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing in container ${container}"
+            APT_CACHE_BIN=$(lxc-attach --name $container -- bash -c "command -v apt-cache")
+            if [ -x "${APT_CACHE_BIN}" ]; then
+                lxc-attach --name $container apt-cache policy | grep --quiet packages.sury.org
+                if [ $? -eq 0 ]; then
+                    lxc-attach --name $container apt-cache policy | grep "\bl=Evolix\b" | grep php --quiet
+                    test $? -eq 0 || failed "IS_SURY_LXC" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing in container ${container}"
+                fi
             fi
         done
     fi
@@ -751,9 +761,10 @@ check_etcgit() {
 }
 check_etcgit_lxc() {
     if is_installed lxc; then
-        container_list=$(lxc-ls)
+        container_list=$(lxc-ls --active)
         for container in $container_list; do
-            export GIT_DIR="/var/lib/lxc/${container}/rootfs/etc/.git" GIT_WORK_TREE="/var/lib/lxc/${container}/rootfs/etc"
+            export GIT_DIR="/var/lib/lxc/${container}/rootfs/etc/.git"
+            export GIT_WORK_TREE="/var/lib/lxc/${container}/rootfs/etc"
             git rev-parse --is-inside-work-tree > /dev/null 2>&1 \
                 || failed "IS_ETCGIT_LXC" "/etc is not a git repository in container ${container}"
         done
@@ -770,7 +781,7 @@ check_gitperms() {
 }
 check_gitperms_lxc() {
     if is_installed lxc; then
-        container_list=$(lxc-ls)
+        container_list=$(lxc-ls --active)
         for container in $container_list; do
             GIT_DIR="/var/lib/lxc/${container}/rootfs/etc/.git"
             if test -d $GIT_DIR; then
@@ -1328,7 +1339,7 @@ check_nginx_letsencrypt_uptodate() {
 }
 check_lxc_container_resolv_conf() {
     if is_installed lxc; then
-        container_list=$(lxc-ls)
+        container_list=$(lxc-ls --active)
         current_resolvers=$(grep nameserver /etc/resolv.conf | sed 's/nameserver//g' )
 
         for container in $container_list; do
@@ -1349,16 +1360,16 @@ check_lxc_container_resolv_conf() {
 # Check that there are containers if lxc is installed.
 check_no_lxc_container() {
     if is_installed lxc; then
-        containers_count=$(lxc-ls | wc -l)
+        containers_count=$(lxc-ls --active | wc -l)
         if [ "$containers_count" -eq 0 ]; then
-            failed "IS_NO_LXC_CONTAINER" "LXC is installed but have no container. Consider removing it."
+            failed "IS_NO_LXC_CONTAINER" "LXC is installed but have no active container. Consider removing it."
         fi
     fi
 }
 # Check that in LXC containers, phpXX-fpm services have UMask set to 0007.
 check_lxc_php_fpm_service_umask_set() {
     if is_installed lxc; then
-        php_containers_list=$(lxc-ls --filter php)
+        php_containers_list=$(lxc-ls --active --filter php)
         missing_umask=""
         for container in $php_containers_list; do
             # Translate container name in service name
@@ -1380,7 +1391,7 @@ check_lxc_php_fpm_service_umask_set() {
 # Check that LXC containers have the proper Debian version.
 check_lxc_php_bad_debian_version() {
     if is_installed lxc; then
-        php_containers_list=$(lxc-ls --filter php)
+        php_containers_list=$(lxc-ls --active --filter php)
         missing_umask=""
         for container in $php_containers_list; do
             if [ "$container" = "php56" ]; then
@@ -1399,7 +1410,7 @@ check_lxc_php_bad_debian_version() {
 }
 check_lxc_openssh() {
     if is_installed lxc; then
-        container_list=$(lxc-ls)
+        container_list=$(lxc-ls --active)
         for container in $container_list; do
             test -e /var/lib/lxc/${container}/rootfs/usr/sbin/sshd && failed "IS_LXC_OPENSSH" "openssh-server should not be installed in container ${container}"
         done

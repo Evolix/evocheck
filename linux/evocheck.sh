@@ -314,13 +314,23 @@ check_customcrontab() {
 }
 check_sshallowusers() {
     if is_debian_bookworm; then
-        grep -E -qir "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config.d \
-            || failed "IS_SSHALLOWUSERS" "missing AllowUsers or AllowGroups directive in sshd_config.d/*"
-        grep -E -qir "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config \
+        if [ -d /etc/ssh/sshd_config.d/ ]; then
+            # AllowUsers or AllowGroups should be in /etc/ssh/sshd_config.d/
+            grep -E -qir "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config.d/ \
+                || failed "IS_SSHALLOWUSERS" "missing AllowUsers or AllowGroups directive in sshd_config.d/*"
+        fi
+        # AllowUsers or AllowGroups should not be in /etc/ssh/sshd_config
+        grep -E -qi "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config \
             && failed "IS_SSHALLOWUSERS" "AllowUsers or AllowGroups directive present in sshd_config"
     else
-        grep -E -qir "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config /etc/ssh/sshd_config.d \
-            || failed "IS_SSHALLOWUSERS" "missing AllowUsers or AllowGroups directive in sshd_config"
+        # AllowUsers or AllowGroups should be in /etc/ssh/sshd_config or /etc/ssh/sshd_config.d/
+        if [ -d /etc/ssh/sshd_config.d/ ]; then
+            grep -E -qir "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config /etc/ssh/sshd_config.d/ \
+                || failed "IS_SSHALLOWUSERS" "missing AllowUsers or AllowGroups directive in sshd_config"
+        else
+            grep -E -qi "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config \
+                || failed "IS_SSHALLOWUSERS" "missing AllowUsers or AllowGroups directive in sshd_config"
+        fi
     fi
 }
 check_diskperf() {

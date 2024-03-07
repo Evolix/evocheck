@@ -16,6 +16,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Fixed
 
 * Fix errors in some LXC checks: list only active LXC containers, add conditions to filter containers that are not in evo-standards.
+* check_sshallowusers: fix unwanted sterr when /etc/ssh/sshd_condig.d does not exist.
 
 ## [24.01] 2024-01-03
 

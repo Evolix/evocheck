@@ -6,6 +6,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Added
 
 * IS_SMARTMONTOOLS (#198)
+* IS_EVOLIX_GROUP: new check to verify that all Evolix users are in "evolix" group (#161)
 
 ### Changed
 

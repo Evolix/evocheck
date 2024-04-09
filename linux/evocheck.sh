@@ -1218,6 +1218,13 @@ check_evolix_user() {
     grep --quiet --extended-regexp "^evolix:" /etc/passwd \
         && failed "IS_EVOLIX_USER" "evolix user should be deleted, used only for install"
 }
+check_evolix_group() {
+    users=$(grep ":20..:20..:" /etc/passwd | cut -d ":" -f 1)
+    for user in ${users}; do
+        grep -E "^evolix:" /etc/group | grep -q -E "\b${user}\b" \
+            || failed "IS_EVOLIX_GROUP" "user \`${user}' should be in \`evolix' group"
+    done
+}
 check_evoacme_cron() {
     if [ -f "/usr/local/sbin/evoacme" ]; then
         # Old cron file, should be deleted
@@ -1837,6 +1844,7 @@ main() {
     test "${IS_SQUIDEVOLINUXCONF:=1}" = 1 && check_squidevolinuxconf
     test "${IS_DUPLICATE_FS_LABEL:=1}" = 1 && check_duplicate_fs_label
     test "${IS_EVOLIX_USER:=1}" = 1 && check_evolix_user
+    test "${IS_EVOLIX_GROUP:=1}" = 1 && check_evolix_group
     test "${IS_EVOACME_CRON:=1}" = 1 && check_evoacme_cron
     test "${IS_EVOACME_LIVELINKS:=1}" = 1 && check_evoacme_livelinks
     test "${IS_APACHE_CONFENABLED:=1}" = 1 && check_apache_confenabled

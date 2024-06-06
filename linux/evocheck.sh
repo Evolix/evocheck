@@ -1092,7 +1092,7 @@ check_mysqlnrpe() {
             || [ "$(stat -c %a ${nagios_file})" != "600" ]; then
             failed "IS_MYSQLNRPE" "${nagios_file} has wrong permissions"
         else
-            grep -q -F "command[check_mysql]=/usr/lib/nagios/plugins/check_mysql" /etc/nagios/nrpe.d/evolix.cfg \
+            grep -q -E "command\[check_mysql\]=.*/usr/lib/nagios/plugins/check_mysql" /etc/nagios/nrpe.d/evolix.cfg \
             || failed "IS_MYSQLNRPE" "check_mysql is missing"
         fi
     fi

@@ -198,7 +198,7 @@ check_syslogconf() {
     # Test for modern servers
     if [ ! -f /etc/rsyslog.d/10-evolinux-default.conf ]; then
         # Fallback test for legacy servers
-        if ! grep --quiet --ignore-case "Syslog for Pack Evolix" /etc/*syslog*/*.conf; then
+        if ! grep --quiet --ignore-case "Syslog for Pack Evolix" /etc/*syslog*/*.conf /etc/*syslog.conf; then
             failed "IS_SYSLOGCONF" "Evolix syslog config is missing"
         fi
     fi

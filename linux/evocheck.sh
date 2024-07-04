@@ -604,6 +604,7 @@ check_evobackup() {
 }
 # Vérification de la mise en place d'un cron de purge de la base SQLite de Fail2ban
 check_fail2ban_purge() {
+    # Nécessaire seulement en Debian 9 ou 10
     if is_debian_stretch || is_debian_buster; then
       if is_installed fail2ban; then
         test -f /etc/cron.daily/fail2ban_dbpurge || failed "IS_FAIL2BAN_PURGE" "missing script fail2ban_dbpurge cron"

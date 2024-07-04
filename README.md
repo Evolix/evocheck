@@ -11,9 +11,9 @@ Tests can be run with Vagrant and the provided `VagrantFile`.
 
 ## How to contribute
 
-Read the CONTRIBUTING.md file.
-
-Try to respect the following conventions.
+- Write your commits English
+- Always do a Merge Request
+- Try to respect the following conventions:
 
 ### Use the verbose mode to explain errors
 

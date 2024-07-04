@@ -1636,7 +1636,7 @@ main() {
     test "${IS_INTERFACESGW:=1}" = 1 && check_interfacesgw
     test "${IS_NETWORKING_SERVICE:=1}" = 1 && check_networking_service
     test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
-    test "${IS_PURGE_FAIL2BAN:=1}" = 1 && check_fail2ban_purge
+    test "${IS_FAIL2BAN_PURGE:=1}" = 1 && check_fail2ban_purge
     test "${IS_SSH_FAIL2BAN_JAIL_RENAMED:=1}" = 1 && check_ssh_fail2ban_jail_renamed
     test "${IS_EVOBACKUP_EXCLUDE_MOUNT:=1}" = 1 && check_evobackup_exclude_mount
     test "${IS_USERLOGROTATE:=1}" = 1 && check_userlogrotate

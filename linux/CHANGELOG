@@ -14,7 +14,11 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Fixed
 
 
-## [24.07] 2024-07-18
+## [24.08] 2024-08-01
+
+### Fixed
+
+* VERSION variable must contain valid characters only
 
 ### Added
 

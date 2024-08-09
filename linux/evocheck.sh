@@ -313,7 +313,7 @@ check_customcrontab() {
     test "$found_lines" = 4 && failed "IS_CUSTOMCRONTAB" "missing custom field in crontab"
 }
 check_sshallowusers() {
-    if is_debian_bookworm; then
+    if is_debian_bookworm || is_debian_trixie; then
         if [ -d /etc/ssh/sshd_config.d/ ]; then
             # AllowUsers or AllowGroups should be in /etc/ssh/sshd_config.d/
             grep -E -qir "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config.d/ \
@@ -1103,6 +1103,7 @@ check_phpevolinuxconf() {
     is_debian_buster   && phpVersion="7.3"
     is_debian_bullseye && phpVersion="7.4"
     is_debian_bookworm && phpVersion="8.2"
+    is_debian_trixie   && phpVersion="8.2"
     if is_installed php; then
         { test -f "/etc/php/${phpVersion}/cli/conf.d/z-evolinux-defaults.ini" \
             && test -f "/etc/php/${phpVersion}/cli/conf.d/zzz-evolinux-custom.ini"

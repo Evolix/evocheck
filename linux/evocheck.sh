@@ -1400,7 +1400,7 @@ check_lxc_php_fpm_service_umask_set() {
             if [ "$container" = "php56" ]; then
                 service="php5-fpm"
             else
-                service="${container:0:4}.${container:4}-fpm"
+                service="${container:0:4}.${container:4:1}-fpm"
             fi
             umask=$(lxc-attach --name "${container}" -- systemctl show -p UMask "$service" | cut -d "=" -f2)
             if [ "$umask" != "0007" ]; then

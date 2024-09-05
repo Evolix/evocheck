@@ -313,7 +313,7 @@ check_customcrontab() {
     test "$found_lines" = 4 && failed "IS_CUSTOMCRONTAB" "missing custom field in crontab"
 }
 check_sshallowusers() {
-    if is_debian_bookworm || is_debian_trixie; then
+    if { ! is_debian_stretch && ! is_debian_buster && ! is_debian_bullseye ; }; then
         if [ -d /etc/ssh/sshd_config.d/ ]; then
             # AllowUsers or AllowGroups should be in /etc/ssh/sshd_config.d/
             grep -E -qir "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config.d/ \

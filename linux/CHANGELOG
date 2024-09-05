@@ -20,6 +20,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 * VERSION variable must contain valid characters only
 
+## [24.07] 2024-07-18
+
 ### Added
 
 * IS_EVOLIX_GROUP: new check to verify that all Evolix users are in "evolix" group

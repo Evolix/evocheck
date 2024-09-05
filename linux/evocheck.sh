@@ -1103,7 +1103,7 @@ check_phpevolinuxconf() {
     is_debian_buster   && phpVersion="7.3"
     is_debian_bullseye && phpVersion="7.4"
     is_debian_bookworm && phpVersion="8.2"
-    is_debian_trixie   && phpVersion="8.2"
+    is_debian_trixie   && phpVersion="8.4"
     if is_installed php; then
         { test -f "/etc/php/${phpVersion}/cli/conf.d/z-evolinux-defaults.ini" \
             && test -f "/etc/php/${phpVersion}/cli/conf.d/zzz-evolinux-custom.ini"
@@ -1421,6 +1421,8 @@ check_lxc_php_bad_debian_version() {
                 grep --quiet 'VERSION_ID="11"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Bullseye"
             elif [ "$container" = "php82" ]; then
                 grep --quiet 'VERSION_ID="12"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Bookworm"
+            elif [ "$container" = "php84" ]; then
+                grep --quiet 'VERSION_ID="13"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Trixie"
             fi
         done
     fi

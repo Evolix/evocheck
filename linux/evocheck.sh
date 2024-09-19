@@ -1220,9 +1220,26 @@ check_old_home_dir() {
     done
 }
 check_tmp_1777() {
-    actual=$(stat --format "%a" /tmp)
     expected="1777"
-    test "$expected" = "$actual" || failed "IS_TMP_1777" "/tmp must be $expected"
+
+    actual=$(stat --format "%a" /tmp)
+    test "${expected}" = "${actual}" || failed "IS_TMP_1777" "/tmp must be ${expected}"
+    test "${VERBOSE}" = 1 || return
+
+    if is_installed lxc; then
+        lxc_path=$(lxc-config lxc.lxcpath)
+        container_list=$(lxc-ls --active)
+
+        for container_name in $container_list; do
+            if lxc-info --name "${container_name}" > /dev/null; then
+                rootfs="${lxc_path}/${container_name}/rootfs"
+
+                actual=$(stat --format "%a" "${rootfs}/tmp")
+                test "${expected}" = "${actual}" || failed "IS_TMP_1777" "${rootfs}/tmp must be ${expected}"
+                test "${VERBOSE}" = 1 || break
+            fi
+        done
+    fi
 }
 check_root_0700() {
     actual=$(stat --format "%a" /root)

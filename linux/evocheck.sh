@@ -210,13 +210,17 @@ check_debiansecurity() {
 }
 check_debiansecurity_lxc() {
     if is_installed lxc; then
+        lxc_path=$(lxc-config lxc.lxcpath)
         container_list=$(lxc-ls --active)
-        for container in $container_list; do
-            if [ -f /var/lib/lxc/${container}/rootfs/etc/debian_version ]; then
-                DEBIAN_LXC_VERSION=$(cut -d "." -f 1 < /var/lib/lxc/${container}/rootfs/etc/debian_version)
-                if [ $DEBIAN_LXC_VERSION -ge 9 ]; then
-                    lxc-attach --name $container apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
-                    test $? -eq 0 || failed "IS_DEBIANSECURITY_LXC" "missing Debian-Security repository in container ${container}"
+        for container_name in ${container_list}; do
+            if lxc-info --name "${container_name}" > /dev/null; then
+                rootfs="${lxc_path}/${container_name}/rootfs"
+                if [ -f "${rootfs}/etc/debian_version" ]; then
+                    DEBIAN_LXC_VERSION=$(cut -d "." -f 1 < "${rootfs}/etc/debian_version")
+                    if [ "${DEBIAN_LXC_VERSION}" -ge 9 ]; then
+                        lxc-attach --name "${container_name}" apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
+                        test $? -eq 0 || failed "IS_DEBIANSECURITY_LXC" "missing Debian-Security repository in container ${container_name}"
+                    fi
                 fi
             fi
         done
@@ -238,11 +242,11 @@ check_oldpub_lxc() {
     # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Buster as Sury safeguard)
     if is_installed lxc; then
         container_list=$(lxc-ls --active)
-        for container in $container_list; do
-            APT_CACHE_BIN=$(lxc-attach --name $container -- bash -c "command -v apt-cache")
+        for container_name in ${container_list}; do
+            APT_CACHE_BIN=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
             if [ -x "${APT_CACHE_BIN}" ]; then
-                lxc-attach --name $container apt-cache policy | grep --quiet pub.evolix.net
-                test $? -eq 1 || failed "IS_OLDPUB_LXC" "Old pub.evolix.net repository is still enabled in container ${container}"
+                lxc-attach --name "${container_name}" apt-cache policy | grep --quiet pub.evolix.net
+                test $? -eq 1 || failed "IS_OLDPUB_LXC" "Old pub.evolix.net repository is still enabled in container ${container_name}"
             fi
         done
     fi
@@ -263,13 +267,13 @@ check_sury() {
 check_sury_lxc() {
     if is_installed lxc; then
         container_list=$(lxc-ls --active)
-        for container in $container_list; do
-            APT_CACHE_BIN=$(lxc-attach --name $container -- bash -c "command -v apt-cache")
+        for container_name in ${container_list}; do
+            APT_CACHE_BIN=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
             if [ -x "${APT_CACHE_BIN}" ]; then
-                lxc-attach --name $container apt-cache policy | grep --quiet packages.sury.org
+                lxc-attach --name "${container_name}" apt-cache policy | grep --quiet packages.sury.org
                 if [ $? -eq 0 ]; then
-                    lxc-attach --name $container apt-cache policy | grep "\bl=Evolix\b" | grep php --quiet
-                    test $? -eq 0 || failed "IS_SURY_LXC" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing in container ${container}"
+                    lxc-attach --name "${container_name}" apt-cache policy | grep "\bl=Evolix\b" | grep php --quiet
+                    test $? -eq 0 || failed "IS_SURY_LXC" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing in container ${container_name}"
                 fi
             fi
         done
@@ -777,33 +781,41 @@ check_etcgit() {
 }
 check_etcgit_lxc() {
     if is_installed lxc; then
+        lxc_path=$(lxc-config lxc.lxcpath)
         container_list=$(lxc-ls --active)
-        for container in $container_list; do
-            export GIT_DIR="/var/lib/lxc/${container}/rootfs/etc/.git"
-            export GIT_WORK_TREE="/var/lib/lxc/${container}/rootfs/etc"
-            git rev-parse --is-inside-work-tree > /dev/null 2>&1 \
-                || failed "IS_ETCGIT_LXC" "/etc is not a git repository in container ${container}"
+        for container_name in ${container_list}; do
+            if lxc-info --name "${container_name}" > /dev/null; then
+                rootfs="${lxc_path}/${container_name}/rootfs"
+                export GIT_DIR="${rootfs}/etc/.git"
+                export GIT_WORK_TREE="${rootfs}/etc"
+                git rev-parse --is-inside-work-tree > /dev/null 2>&1 \
+                    || failed "IS_ETCGIT_LXC" "/etc is not a git repository in container ${container_name}"
+            fi
         done
     fi
 }
 # Check if /etc/.git/ has read/write permissions for root only.
 check_gitperms() {
     GIT_DIR="/etc/.git"
-    if test -d $GIT_DIR; then
+    if [ -d "${GIT_DIR}" ]; then
         expected="700"
         actual=$(stat -c "%a" $GIT_DIR)
-        [ "$expected" = "$actual" ] || failed "IS_GITPERMS" "$GIT_DIR must be $expected"
+        [ "${expected}" = "${actual}" ] || failed "IS_GITPERMS" "${GIT_DIR} must be ${expected}"
     fi
 }
 check_gitperms_lxc() {
     if is_installed lxc; then
+        lxc_path=$(lxc-config lxc.lxcpath)
         container_list=$(lxc-ls --active)
-        for container in $container_list; do
-            GIT_DIR="/var/lib/lxc/${container}/rootfs/etc/.git"
-            if test -d $GIT_DIR; then
-                expected="700"
-                actual=$(stat -c "%a" $GIT_DIR)
-                [ "$expected" = "$actual" ] || failed "IS_GITPERMS_LXC" "$GIT_DIR must be $expected (in container ${container})"
+        for container_name in ${container_list}; do
+            if lxc-info --name "${container_name}" > /dev/null; then
+                rootfs="${lxc_path}/${container_name}/rootfs"
+                GIT_DIR="${rootfs}/etc/.git"
+                if test -d $GIT_DIR; then
+                    expected="700"
+                    actual=$(stat -c "%a" $GIT_DIR)
+                    [ "$expected" = "$actual" ] || failed "IS_GITPERMS_LXC" "$GIT_DIR must be $expected (in container ${container_name})"
+                fi
             fi
         done
     fi
@@ -1230,7 +1242,7 @@ check_tmp_1777() {
         lxc_path=$(lxc-config lxc.lxcpath)
         container_list=$(lxc-ls --active)
 
-        for container_name in $container_list; do
+        for container_name in ${container_list}; do
             if lxc-info --name "${container_name}" > /dev/null; then
                 rootfs="${lxc_path}/${container_name}/rootfs"
 
@@ -1373,20 +1385,24 @@ check_nginx_letsencrypt_uptodate() {
 }
 check_lxc_container_resolv_conf() {
     if is_installed lxc; then
-        container_list=$(lxc-ls --active)
         current_resolvers=$(grep nameserver /etc/resolv.conf | sed 's/nameserver//g' )
+        lxc_path=$(lxc-config lxc.lxcpath)
+        container_list=$(lxc-ls --active)
 
-        for container in $container_list; do
-            if [ -f "/var/lib/lxc/${container}/rootfs/etc/resolv.conf" ]; then
+        for container_name in ${container_list}; do
+            if lxc-info --name "${container_name}" > /dev/null; then
+                rootfs="${lxc_path}/${container_name}/rootfs"
+                if [ -f "${rootfs}/etc/resolv.conf" ]; then
 
-                while read -r resolver; do
-                    if ! grep -qE "^nameserver\s+${resolver}" "/var/lib/lxc/${container}/rootfs/etc/resolv.conf"; then
-                        failed "IS_LXC_CONTAINER_RESOLV_CONF" "resolv.conf miss-match beween host and container : missing nameserver ${resolver} in container ${container} resolv.conf"
-                    fi
-                done <<< "${current_resolvers}"
+                    while read -r resolver; do
+                        if ! grep -qE "^nameserver\s+${resolver}" "${rootfs}/etc/resolv.conf"; then
+                            failed "IS_LXC_CONTAINER_RESOLV_CONF" "resolv.conf miss-match beween host and container : missing nameserver ${resolver} in container ${container_name} resolv.conf"
+                        fi
+                    done <<< "${current_resolvers}"
 
-            else
-                failed "IS_LXC_CONTAINER_RESOLV_CONF" "resolv.conf missing in container ${container}"
+                else
+                    failed "IS_LXC_CONTAINER_RESOLV_CONF" "resolv.conf missing in container ${container_name}"
+                fi
             fi
         done
     fi
@@ -1395,7 +1411,7 @@ check_lxc_container_resolv_conf() {
 check_no_lxc_container() {
     if is_installed lxc; then
         containers_count=$(lxc-ls --active | wc -l)
-        if [ "$containers_count" -eq 0 ]; then
+        if [ "${containers_count}" -eq 0 ]; then
             failed "IS_NO_LXC_CONTAINER" "LXC is installed but have no active container. Consider removing it."
         fi
     fi
@@ -1403,18 +1419,18 @@ check_no_lxc_container() {
 # Check that in LXC containers, phpXX-fpm services have UMask set to 0007.
 check_lxc_php_fpm_service_umask_set() {
     if is_installed lxc; then
-        php_containers_list=$(lxc-ls --active --filter php)
+        containers_list=$(lxc-ls --active --filter php)
         missing_umask=""
-        for container in $php_containers_list; do
+        for container_name in ${containers_list}; do
             # Translate container name in service name
-            if [ "$container" = "php56" ]; then
+            if [ "${container_name}" = "php56" ]; then
                 service="php5-fpm"
             else
-                service="${container:0:4}.${container:4:1}-fpm"
+                service="${container_name:0:4}.${container_name:4:1}-fpm"
             fi
-            umask=$(lxc-attach --name "${container}" -- systemctl show -p UMask "$service" | cut -d "=" -f2)
+            umask=$(lxc-attach --name "${container_name}" -- systemctl show -p UMask "$service" | cut -d "=" -f2)
             if [ "$umask" != "0007" ]; then
-                missing_umask="${missing_umask} ${container}"
+                missing_umask="${missing_umask} ${container_name}"
             fi
         done
         if [ -n "${missing_umask}" ]; then
@@ -1425,30 +1441,38 @@ check_lxc_php_fpm_service_umask_set() {
 # Check that LXC containers have the proper Debian version.
 check_lxc_php_bad_debian_version() {
     if is_installed lxc; then
-        php_containers_list=$(lxc-ls --active --filter php)
+        lxc_path=$(lxc-config lxc.lxcpath)
+        containers_list=$(lxc-ls --active --filter php)
         missing_umask=""
-        for container in $php_containers_list; do
-            if [ "$container" = "php56" ]; then
-                grep --quiet 'VERSION_ID="8"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Jessie"
-            elif [ "$container" = "php70" ]; then
-                grep --quiet 'VERSION_ID="9"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Stretch"
-            elif [ "$container" = "php73" ]; then
-                grep --quiet 'VERSION_ID="10"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Buster"
-            elif [ "$container" = "php74" ]; then
-                grep --quiet 'VERSION_ID="11"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Bullseye"
-            elif [ "$container" = "php82" ]; then
-                grep --quiet 'VERSION_ID="12"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Bookworm"
-            elif [ "$container" = "php84" ]; then
-                grep --quiet 'VERSION_ID="13"' /var/lib/lxc/${container}/rootfs/etc/os-release || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container} should use Trixie"
+        for container_name in ${containers_list}; do
+            if lxc-info --name "${container_name}" > /dev/null; then
+                rootfs="${lxc_path}/${container_name}/rootfs"
+                if [ "$container_name" = "php56" ]; then
+                    grep --quiet 'VERSION_ID="8"' "${rootfs}/etc/os-release" || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container_name} should use Jessie"
+                elif [ "$container_name" = "php70" ]; then
+                    grep --quiet 'VERSION_ID="9"' "${rootfs}/etc/os-release" || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container_name} should use Stretch"
+                elif [ "$container_name" = "php73" ]; then
+                    grep --quiet 'VERSION_ID="10"' "${rootfs}/etc/os-release" || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container_name} should use Buster"
+                elif [ "$container_name" = "php74" ]; then
+                    grep --quiet 'VERSION_ID="11"' "${rootfs}/etc/os-release" || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container_name} should use Bullseye"
+                elif [ "$container_name" = "php82" ]; then
+                    grep --quiet 'VERSION_ID="12"' "${rootfs}/etc/os-release" || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container_name} should use Bookworm"
+                elif [ "$container_name" = "php84" ]; then
+                    grep --quiet 'VERSION_ID="13"' "${rootfs}/etc/os-release" || failed "IS_LXC_PHP_BAD_DEBIAN_VERSION" "Container ${container_name} should use Trixie"
+                fi
             fi
         done
     fi
 }
 check_lxc_openssh() {
     if is_installed lxc; then
+        lxc_path=$(lxc-config lxc.lxcpath)
         container_list=$(lxc-ls --active)
-        for container in $container_list; do
-            test -e /var/lib/lxc/${container}/rootfs/usr/sbin/sshd && failed "IS_LXC_OPENSSH" "openssh-server should not be installed in container ${container}"
+        for container_name in ${containers_list}; do
+            if lxc-info --name "${container_name}" > /dev/null; then
+                rootfs="${lxc_path}/${container_name}/rootfs"
+                test -e "${rootfs}/usr/sbin/sshd" && failed "IS_LXC_OPENSSH" "openssh-server should not be installed in container ${container_name}"
+            fi
         done
     fi
 }

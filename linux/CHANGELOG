@@ -9,6 +9,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
+* Apply pattern of checking the real LXC rootfs
+
 ### Deprecated
 
 ### Removed

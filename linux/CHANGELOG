@@ -10,6 +10,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Changed
 
 * Apply pattern of checking the real LXC rootfs
+* minifirewall: RELATED is optional
+* Use long options for grep
 
 ### Deprecated
 

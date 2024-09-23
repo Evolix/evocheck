@@ -11,9 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-* minifirewall: RELATED is optional
-* Use long options for grep
-
 ### Fixed
 
 ### Removed

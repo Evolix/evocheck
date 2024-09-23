@@ -393,7 +393,7 @@ check_minifw() {
 }
 check_minifw_includes() {
     if { ! is_debian_stretch && ! is_debian_buster ; }; then
-        if grep --quiet --pattern '/sbin/iptables' --pattern '/sbin/ip6tables' "/etc/default/minifirewall"; then
+        if grep --quiet --regexp '/sbin/iptables' --regexp '/sbin/ip6tables' "/etc/default/minifirewall"; then
             failed "IS_MINIFWINCLUDES" "minifirewall has direct iptables invocations in /etc/default/minifirewall that should go in /etc/minifirewall.d/"
         fi
     fi
@@ -859,12 +859,12 @@ check_tune2fs_m5() {
     parts=$(grep --extended-regexp "ext(3|4)" /proc/mounts | cut -d ' ' -f1 | tr -s '\n' ' ')
     FINDMNT_BIN=$(command -v findmnt)
     for part in $parts; do
-        blockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep --pattern "Block count:" | grep --extended-regexp --only-matching "[0-9]+")
+        blockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep --regexp "Block count:" | grep --extended-regexp --only-matching "[0-9]+")
         # If buggy partition, skip it.
         if [ -z "$blockCount" ]; then
             continue
         fi
-        reservedBlockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep --pattern "Reserved block count:" | grep --extended-regexp --only-matching "[0-9]+")
+        reservedBlockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep --regexp "Reserved block count:" | grep --extended-regexp --only-matching "[0-9]+")
         # Use awk to have a rounded percentage
         # python is slow, bash is unable and bc rounds weirdly
         percentage=$(awk "BEGIN { pc=100*${reservedBlockCount}/${blockCount}; i=int(pc); print (pc-i<0.5)?i:i+1 }")
@@ -1124,7 +1124,7 @@ check_phpevolinuxconf() {
 }
 check_squidlogrotate() {
     if is_installed squid; then
-        grep --quiet --pattern monthly --pattern daily /etc/logrotate.d/squid \
+        grep --quiet --regexp monthly --regexp daily /etc/logrotate.d/squid \
             || failed "IS_SQUIDLOGROTATE" "missing squid logrotate file"
     fi
 }
@@ -1147,7 +1147,7 @@ check_duplicate_fs_label() {
         tmpFile=$(mktemp --tmpdir "evocheck.duplicate_fs_label.XXXXX")
         files_to_cleanup+=("${tmpFile}")
 
-        parts=$($BLKID_BIN -c /dev/null | grep --invert-match --pattern raid_member --pattern EFI_SYSPART | grep --extended-regexp --only-matching ' LABEL=".*"' | cut -d'"' -f2)
+        parts=$($BLKID_BIN -c /dev/null | grep --invert-match --regexp raid_member --regexp EFI_SYSPART | grep --extended-regexp --only-matching ' LABEL=".*"' | cut -d'"' -f2)
         for part in $parts; do
             echo "$part" >> "$tmpFile"
         done
@@ -1222,7 +1222,7 @@ check_old_home_dir() {
     homeDir=${homeDir:-/home}
     for dir in "$homeDir"/*; do
         statResult=$(stat -c "%n has owner %u resolved as %U" "$dir" \
-            | grep --invert-match --extended-regexp --pattern '.bak' --pattern '\.[0-9]{2}-[0-9]{2}-[0-9]{4}' \
+            | grep --invert-match --extended-regexp --regexp '.bak' --regexp '\.[0-9]{2}-[0-9]{2}-[0-9]{4}' \
             | grep "UNKNOWN")
         # There is at least one dir matching
         if [[ -n "$statResult" ]]; then

@@ -19,6 +19,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* Use correct grep option (`--regexp` instead of `--pattern`)
+
 ## [24.09] 2024-09-06
 
 ### Changed

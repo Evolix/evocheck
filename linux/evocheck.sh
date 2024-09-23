@@ -507,7 +507,7 @@ check_squid() {
 check_evomaintenance_fw() {
     if [ -f "/etc/default/minifirewall" ]; then
         hook_db=$(grep -E '^\s*HOOK_DB' /etc/evomaintenance.cf | tr -d ' ' | cut -d= -f2)
-        rulesNumber=$(grep -c "/sbin/iptables -A INPUT -p tcp --sport 5432 --dport 1024:65535 -s .* -m state --state ESTABLISHED,RELATED -j ACCEPT" "/etc/default/minifirewall")
+        rulesNumber=$(grep --count --extended-regexp "/sbin/iptables -A INPUT -p tcp --sport 5432 --dport 1024:65535 -s .* -m state --state ESTABLISHED(,RELATED)? -j ACCEPT" "/etc/default/minifirewall")
         if [ "$hook_db" = "1" ] && [ "$rulesNumber" -lt 2 ]; then
             failed "IS_EVOMAINTENANCE_FW" "HOOK_DB is enabled but missing evomaintenance rules in minifirewall"
         fi

@@ -9,6 +9,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* IS_TMP_1777: check permissions in LXC only if /tmp exists
+
 ### Deprecated
 
 ### Removed

@@ -1386,7 +1386,7 @@ check_nginx_letsencrypt_uptodate() {
 }
 check_lxc_container_resolv_conf() {
     if is_installed lxc; then
-        current_resolvers=$(grep nameserver /etc/resolv.conf | sed 's/nameserver//g' )
+        current_resolvers=$(grep ^nameserver /etc/resolv.conf | sed 's/nameserver//g' )
         lxc_path=$(lxc-config lxc.lxcpath)
         container_list=$(lxc-ls --active)
 

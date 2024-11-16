@@ -51,24 +51,27 @@ END
 parse_os_release() {
     local os_release_path="/etc/os-release"
 
-    OS_RELEASE_ID=""
-    OS_RELEASE_VERSION_ID=""
-    OS_RELEASE_VERSION_CODENAME=""
+    OS_ID=""
+    OS_VERSION_ID=""
+    OS_VERSION_CODENAME=""
 
     if [ -e "${os_release_path}" ]; then
-        local _os_release_id=$(grep --extended-regexp "^ID=.*$" "${os_release_path}")
-        if [ -n "${_os_release_id}" ]; then
-            OS_RELEASE_ID=$(echo "${_os_release_id}" | cut -d '=' -f 2 | tr -d '"')
+        local _os_id
+        _os_id=$(grep --extended-regexp "^ID=.*$" "${os_release_path}")
+        if [ -n "${_os_id}" ]; then
+            OS_ID=$(echo "${_os_id}" | cut -d '=' -f 2 | tr -d '"')
         fi
 
-        local _os_release_version_id=$(grep --extended-regexp "^VERSION_ID=.*$" "${os_release_path}")
-        if [ -n "${_os_release_version_id}" ]; then
-            OS_RELEASE_VERSION_ID=$(echo "${_os_release_version_id}" | cut -d '=' -f 2 | tr -d '"')
+        local _os_version_id
+        _os_version_id=$(grep --extended-regexp "^VERSION_ID=.*$" "${os_release_path}")
+        if [ -n "${_os_version_id}" ]; then
+            OS_VERSION_ID=$(echo "${_os_version_id}" | cut -d '=' -f 2 | tr -d '"')
         fi
 
-        local _os_release_version_codename=$(grep --extended-regexp "^VERSION_CODENAME=.*$" "${os_release_path}")
-        if [ -n "${_os_release_version_codename}" ]; then
-            OS_RELEASE_VERSION_CODENAME=$(echo "${_os_release_version_codename}" | cut -d '=' -f 2 | tr -d '"')
+        local _os_version_codename
+        _os_version_codename=$(grep --extended-regexp "^VERSION_CODENAME=.*$" "${os_release_path}")
+        if [ -n "${_os_version_codename}" ]; then
+            OS_VERSION_CODENAME=$(echo "${_os_version_codename}" | cut -d '=' -f 2 | tr -d '"')
         fi
 
         if [ "${OS_RELEASE_VERSION_ID}" -lt "10" ]; then
@@ -83,22 +86,22 @@ parse_os_release() {
 }
 
 is_debian() {
-    test "${OS_RELEASE_ID}" = "debian"
+    test "${OS_ID}" = "debian"
 }
 is_debian_buster() {
-    is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "buster"
+    is_debian && test "${OS_VERSION_CODENAME}" = "buster"
 }
 is_debian_bullseye() {
-    is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "bullseye"
+    is_debian && test "${OS_VERSION_CODENAME}" = "bullseye"
 }
 is_debian_bookworm() {
-    is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "bookworm"
+    is_debian && test "${OS_VERSION_CODENAME}" = "bookworm"
 }
 is_debian_trixie() {
-    is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "trixie"
+    is_debian && test "${OS_VERSION_CODENAME}" = "trixie"
 }
 is_debian_forky() {
-    is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "forky"
+    is_debian && test "${OS_VERSION_CODENAME}" = "forky"
 }
 is_debian_duke() {
     is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "duke"
@@ -240,8 +243,8 @@ check_backports_version() {
     # Look for enabled "Debian Backports" sources from the "Debian" origin
     apt-cache policy | grep "\bl=Debian Backports\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
     test $? -eq 1 || ( \
-        apt-cache policy | grep "\bl=Debian Backports\b" | grep --quiet "\bn=${OS_RELEASE_VERSION_CODENAME}-backports\b" && \
-        test $? -eq 0 || failed "IS_BACKPORTS_VERSION" "Debian Backports enabled for another release than ${OS_RELEASE_VERSION_CODENAME}" )
+        apt-cache policy | grep "\bl=Debian Backports\b" | grep --quiet "\bn=${OS_VERSION_CODENAME}-backports\b" && \
+        test $? -eq 0 || failed "IS_BACKPORTS_VERSION" "Debian Backports enabled for another release than ${OS_VERSION_CODENAME}" )
 }
 check_oldpub() {
     # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Stretch)
@@ -1576,7 +1579,7 @@ download_versions() {
     # evoacme 21.06
     # evomaintenance 0.6.4
 
-    versions_url="https://upgrades.evolix.org/versions-${OS_RELEASE_VERSION_CODENAME}"
+    versions_url="https://upgrades.evolix.org/versions-${OS_VERSION_CODENAME}"
 
     # fetch timeout, in seconds
     timeout=10

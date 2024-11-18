@@ -49,59 +49,41 @@ END
 }
 
 parse_os_release() {
-    local os_release_path="/etc/os-release"
+    local os_release_path
 
-    OS_ID=""
-    OS_VERSION_ID=""
-    OS_VERSION_CODENAME=""
-
+    # The default path is this
+    os_release_path="/etc/os-release"
     if [ -e "${os_release_path}" ]; then
-        local _os_id
-        _os_id=$(grep --extended-regexp "^ID=.*$" "${os_release_path}")
-        if [ -n "${_os_id}" ]; then
-            OS_ID=$(echo "${_os_id}" | cut -d '=' -f 2 | tr -d '"')
-        fi
-
-        local _os_version_id
-        _os_version_id=$(grep --extended-regexp "^VERSION_ID=.*$" "${os_release_path}")
-        if [ -n "${_os_version_id}" ]; then
-            OS_VERSION_ID=$(echo "${_os_version_id}" | cut -d '=' -f 2 | tr -d '"')
-        fi
-
-        local _os_version_codename
-        _os_version_codename=$(grep --extended-regexp "^VERSION_CODENAME=.*$" "${os_release_path}")
-        if [ -n "${_os_version_codename}" ]; then
-            OS_VERSION_CODENAME=$(echo "${_os_version_codename}" | cut -d '=' -f 2 | tr -d '"')
-        fi
-
-        if [ "${OS_RELEASE_VERSION_ID}" -lt "10" ]; then
-            echo "Debian ${OS_RELEASE_VERSION_ID} is incompatible with this version of evocheck." >&2
-            echo "This version is built for Debian 10 and later." >&2
-            exit
-        fi
-        return 0
-    else
+        # but we have to fallback to this if the former is missing
+        os_release_path="/usr/lib/os-release"
+    fi
+    if [ -e "${os_release_path}" ]; then
         return 1
     fi
+
+    # According to os-release(5), the file can be sourced in a shell script.
+    # To prevent variable names collisions, we prefix them with "OS_RELEASE_".
+    # shellcheck disable=SC1090
+    source <(sed -e 's/^\([A-Z_]\+=\)/OS_RELEASE_\1/' "${os_release_path}")
 }
 
 is_debian() {
-    test "${OS_ID}" = "debian"
+    test "${OS_RELEASE_ID}" = "debian"
 }
 is_debian_buster() {
-    is_debian && test "${OS_VERSION_CODENAME}" = "buster"
+    is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "buster"
 }
 is_debian_bullseye() {
-    is_debian && test "${OS_VERSION_CODENAME}" = "bullseye"
+    is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "bullseye"
 }
 is_debian_bookworm() {
-    is_debian && test "${OS_VERSION_CODENAME}" = "bookworm"
+    is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "bookworm"
 }
 is_debian_trixie() {
-    is_debian && test "${OS_VERSION_CODENAME}" = "trixie"
+    is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "trixie"
 }
 is_debian_forky() {
-    is_debian && test "${OS_VERSION_CODENAME}" = "forky"
+    is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "forky"
 }
 is_debian_duke() {
     is_debian && test "${OS_RELEASE_VERSION_CODENAME}" = "duke"
@@ -243,8 +225,8 @@ check_backports_version() {
     # Look for enabled "Debian Backports" sources from the "Debian" origin
     apt-cache policy | grep "\bl=Debian Backports\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
     test $? -eq 1 || ( \
-        apt-cache policy | grep "\bl=Debian Backports\b" | grep --quiet "\bn=${OS_VERSION_CODENAME}-backports\b" && \
-        test $? -eq 0 || failed "IS_BACKPORTS_VERSION" "Debian Backports enabled for another release than ${OS_VERSION_CODENAME}" )
+        apt-cache policy | grep "\bl=Debian Backports\b" | grep --quiet "\bn=${OS_RELEASE_VERSION_CODENAME}-backports\b" && \
+        test $? -eq 0 || failed "IS_BACKPORTS_VERSION" "Debian Backports enabled for another release than ${OS_RELEASE_VERSION_CODENAME}" )
 }
 check_oldpub() {
     # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Stretch)
@@ -1579,7 +1561,7 @@ download_versions() {
     # evoacme 21.06
     # evomaintenance 0.6.4
 
-    versions_url="https://upgrades.evolix.org/versions-${OS_VERSION_CODENAME}"
+    versions_url="https://upgrades.evolix.org/versions-${OS_RELEASE_VERSION_CODENAME}"
 
     # fetch timeout, in seconds
     timeout=10
@@ -1715,11 +1697,6 @@ check_postfix_ipv6_disabled() {
 main() {
     # Default return code : 0 = no error
     RC=0
-    # Detect operating system name, version and release
-    if ! parse_os_release; then
-        echo "Failed to parse os-release data." >&2
-        exit
-    fi
 
     main_output_file=$(mktemp --tmpdir "evocheck.main.XXXXX")
     files_to_cleanup+=("${main_output_file}")
@@ -1964,6 +1941,21 @@ log "Running $PROGNAME $VERSION..."
 if [ -f "${CONFIGFILE}" ]; then
     log "Runtime configuration (${CONFIGFILE}):"
     sed -e '/^[[:blank:]]*#/d; s/#.*//; /^[[:blank:]]*$/d' "${CONFIGFILE}" | log
+fi
+
+# Detect operating system name, version and release
+if ! parse_os_release; then
+    msg="Failed to parse os-release data."
+    
+    printf "%s\n" "${msg}" >&2
+    log "${msg}"
+    exit
+fi
+
+if [ "${OS_RELEASE_VERSION_ID}" -lt "10" ]; then
+    echo "Debian ${OS_RELEASE_VERSION_ID} is incompatible with this version of evocheck." >&2
+    echo "This version is built for Debian 10 and later." >&2
+    exit
 fi
 
 # shellcheck disable=SC2086

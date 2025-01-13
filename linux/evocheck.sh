@@ -1030,7 +1030,7 @@ check_mongo_backup() {
 check_ldap_backup() {
     if is_installed slapd; then
         # You could change the default path in /etc/evocheck.cf
-        LDAP_BACKUP_PATH=${LDAP_BACKUP_PATH:-"/home/backup/ldap.bak"}
+        LDAP_BACKUP_PATH="${LDAP_BACKUP_PATH:-$(find /home/backup/ -iname "ldap.bak")}"
         test -f "$LDAP_BACKUP_PATH" || failed "IS_LDAP_BACKUP" "LDAP dump is missing (${LDAP_BACKUP_PATH})"
     fi
 }

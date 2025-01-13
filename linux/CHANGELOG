@@ -7,6 +7,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
+* LDAP_BACKUP_PATH: Improve detection of ldap.bak
+
 ### Fixed
 
 ### Deprecated

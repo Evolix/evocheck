@@ -984,7 +984,7 @@ check_mariadbevolinuxconf() {
 check_sql_backup() {
     if (is_installed "mysql-server" || is_installed "mariadb-server"); then
         # You could change the default path in /etc/evocheck.cf
-        SQL_BACKUP_PATH=${SQL_BACKUP_PATH:-"/home/backup/mysql.bak.gz"}
+        SQL_BACKUP_PATH="${SQL_BACKUP_PATH:-$(find /home/backup/ \( -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz" \))}"
         for backup_path in ${SQL_BACKUP_PATH}; do
             if [ ! -f "${backup_path}" ]; then
                 failed "IS_SQL_BACKUP" "MySQL dump is missing (${backup_path})"

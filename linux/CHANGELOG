@@ -9,6 +9,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 * LDAP_BACKUP_PATH: Improve detection of ldap.bak
 * POSTGRES_BACKUP_PATH: Improve detection of pg.dump.bak
+* SQL_BACKUP_PATH: Improve backup detection for mariadb
 
 ### Fixed
 

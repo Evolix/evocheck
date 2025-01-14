@@ -1660,6 +1660,17 @@ check_versions() {
         fi
     done
 }
+check_nrpepressure() {
+    # Taken from detect_os function
+    DEBIAN_MAIN_VERSION=$(cut -d "." -f 1 < /etc/debian_version)
+    if [ "${DEBIAN_MAIN_VERSION}" -ge 12 ]; then
+        monitoringctl status pressure_cpu > /dev/null 2>&1
+        rc="$?"
+        if [ "${rc}" -ne 0 ]; then
+            failed "IS_NRPEPRESSURE" "pressure_cpu check not defined or monitoringctl not correctly installed"
+        fi
+    fi
+}
 
 main() {
     # Default return code : 0 = no error
@@ -1800,6 +1811,7 @@ main() {
     test "${IS_LXC_OPENSMTPD:=1}" = 1 && check_lxc_opensmtpd
     test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
     test "${IS_MONITORINGCTL:=1}" = 1 && check_monitoringctl
+    test "${IS_NRPEPRESSURE:=1}" = 1 && check_nrpepressure
 
     if [ -f "${main_output_file}" ]; then
         lines_found=$(wc -l < "${main_output_file}")

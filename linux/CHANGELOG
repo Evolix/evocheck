@@ -5,6 +5,10 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* IS_SSHLASTMATCH: Check whether the last Match directive is "Match All"
+* IS_SSHCONFSPLIT: Check whether the OpenSSH configuration is split into multiple files under /etc/ssh/sshd_config.d (Debian >= 12)
+* IS_NRPEPRESSURE: Check whether the pressure nagios checks are installed (Debian >= 12)
+
 ### Changed
 
 * LDAP_BACKUP_PATH: Improve detection of ldap.bak

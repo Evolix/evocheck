@@ -348,6 +348,15 @@ check_sshconfsplit() {
         done
     fi
 }
+check_sshlastmatch() {
+    if is_debian_bookworm then
+        find /etc/sshd_config* -type f | while read f; do
+            if ! awk 'BEGIN { last = "all" } tolower($1) == "match" { last = tolower($2) } END { if (last != "all") exit 1 }' "${f}" < /dev/null; then
+                failed "IS_SSHLASTMATCH" "last Match directive is not \"Match all\" in ${f}"
+            fi
+        done
+    fi
+}
 check_diskperf() {
     perfFile="/root/disk-perf.txt"
     test -e $perfFile || failed "IS_DISKPERF" "missing ${perfFile}"
@@ -1668,6 +1677,7 @@ main() {
     test "${IS_CUSTOMCRONTAB:=1}" = 1 && check_customcrontab
     test "${IS_SSHALLOWUSERS:=1}" = 1 && check_sshallowusers
     test "${IS_SSHCONFSPLIT:=1}" = 1 && check_sshconfsplit
+    test "${IS_SSHLASTMATCH:=1}" = 1 && check_sshlastmatch
     test "${IS_DISKPERF:=0}" = 1 && check_diskperf
     test "${IS_TMOUTPROFILE:=1}" = 1 && check_tmoutprofile
     test "${IS_ALERT5BOOT:=1}" = 1 && check_alert5boot

@@ -66,12 +66,13 @@ detect_os() {
             DEBIAN_RELEASE=$(${LSB_RELEASE_BIN} --codename --short)
         else
             case ${DEBIAN_MAIN_VERSION} in
-                9)  DEBIAN_RELEASE="stretch";;
-                10) DEBIAN_RELEASE="buster";;
-                11) DEBIAN_RELEASE="bullseye";;
-                12) DEBIAN_RELEASE="bookworm";;
-                13) DEBIAN_RELEASE="trixie";;
-                14) DEBIAN_RELEASE="forky";;
+                9)  DEBIAN_RELEASE="stretch"  ;;
+                10) DEBIAN_RELEASE="buster"   ;;
+                11) DEBIAN_RELEASE="bullseye" ;;
+                12) DEBIAN_RELEASE="bookworm" ;;
+                13) DEBIAN_RELEASE="trixie"   ;;
+                14) DEBIAN_RELEASE="forky"    ;;
+                15) DEBIAN_RELEASE="duke"     ;;
             esac
         fi
     fi
@@ -94,6 +95,9 @@ is_debian_trixie() {
 }
 is_debian_forky() {
     test "${DEBIAN_RELEASE}" = "forky"
+}
+is_debian_duke() {
+    test "${DEBIAN_RELEASE}" = "duke"
 }
 
 is_pack_web(){

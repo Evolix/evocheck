@@ -338,7 +338,7 @@ check_sshallowusers() {
     fi
 }
 check_sshconfsplit() {
-    if { ! is_debian_stretch && ! is_debian_buster && ! is_debian_bullseye ; }; then
+    if is_debian_bookworm; then
         ls /etc/ssh/sshd_config.d/* > /dev/null 2> /dev/null \
             || failed "IS_SSHCONFSPLIT" "No files under /etc/ssh/sshd_config.d"
         diff /usr/share/openssh/sshd_config /etc/ssh/sshd_config > /dev/null 2> /dev/null \
@@ -349,7 +349,7 @@ check_sshconfsplit() {
     fi
 }
 check_sshlastmatch() {
-    if { ! is_debian_stretch && ! is_debian_buster && ! is_debian_bullseye ; }; then
+    if is_debian_bookworm; then
         for f in /etc/ssh/sshd_config /etc/ssh/sshd_config.d/zzz-evolinux-custom.conf; do
             if ! test -f "${f}"; then
                 continue
@@ -1625,7 +1625,9 @@ check_versions() {
     done
 }
 check_nrpepressure() {
-    if { ! is_debian_stretch && ! is_debian_buster && ! is_debian_bullseye ; }; then
+    # Taken from detect_os function
+    DEBIAN_MAIN_VERSION=$(cut -d "." -f 1 < /etc/debian_version)
+    if [ "${DEBIAN_MAIN_VERSION}" -ge 12 ]; then
         monitoringctl status pressure_cpu > /dev/null 2>&1
         rc="$?"
         if [ "${rc}" -ne 0 ]; then

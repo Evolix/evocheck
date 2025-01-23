@@ -354,7 +354,7 @@ check_sshlastmatch() {
             if ! test -f "${f}"; then
                 continue
             fi
-            if ! awk 'BEGIN { last = "all" } tolower($1) == "match" { last = tolower($2) } END { if (last != "all") exit 1 }' "${f}"; then
+            if ! awk 'BEGIN { last = "all" } tolower($1) == "match" { last = tolower($2) } END { if (last != "all") exit 1 }' "${f}" < /dev/null; then
                 failed "IS_SSHLASTMATCH" "last Match directive is not \"Match all\" in ${f}"
             fi
         done

@@ -349,7 +349,7 @@ check_sshconfsplit() {
     fi
 }
 check_sshlastmatch() {
-    if is_debian_bookworm; then
+    if is_debian_bookworm then
         find /etc/sshd_config* -type f | while read f; do
             if ! awk 'BEGIN { last = "all" } tolower($1) == "match" { last = tolower($2) } END { if (last != "all") exit 1 }' "${f}" < /dev/null; then
                 failed "IS_SSHLASTMATCH" "last Match directive is not \"Match all\" in ${f}"

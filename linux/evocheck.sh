@@ -350,10 +350,7 @@ check_sshconfsplit() {
 }
 check_sshlastmatch() {
     if is_debian_bookworm; then
-        for f in /etc/ssh/sshd_config /etc/ssh/sshd_config.d/zzz-evolinux-custom.conf; do
-            if ! test -f "${f}"; then
-                continue
-            fi
+        find /etc/sshd_config* -type f | while read f; do
             if ! awk 'BEGIN { last = "all" } tolower($1) == "match" { last = tolower($2) } END { if (last != "all") exit 1 }' "${f}" < /dev/null; then
                 failed "IS_SSHLASTMATCH" "last Match directive is not \"Match all\" in ${f}"
             fi

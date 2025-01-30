@@ -953,9 +953,11 @@ check_hardwareraidtool() {
     LSPCI_BIN=$(command -v lspci)
     if [ -x "${LSPCI_BIN}" ]; then
         if ${LSPCI_BIN} | grep --quiet 'MegaRAID'; then
-            # shellcheck disable=SC2015
-            is_installed megacli && { is_installed megaclisas-status || is_installed megaraidsas-status; } \
-                || failed "IS_HARDWARERAIDTOOL" "Mega tools not found"
+            if ! { command -v perccli || command -v perccli2; } >/dev/null  ; then
+                # shellcheck disable=SC2015
+                is_installed megacli && { is_installed megaclisas-status || is_installed megaraidsas-status; } \
+                    || failed "IS_HARDWARERAIDTOOL" "Mega tools not found"
+            fi
         fi
         if ${LSPCI_BIN} | grep --quiet 'Hewlett-Packard Company Smart Array'; then
             is_installed cciss-vol-status || failed "IS_HARDWARERAIDTOOL" "cciss-vol-status not installed"

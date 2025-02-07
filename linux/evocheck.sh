@@ -1484,6 +1484,13 @@ check_lxc_openssh() {
     fi
 }
 
+check_monitoringctl() {
+    if ! monitoringctl list >/dev/null 2>&1; then
+        failed "IS_MONITORINGCTL" "monitoringctl is not installed or has a problem (use 'monitoringctl list' to reproduce)."
+    fi
+}
+
+
 download_versions() {
     local file
     file=${1:-}
@@ -1742,6 +1749,7 @@ main() {
     test "${IS_LXC_PHP_BAD_DEBIAN_VERSION:=1}" = 1 && check_lxc_php_bad_debian_version
     test "${IS_LXC_OPENSSH:=1}" = 1 && check_lxc_openssh
     test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
+    test "${IS_MONITORINGCTL:=1}" = 1 && check_monitoringctl
 
     if [ -f "${main_output_file}" ]; then
         lines_found=$(wc -l < "${main_output_file}")

@@ -5,6 +5,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* Add IS_MONITORINGCTL check
+
 ### Changed
 
 ### Fixed

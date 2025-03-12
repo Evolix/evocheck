@@ -10,6 +10,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Changed
 
 * fork evocheck for Debian 9 (Stretch)
+* duke support (Debian 15)
+* HARDWARERAIDTOOL: Add perccli and perccli2 support
 
 ### Fixed
 
@@ -21,7 +23,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
-* HARDWARERAIDTOOL: Add perccli and perccli2 support
 * LDAP_BACKUP_PATH: Improve detection of ldap.bak
 * POSTGRES_BACKUP_PATH: Improve detection of pg.dump.bak
 * SQL_BACKUP_PATH: Improve backup detection for mariadb

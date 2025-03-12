@@ -5,8 +5,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
-* Add IS_LXC_OPENSMTPD check
 * Add IS_HOMENOEXEC check (#172)
+* Add IS_LXC_OPENSMTPD check (#173)
 * Add IS_MONITORINGCTL check
 
 ### Changed
@@ -25,9 +25,9 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
-* LDAP_BACKUP_PATH: Improve detection of ldap.bak
-* POSTGRES_BACKUP_PATH: Improve detection of pg.dump.bak
-* SQL_BACKUP_PATH: Improve backup detection for mariadb
+* LDAP_BACKUP_PATH: Improve detection of ldap.bak (#168)
+* POSTGRES_BACKUP_PATH: Improve detection of pg.dump.bak (#166)
+* SQL_BACKUP_PATH: Improve backup detection for mariadb (#166)
 * IS_LXC_*: force lxc-ls to display one container per line
 
 ### Fixed
@@ -69,7 +69,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Removed
 
-* IS_EVOLIX_GROUP: too many false positive
+* IS_EVOLIX_GROUP: too many false positive (#159)
 
 ### Fixed
 
@@ -100,7 +100,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 * Fix errors in some LXC checks: list only active LXC containers, add conditions to filter containers that are not in evo-standards.
 * IS_SSHALLOWUSERS: fix unwanted sterr when /etc/ssh/sshd_condig.d does not exist.
-* IS_PURGE_FAIL2BAN: Fix bad name, rename to IS_FAIL2BAN_PURGE.
+* IS_PURGE_FAIL2BAN: Fix bad name, rename to IS_FAIL2BAN_PURGE. (#156)
 * IS_SYSLOGCONF: better detection
 
 
@@ -129,7 +129,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
-* IS_EVOBACKUP_EXCLUDE_MOUNT: fix another regression introduced in previous release
+* IS_EVOBACKUP_EXCLUDE_MOUNT: fix another regression introduced in previous release (#150)
 
 ### Security
 
@@ -154,7 +154,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
-* IS_EVOBACKUP_EXCLUDE_MOUNT: fix regression introduced in previous version
+* IS_EVOBACKUP_EXCLUDE_MOUNT: fix regression introduced in previous version (#148)
 
 ## [23.10] 2023-10-26
 
@@ -202,7 +202,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
-* Log output and runtime config to /var/log/evocheck.log.
+* Log output and runtime config to /var/log/evocheck.log. (#147)
 
 ### Changed
 
@@ -296,7 +296,7 @@ New checks :
 
 ### Changed
 
-* IS_NETWORKING_SERVICE: not in cron mode
+* IS_NETWORKING_SERVICE: not in cron mode (#144)
 
 ### Fixed:
 

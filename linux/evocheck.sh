@@ -301,6 +301,19 @@ check_tmpnoexec() {
         mount | grep "on /tmp" | grep --quiet --extended-regexp "\bnoexec\b" || failed "IS_TMPNOEXEC" "/tmp is not mounted with 'noexec' (WARNING: findmnt(8) is not found)"
     fi
 }
+check_homenoexec() {
+    FINDMNT_BIN=$(command -v findmnt)
+    if [ -x "${FINDMNT_BIN}" ]; then
+        options=$(${FINDMNT_BIN} --noheadings --first-only --output OPTIONS /home)
+        echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || \
+           ( grep --quiet --extended-regexp "/home.*noexec" /etc/fstab && \
+	   failed "IS_HOMENOEXEC" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec'" )
+    else
+        mount | grep "on /home" | grep --quiet --extended-regexp "\bnoexec\b" || \
+           ( grep --quiet --extended-regexp "/home.*noexec" /etc/fstab && \
+	   failed "IS_HOMENOEXEC" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec' (WARNING: findmnt(8) is not found)" )
+    fi
+}
 check_mountfstab() {
     # Test if lsblk available, if not skip this test...
     LSBLK_BIN=$(command -v lsblk)
@@ -1666,6 +1679,7 @@ main() {
     test "${IS_APTGETBAK:=1}" = 1 && check_aptgetbak
     test "${IS_USRRO:=1}" = 1 && check_usrro
     test "${IS_TMPNOEXEC:=1}" = 1 && check_tmpnoexec
+    test "${IS_HOMENOEXEC:=1}" = 1 && check_homenoexec
     test "${IS_MOUNT_FSTAB:=1}" = 1 && check_mountfstab
     test "${IS_LISTCHANGESCONF:=1}" = 1 && check_listchangesconf
     test "${IS_CUSTOMCRONTAB:=1}" = 1 && check_customcrontab

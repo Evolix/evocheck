@@ -5,6 +5,18 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Deprecated
+
+### Removed
+
+## [25.03] 2025-03-12
+
+### Added
+
 * Add IS_HOMENOEXEC check (#172)
 * Add IS_LXC_OPENSMTPD check (#173)
 * Add IS_MONITORINGCTL check
@@ -14,12 +26,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 * fork evocheck for Debian 9 (Stretch)
 * duke support (Debian 15)
 * HARDWARERAIDTOOL: Add perccli and perccli2 support
-
-### Fixed
-
-### Deprecated
-
-### Removed
 
 ## [25.01] 2025-01-23
 

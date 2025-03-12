@@ -1483,6 +1483,18 @@ check_lxc_openssh() {
         done
     fi
 }
+check_lxc_opensmtpd() {
+    if is_installed lxc; then
+        lxc_path=$(lxc-config lxc.lxcpath)
+        container_list=$(lxc-ls -1 --active --filter php)
+        for container_name in ${containers_list}; do
+            if lxc-info --name "${container_name}" > /dev/null; then
+                rootfs="${lxc_path}/${container_name}/rootfs"
+                test -e "${rootfs}/usr/sbin/smtpd" || test -e "${rootfs}/usr/sbin/ssmtp" || failed "IS_LXC_OPENSMTPD" "opensmtpd should be installed in container ${container_name}"
+            fi
+        done
+    fi
+}
 
 check_monitoringctl() {
     if ! monitoringctl list >/dev/null 2>&1; then
@@ -1748,6 +1760,7 @@ main() {
     test "${IS_LXC_PHP_FPM_SERVICE_UMASK_SET:=1}" = 1 && check_lxc_php_fpm_service_umask_set
     test "${IS_LXC_PHP_BAD_DEBIAN_VERSION:=1}" = 1 && check_lxc_php_bad_debian_version
     test "${IS_LXC_OPENSSH:=1}" = 1 && check_lxc_openssh
+    test "${IS_LXC_OPENSMTPD:=1}" = 1 && check_lxc_opensmtpd
     test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
     test "${IS_MONITORINGCTL:=1}" = 1 && check_monitoringctl
 

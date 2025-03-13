@@ -366,15 +366,8 @@ check_alert5boot() {
     fi
 }
 check_alert5minifw() {
-    if [ -n "$(find /etc/rc2.d/ -name 'S*alert5')" ]; then
-        grep --quiet "^/etc/init.d/minifirewall" /etc/rc2.d/S*alert5 \
-            || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 init script"
-    elif [ -n "$(find /etc/init.d/ -name 'alert5')" ]; then
-        grep --quiet "^/etc/init.d/minifirewall" /etc/init.d/alert5 \
-            || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 init script"
-    else
-        failed "IS_ALERT5MINIFW" "alert5 init script is missing"
-    fi
+    grep --quiet --no-messages "^/etc/init.d/minifirewall" /usr/share/scripts/alert5.sh \
+        || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 script or script is missing"
 }
 check_minifw() {
     {

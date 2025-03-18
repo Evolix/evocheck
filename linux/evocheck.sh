@@ -350,6 +350,29 @@ check_sshallowusers() {
         fi
     fi
 }
+check_sshconfsplit() {
+    if { ! is_debian_buster && ! is_debian_bullseye ; }; then
+        ls /etc/ssh/sshd_config.d/* > /dev/null 2> /dev/null \
+            || failed "IS_SSHCONFSPLIT" "No files under /etc/ssh/sshd_config.d"
+        diff /usr/share/openssh/sshd_config /etc/ssh/sshd_config > /dev/null 2> /dev/null \
+            || failed "IS_SSHCONFSPLIT" "Files /etc/ssh/sshd_config and /usr/share/openssh/sshd_config differ"
+        for f in /etc/ssh/sshd_config.d/z-evolinux-defaults.conf /etc/ssh/sshd_config.d/zzz-evolinux-custom.conf; do
+            test -f "${f}" || failed "IS_SSHCONFSPLIT" "${f} is not a regular file"
+        done
+    fi
+}
+check_sshlastmatch() {
+    if { ! is_debian_buster && ! is_debian_bullseye ; }; then
+        for f in /etc/ssh/sshd_config /etc/ssh/sshd_config.d/zzz-evolinux-custom.conf; do
+            if ! test -f "${f}"; then
+                continue
+            fi
+            if ! awk 'BEGIN { last = "all" } tolower($1) == "match" { last = tolower($2) } END { if (last != "all") exit 1 }' "${f}"; then
+                failed "IS_SSHLASTMATCH" "last Match directive is not \"Match all\" in ${f}"
+            fi
+        done
+    fi
+}
 check_diskperf() {
     perfFile="/root/disk-perf.txt"
     test -e $perfFile || failed "IS_DISKPERF" "missing ${perfFile}"
@@ -1657,6 +1680,8 @@ main() {
     test "${IS_LISTCHANGESCONF:=1}" = 1 && check_listchangesconf
     test "${IS_CUSTOMCRONTAB:=1}" = 1 && check_customcrontab
     test "${IS_SSHALLOWUSERS:=1}" = 1 && check_sshallowusers
+    test "${IS_SSHCONFSPLIT:=1}" = 1 && check_sshconfsplit
+    test "${IS_SSHLASTMATCH:=1}" = 1 && check_sshlastmatch
     test "${IS_DISKPERF:=0}" = 1 && check_diskperf
     test "${IS_TMOUTPROFILE:=1}" = 1 && check_tmoutprofile
     test "${IS_ALERT5BOOT:=1}" = 1 && check_alert5boot

@@ -6,6 +6,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Added
 
 * New checks for SSH config
+* Verify backup directory existence
 
 ### Changed
 

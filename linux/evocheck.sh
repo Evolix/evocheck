@@ -999,81 +999,106 @@ check_mariadbevolinuxconf() {
 }
 check_sql_backup() {
     if (is_installed "mysql-server" || is_installed "mariadb-server"); then
-        # You could change the default path in /etc/evocheck.cf
-        SQL_BACKUP_PATH="${SQL_BACKUP_PATH:-$(find /home/backup/ \( -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz" \))}"
-        for backup_path in ${SQL_BACKUP_PATH}; do
-            if [ ! -f "${backup_path}" ]; then
-                failed "IS_SQL_BACKUP" "MySQL dump is missing (${backup_path})"
-                test "${VERBOSE}" = 1 || break
-            fi
-        done
+        backup_dir="/home/backup"
+        if [ -d "${backup_dir}" ]; then
+            # You could change the default path in /etc/evocheck.cf
+            SQL_BACKUP_PATH="${SQL_BACKUP_PATH:-$(find "${backup_dir}" \( -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz" \))}"
+            for backup_path in ${SQL_BACKUP_PATH}; do
+                if [ ! -f "${backup_path}" ]; then
+                    failed "IS_SQL_BACKUP" "MySQL dump is missing (${backup_path})"
+                    test "${VERBOSE}" = 1 || break
+                fi
+            done
+        else
+            failed "IS_SQL_BACKUP" "${backup_dir}/ is missing"
+        fi
     fi
 }
 check_postgres_backup() {
     if is_installed "postgresql-9*" || is_installed "postgresql-1*"; then
-        # If you use something like barman, you should disable this check
-        # You could change the default path in /etc/evocheck.cf
-        POSTGRES_BACKUP_PATH="${POSTGRES_BACKUP_PATH:-$(find /home/backup/ -iname "pg.dump.bak*")}"
-        for backup_path in ${POSTGRES_BACKUP_PATH}; do
-            if [ ! -f "${backup_path}" ]; then
-                failed "IS_POSTGRES_BACKUP" "PostgreSQL dump is missing (${backup_path})"
-                test "${VERBOSE}" = 1 || break
-            fi
-        done
+        backup_dir="/home/backup"
+        if [ -d "${backup_dir}" ]; then
+            # If you use something like barman, you should disable this check
+            # You could change the default path in /etc/evocheck.cf
+            POSTGRES_BACKUP_PATH="${POSTGRES_BACKUP_PATH:-$(find "${backup_dir}" -iname "pg.dump.bak*")}"
+            for backup_path in ${POSTGRES_BACKUP_PATH}; do
+                if [ ! -f "${backup_path}" ]; then
+                    failed "IS_POSTGRES_BACKUP" "PostgreSQL dump is missing (${backup_path})"
+                    test "${VERBOSE}" = 1 || break
+                fi
+            done
+        else
+            failed "IS_POSTGRES_BACKUP" "${backup_dir}/ is missing"
+        fi
     fi
 }
 check_mongo_backup() {
     if is_installed "mongodb-org-server"; then
-        # You could change the default path in /etc/evocheck.cf
-        MONGO_BACKUP_PATH=${MONGO_BACKUP_PATH:-"/home/backup/mongodump"}
-        if [ -d "$MONGO_BACKUP_PATH" ]; then
-            for file in "${MONGO_BACKUP_PATH}"/*/*.{json,bson}*; do
-                # Skip indexes file.
-                if ! [[ "$file" =~ indexes ]]; then
-                    limit=$(date +"%s" -d "now - 2 day")
-                    updated_at=$(stat -c "%Y" "$file")
-                    if [ -f "$file" ] && [ "$limit" -gt "$updated_at"  ]; then
-                        failed "IS_MONGO_BACKUP" "MongoDB hasn't been dumped for more than 2 days"
-                        break
+        backup_dir="/home/backup"
+        if [ -d "${backup_dir}" ]; then
+            # You could change the default path in /etc/evocheck.cf
+            MONGO_BACKUP_PATH=${MONGO_BACKUP_PATH:-"${backup_dir}/mongodump"}
+            if [ -d "$MONGO_BACKUP_PATH" ]; then
+                for file in "${MONGO_BACKUP_PATH}"/*/*.{json,bson}*; do
+                    # Skip indexes file.
+                    if ! [[ "$file" =~ indexes ]]; then
+                        limit=$(date +"%s" -d "now - 2 day")
+                        updated_at=$(stat -c "%Y" "$file")
+                        if [ -f "$file" ] && [ "$limit" -gt "$updated_at"  ]; then
+                            failed "IS_MONGO_BACKUP" "MongoDB hasn't been dumped for more than 2 days"
+                            break
+                        fi
                     fi
-                fi
-            done
+                done
+            else
+                failed "IS_MONGO_BACKUP" "MongoDB dump directory is missing (${MONGO_BACKUP_PATH})"
+            fi
         else
-            failed "IS_MONGO_BACKUP" "MongoDB dump directory is missing (${MONGO_BACKUP_PATH})"
+            failed "IS_MONGO_BACKUP" "${backup_dir}/ is missing"
         fi
     fi
 }
 check_ldap_backup() {
     if is_installed slapd; then
-        # You could change the default path in /etc/evocheck.cf
-        LDAP_BACKUP_PATH="${LDAP_BACKUP_PATH:-$(find /home/backup/ -iname "ldap.bak")}"
-        test -f "$LDAP_BACKUP_PATH" || failed "IS_LDAP_BACKUP" "LDAP dump is missing (${LDAP_BACKUP_PATH})"
+        backup_dir="/home/backup"
+        if [ -d "${backup_dir}" ]; then
+            # You could change the default path in /etc/evocheck.cf
+            LDAP_BACKUP_PATH="${LDAP_BACKUP_PATH:-$(find "${backup_dir}" -iname "ldap.bak")}"
+            test -f "$LDAP_BACKUP_PATH" || failed "IS_LDAP_BACKUP" "LDAP dump is missing (${LDAP_BACKUP_PATH})"
+        else
+            failed "LDAP_BACKUP_PATH" "${backup_dir}/ is missing"
+        fi
     fi
 }
 check_redis_backup() {
     if is_installed redis-server; then
-        # You could change the default path in /etc/evocheck.cf
-        # REDIS_BACKUP_PATH may contain space-separated paths, for example:
-        # REDIS_BACKUP_PATH='/home/backup/redis-instance1/dump.rdb /home/backup/redis-instance2/dump.rdb'
-        # Warning : this script doesn't handle spaces in file paths !
+        backup_dir="/home/backup"
+            if [ -d "${backup_dir}" ]; then
+            # You could change the default path in /etc/evocheck.cf
+            # REDIS_BACKUP_PATH may contain space-separated paths, for example:
+            # REDIS_BACKUP_PATH='/home/backup/redis-instance1/dump.rdb /home/backup/redis-instance2/dump.rdb'
+            # Warning : this script doesn't handle spaces in file paths !
 
-        REDIS_BACKUP_PATH="${REDIS_BACKUP_PATH:-$(find /home/backup/ -iname "*.rdb*")}"
+            REDIS_BACKUP_PATH="${REDIS_BACKUP_PATH:-$(find "${backup_dir}" -iname "*.rdb*")}"
 
-        # Check number of dumps
-        n_instances=$(pgrep 'redis-server' | wc -l)
-        n_dumps=$(echo $REDIS_BACKUP_PATH | wc -w)
-        if [ ${n_dumps} -lt ${n_instances} ]; then
-            failed "IS_REDIS_BACKUP" "Missing Redis dump : ${n_instances} instance(s) found versus ${n_dumps} dump(s) found."
-        fi
-
-        # Check last dump date
-        age_threshold=$(date +"%s" -d "now - 2 days")
-        for dump in ${REDIS_BACKUP_PATH}; do
-            last_update=$(stat -c "%Z" $dump)
-            if [ "${last_update}" -lt "${age_threshold}" ]; then
-                failed "IS_REDIS_BACKUP" "Redis dump ${dump} is older than 2 days."
+            # Check number of dumps
+            n_instances=$(pgrep 'redis-server' | wc -l)
+            n_dumps=$(echo $REDIS_BACKUP_PATH | wc -w)
+            if [ ${n_dumps} -lt ${n_instances} ]; then
+                failed "IS_REDIS_BACKUP" "Missing Redis dump : ${n_instances} instance(s) found versus ${n_dumps} dump(s) found."
             fi
-        done
+
+            # Check last dump date
+            age_threshold=$(date +"%s" -d "now - 2 days")
+            for dump in ${REDIS_BACKUP_PATH}; do
+                last_update=$(stat -c "%Z" $dump)
+                if [ "${last_update}" -lt "${age_threshold}" ]; then
+                    failed "IS_REDIS_BACKUP" "Redis dump ${dump} is older than 2 days."
+                fi
+            done
+        else
+            failed "IS_REDIS_BACKUP" "${backup_dir}/ is missing"
+        fi
     fi
 }
 check_elastic_backup() {

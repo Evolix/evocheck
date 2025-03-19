@@ -1671,6 +1671,13 @@ check_nrpepressure() {
         fi
     fi
 }
+check_postfix_ipv6_disabled() {
+    grep --no-messages --invert-match --extended-regexp '^#' /etc/postfix/main.cf | grep --no-messages inet_protocols | grep --no-messages --silent ipv4
+    rc="$?"
+    if [ "${rc}" -ne 0 ]; then
+        failed "IS_POSTFIX_IPV6_DISABLED" "IPv6 must be disabled in Postfix main.cf (inet_protocols = ipv4)"
+    fi
+}
 
 main() {
     # Default return code : 0 = no error
@@ -1812,6 +1819,7 @@ main() {
     test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
     test "${IS_MONITORINGCTL:=1}" = 1 && check_monitoringctl
     test "${IS_NRPEPRESSURE:=1}" = 1 && check_nrpepressure
+    test "${IS_POSTFIX_IPV6_DISABLED:=1}" = 1 && check_postfix_ipv6_disabled
 
     if [ -f "${main_output_file}" ]; then
         lines_found=$(wc -l < "${main_output_file}")

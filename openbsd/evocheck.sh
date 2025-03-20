@@ -536,6 +536,17 @@ check_mountfstab() {
         grep -q " $mount_point " /etc/fstab || failed "IS_MOUNT_FSTAB" "Partition(s) detected mounted but no presence in /etc/fstab"
     done
 }
+check_motd_carp_cron(){
+    if ifconfig carp | grep carp 1> /dev/null 2>&1; then
+        if grep -q motd-carp-state.sh /var/cron/tabs/root; then
+            if grep motd-carp-state.sh /var/cron/tabs/root | grep -q "^#"; then
+                failed "IS_MOTD_CARP_CRON" "The motd-carp-state.sh cron is inactive ! As a carp member, the script motd-carp-state.sh should be regularly executed by cron"
+            fi
+        else
+            failed "IS_MOTD_CARP_CRON" "The motd-carp-state.sh is not present in crontab ! As a carp member, the script motd-carp-state.sh should be regularly executed by cron"
+        fi
+    fi
+}
 
 
 main() {
@@ -588,6 +599,7 @@ main() {
     test "${IS_ROOT_USER:=1}" = 1 && check_root_user
     test "${IS_MOUNT:=1}" = 1 && check_mount
     test "${IS_MOUNT_FSTAB:=1}" = 1 && check_mountfstab
+    test "${IS_MOTD_CARP_CRON:=1}" = 1 && check_motd_carp_cron
 
     exit ${RC}
 }

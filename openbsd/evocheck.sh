@@ -547,7 +547,18 @@ check_motd_carp_cron(){
         fi
     fi
 }
-
+check_custom_unbound(){
+    if rcctl check unbound >/dev/null; then
+        max_openfiles=$(awk "/unbound/,/^$/ { print }" /etc/login.conf | grep openfiles | grep -Eo "[0-9]+")
+        if [ $max_openfiles -lt 2048 ]; then
+            failed "IS_CUSTOM_UNBOUND" "Unbound is running : the openfiles parameter of unbound in /etc/login.conf must be at least 2048. Then, you need to restart unbound."
+        fi
+        kern_maxfiles=$(sysctl kern.maxfiles | grep -Eo "[0-9]+")
+        if [ $kern_maxfiles -lt 20480 ]; then
+            failed "IS_CUSTOM_UNBOUND" "Unbound is running : the kern.maxfiles parameter of sysctl must be at least 20480 in /etc/sysctl.conf and must be applied. Then, you need to restart unbound."
+        fi
+    fi
+}
 
 main() {
     # Default return code : 0 = no error
@@ -600,6 +611,7 @@ main() {
     test "${IS_MOUNT:=1}" = 1 && check_mount
     test "${IS_MOUNT_FSTAB:=1}" = 1 && check_mountfstab
     test "${IS_MOTD_CARP_CRON:=1}" = 1 && check_motd_carp_cron
+    test "${IS_CUSTOM_UNBOUND:=1}" = 1 && check_custom_unbound
 
     exit ${RC}
 }

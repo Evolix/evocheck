@@ -559,6 +559,16 @@ check_custom_unbound(){
         fi
     fi
 }
+check_restart_needed(){
+    if is_installed checkrestart; then
+        restart_needed=$(checkrestart | wc -l)
+        if [ $restart_needed -gt 0 ]; then
+            failed "IS_RESTART_NEEDED" "At least one process need to be restarted since a previous upgrade. Run 'checkrestart' to see which one(s)."
+        fi
+    else
+        failed "IS_RESTART_NEEDED" "checkrestart is not installed! Please add with pkg_add checkrestart."
+    fi
+}
 
 main() {
     # Default return code : 0 = no error
@@ -612,6 +622,7 @@ main() {
     test "${IS_MOUNT_FSTAB:=1}" = 1 && check_mountfstab
     test "${IS_MOTD_CARP_CRON:=1}" = 1 && check_motd_carp_cron
     test "${IS_CUSTOM_UNBOUND:=1}" = 1 && check_custom_unbound
+    test "${IS_RESTART_NEEDED:=1}" = 1 && check_restart_needed
 
     exit ${RC}
 }

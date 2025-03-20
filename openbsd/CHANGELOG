@@ -9,10 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* check_motd_carp_cron: make sure the motd-carp-state.sh script is present and executed by cron if we're a carp member
-* check_custom_unbound: make sure our custom unbound configuration is applied when unbound is used
-* check_restart_needed: check processes that need restarting after upgrade
-
 ### Changed
 
 ### Fixed
@@ -20,6 +16,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Security
+
+## [25.03] - 2025-03-20
+
+### Added
+
+* check_motd_carp_cron: make sure the motd-carp-state.sh script is present and executed by cron if we're a carp member
+* check_custom_unbound: make sure our custom unbound configuration is applied when unbound is used
+* check_restart_needed: check processes that need restarting after upgrade
 
 ## [23.06] - 2023-06-05
 

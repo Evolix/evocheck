@@ -1717,7 +1717,7 @@ main() {
     test "${IS_CUSTOMCRONTAB:=1}" = 1 && check_customcrontab
     test "${IS_SSHALLOWUSERS:=1}" = 1 && check_sshallowusers
     test "${IS_SSHCONFSPLIT:=1}" = 1 && check_sshconfsplit
-    test "${IS_SSHLASTMATCH:=1}" = 1 && check_sshlastmatch
+    test "${IS_SSHLASTMATCH:=0}" = 1 && check_sshlastmatch
     test "${IS_DISKPERF:=0}" = 1 && check_diskperf
     test "${IS_TMOUTPROFILE:=1}" = 1 && check_tmoutprofile
     test "${IS_ALERT5BOOT:=1}" = 1 && check_alert5boot

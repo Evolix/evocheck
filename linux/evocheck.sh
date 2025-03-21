@@ -1531,7 +1531,7 @@ check_lxc_opensmtpd() {
 }
 
 check_monitoringctl() {
-    if ! monitoringctl list >/dev/null 2>&1; then
+    if ! /usr/local/bin/monitoringctl list >/dev/null 2>&1; then
         failed "IS_MONITORINGCTL" "monitoringctl is not installed or has a problem (use 'monitoringctl list' to reproduce)."
     fi
 }

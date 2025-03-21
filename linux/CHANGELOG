@@ -13,6 +13,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* IS_MONITORINGCTL: use full path of monitoringctl command (for when local bin is not in cron PATH).
+
 ### Deprecated
 
 ### Removed

@@ -1672,7 +1672,7 @@ check_nrpepressure() {
     fi
 }
 check_postfix_ipv6_disabled() {
-    grep --no-messages --invert-match --extended-regexp '^#' /etc/postfix/main.cf | grep --no-messages inet_protocols | grep --no-messages --silent ipv4
+    grep --no-messages --invert-match --extended-regexp '^#' /etc/postfix/main.cf | grep --no-messages --fixed-strings inet_protocols | grep --no-messages --invert-match --fixed-strings ipv6 | grep --no-messages --silent --fixed-strings ipv4
     rc="$?"
     if [ "${rc}" -ne 0 ]; then
         failed "IS_POSTFIX_IPV6_DISABLED" "IPv6 must be disabled in Postfix main.cf (inet_protocols = ipv4)"

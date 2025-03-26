@@ -279,6 +279,14 @@ check_sury_lxc() {
         done
     fi
 }
+check_not_deb822() {
+    if { ! is_debian_buster && ! is_debian_bullseye ; }; then
+        for source in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
+            test -f "${source}" && grep --quiet '^deb' "${source}" && \
+                failed "IS_NOT_DEB822" "${source} contains a one-line style sources.list entry, and should be converted to deb822 format"
+	done
+    fi
+}
 check_aptitude() {
     test -e /usr/bin/aptitude && failed "IS_APTITUDE" "aptitude may not be installed on Debian >=8"
 }
@@ -1714,6 +1722,7 @@ main() {
     test "${IS_NEWPUB:=1}" = 1 && check_newpub
     test "${IS_SURY:=1}" = 1 && check_sury
     test "${IS_SURY_LXC:=1}" = 1 && check_sury_lxc
+    test "${IS_NOT_DEB822:=1}" = 1 && check_not_deb822
     test "${IS_APTITUDE:=1}" = 1 && check_aptitude
     test "${IS_APTGETBAK:=1}" = 1 && check_aptgetbak
     test "${IS_USRRO:=1}" = 1 && check_usrro

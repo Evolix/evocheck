@@ -5,6 +5,10 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* IS_POSTFIX_IPV6_DISABLED
+* New checks for SSH config
+* Verify backup directory existence
+
 ### Changed
 
 ### Fixed

@@ -208,7 +208,7 @@ check_pkgmirror(){
 check_history(){
     file=/root/.profile
     # shellcheck disable=SC2015
-    grep -qE "^HISTFILE=\$HOME/.histfile" $file && grep -qE "^export HISTSIZE=100000" $file || failed "IS_HISTORY" "Make sure both 'HISTFILE=\$HOME/.histfile' and 'export HISTSIZE=100000' are present in /root/.profile"
+    grep -qE "^export HISTFILE=\$HOME/.histfile" $file && grep -qE "^export HISTSIZE=100000" $file || failed "IS_HISTORY" "Make sure both 'HISTFILE=\$HOME/.histfile' and 'export HISTSIZE=100000' are present in /root/.profile"
 }
 check_vim(){
     if ! is_installed vim; then

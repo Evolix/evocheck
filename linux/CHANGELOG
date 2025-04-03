@@ -6,6 +6,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Added
 
 * Add IS_NOT_DEB822
+* Add IS_NO_SIGNED_BY
 
 ### Changed
 

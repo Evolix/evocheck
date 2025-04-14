@@ -561,7 +561,7 @@ check_custom_unbound(){
 }
 check_restart_needed(){
     if is_installed checkrestart; then
-        restart_needed=$(checkrestart | wc -l)
+        restart_needed=$(checkrestart | grep -v -e isakmpd -e iked | wc -l)
         if [ $restart_needed -gt 0 ]; then
             failed "IS_RESTART_NEEDED" "At least one process need to be restarted since a previous upgrade. Run 'checkrestart' to see which one(s)."
         fi

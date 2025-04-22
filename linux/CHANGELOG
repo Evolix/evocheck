@@ -9,6 +9,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* disable IS_POSTFIX_IPV6_DISABLED, too much servers not fixed
+
 ### Deprecated
 
 ### Removed

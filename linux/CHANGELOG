@@ -5,9 +5,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
-* Add IS_NOT_DEB822
-* Add IS_NO_SIGNED_BY
-
 ### Changed
 
 ### Fixed
@@ -15,6 +12,13 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Deprecated
 
 ### Removed
+
+## [25.04] 2025-04-22
+
+### Added
+
+* Add IS_NOT_DEB822
+* Add IS_NO_SIGNED_BY
 
 ## [25.03.3] 2025-03-27
 

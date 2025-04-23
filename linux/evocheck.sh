@@ -284,19 +284,19 @@ check_not_deb822() {
         for source in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
             test -f "${source}" && grep --quiet '^deb' "${source}" && \
                 failed "IS_NOT_DEB822" "${source} contains a one-line style sources.list entry, and should be converted to deb822 format"
-	done
+	    done
     fi
 }
 check_no_signed_by() {
     if { ! is_debian_buster && ! is_debian_bullseye ; }; then
         for source in /etc/apt/sources.list.d/*.sources; do
             if [ -f "${source}" ]; then
-		( grep --quiet '^Signed-by' "${source}" && \
+                ( grep --quiet '^Signed-by' "${source}" && \
                     failed "IS_NO_SIGNED_BY" "${source} contains a Source-by entry that should be capitalized as Signed-By" ) || \
-		( grep --quiet '^Signed-By' "${source}" || \
+                ( grep --quiet '^Signed-By' "${source}" || \
                     failed "IS_NO_SIGNED_BY" "${source} has no Signed-By entry" )
-	    fi
-	done
+            fi
+        done
     fi
 }
 check_aptitude() {

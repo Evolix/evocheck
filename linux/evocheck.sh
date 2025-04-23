@@ -1734,8 +1734,8 @@ main() {
     test "${IS_NEWPUB:=1}" = 1 && check_newpub
     test "${IS_SURY:=1}" = 1 && check_sury
     test "${IS_SURY_LXC:=1}" = 1 && check_sury_lxc
-    test "${IS_NOT_DEB822:=1}" = 1 && check_not_deb822
-    test "${IS_NO_SIGNED_BY:=1}" = 1 && check_no_signed_by
+    test "${IS_NOT_DEB822:=0}" = 1 && check_not_deb822
+    test "${IS_NO_SIGNED_BY:=0}" = 1 && check_no_signed_by
     test "${IS_APTITUDE:=1}" = 1 && check_aptitude
     test "${IS_APTGETBAK:=1}" = 1 && check_aptgetbak
     test "${IS_USRRO:=1}" = 1 && check_usrro
@@ -1841,7 +1841,7 @@ main() {
     test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
     test "${IS_MONITORINGCTL:=1}" = 1 && check_monitoringctl
     test "${IS_NRPEPRESSURE:=1}" = 1 && check_nrpepressure
-    #test "${IS_POSTFIX_IPV6_DISABLED:=1}" = 1 && check_postfix_ipv6_disabled
+    test "${IS_POSTFIX_IPV6_DISABLED:=0}" = 1 && check_postfix_ipv6_disabled
 
     if [ -f "${main_output_file}" ]; then
         lines_found=$(wc -l < "${main_output_file}")

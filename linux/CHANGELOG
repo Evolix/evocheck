@@ -9,11 +9,15 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
-* disable IS_POSTFIX_IPV6_DISABLED, too much servers not fixed
-
 ### Deprecated
 
 ### Removed
+
+## [25.04.1] 2025-04-23
+
+### Changed
+
+* IS_POSTFIX_IPV6_DISABLED: disable check until most servers are fixed
 
 ## [25.04] 2025-04-22
 

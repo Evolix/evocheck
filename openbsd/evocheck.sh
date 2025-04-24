@@ -557,6 +557,9 @@ check_custom_unbound(){
         if [ $kern_maxfiles -lt 20480 ]; then
             failed "IS_CUSTOM_UNBOUND" "Unbound is running : the kern.maxfiles parameter of sysctl must be at least 20480 in /etc/sysctl.conf and must be applied. Then, you need to restart unbound."
         fi
+        if ! grep -qE "ip-transparent: *yes" /var/unbound/etc/unbound.conf; then
+            failed "IS_CUSTOM_UNBOUND" "Unbound is running : the 'ip-transparent' option should be enabled. Then, you need to restart unbound."
+        fi
     fi
 }
 check_restart_needed(){

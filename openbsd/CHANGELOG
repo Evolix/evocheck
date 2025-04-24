@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* check_custom_unbound: make sure the 'ip-transparent' option is enabled
+
 ### Changed
 
 * check_restart_needed: ignore isakmpd and iked, they can't be restarted on production servers

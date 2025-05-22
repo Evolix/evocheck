@@ -181,11 +181,13 @@ check_customsudoers() {
     grep --extended-regexp --quiet --recursive "umask=0077" /etc/sudoers* || failed "IS_CUSTOMSUDOERS" "missing umask=0077 in sudoers file"
 }
 check_vartmpfs() {
-    FINDMNT_BIN=$(command -v findmnt)
-    if [ -x "${FINDMNT_BIN}" ]; then
-        ${FINDMNT_BIN} /var/tmp --type tmpfs --noheadings > /dev/null || failed "IS_VARTMPFS" "/var/tmp is not a tmpfs"
-    else
-        df /var/tmp | grep --quiet tmpfs || failed "IS_VARTMPFS" "/var/tmp is not a tmpfs"
+    if { is_debian_buster || is_debian_bullseye || is_debian_bookworm ; }; then
+        FINDMNT_BIN=$(command -v findmnt)
+        if [ -x "${FINDMNT_BIN}" ]; then
+            ${FINDMNT_BIN} /var/tmp --type tmpfs --noheadings > /dev/null || failed "IS_VARTMPFS" "/var/tmp is not a tmpfs"
+        else
+            df /var/tmp | grep --quiet tmpfs || failed "IS_VARTMPFS" "/var/tmp is not a tmpfs"
+        fi
     fi
 }
 check_serveurbase() {

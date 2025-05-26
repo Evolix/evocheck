@@ -11,6 +11,9 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* IS_MONITORINGCTL: set monitorignctl full path for cron
+* IS_NRPEPRESSURE: set monitorignctl full path for cron
+
 ### Deprecated
 
 ### Removed

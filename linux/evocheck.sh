@@ -1686,7 +1686,7 @@ check_nrpepressure() {
     # Taken from detect_os function
     DEBIAN_MAIN_VERSION=$(cut -d "." -f 1 < /etc/debian_version)
     if [ "${DEBIAN_MAIN_VERSION}" -ge 12 ]; then
-        monitoringctl status pressure_cpu > /dev/null 2>&1
+        /usr/local/bin/monitoringctl status pressure_cpu > /dev/null 2>&1
         rc="$?"
         if [ "${rc}" -ne 0 ]; then
             failed "IS_NRPEPRESSURE" "pressure_cpu check not defined or monitoringctl not correctly installed"

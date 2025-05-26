@@ -11,8 +11,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
-* IS_MONITORINGCTL: set monitorignctl full path for cron
-* IS_NRPEPRESSURE: set monitorignctl full path for cron
+* IS_MONITORINGCTL: absolute path for monitoringctl (/usr/local/bin not in PATH inside cron)
+* IS_NRPEPRESSURE: absolute path for monitoringctl (/usr/local/bin not in PATH inside cron)
 
 ### Deprecated
 

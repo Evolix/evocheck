@@ -9,6 +9,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* [Stretch] IS_MONITORINGCTL: absolute path for monitoringctl (/usr/local/bin not in PATH inside cron)
+
 ### Deprecated
 
 ### Removed

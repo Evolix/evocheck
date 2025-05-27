@@ -133,7 +133,7 @@ check_customsudoers() {
     grep --extended-regexp --quiet --recursive "umask=0077" /etc/sudoers* || failed "IS_CUSTOMSUDOERS" "missing umask=0077 in sudoers file"
 }
 check_vartmpfs() {
-    if { is_debian_buster || is_debian_bullseye || is_debian_bookworm ; }; then
+    if evo::os-release::is_debian 13 lt; then
         FINDMNT_BIN=$(command -v findmnt)
         if [ -x "${FINDMNT_BIN}" ]; then
             ${FINDMNT_BIN} /var/tmp --type tmpfs --noheadings > /dev/null || failed "IS_VARTMPFS" "/var/tmp is not a tmpfs"
@@ -237,7 +237,7 @@ check_sury_lxc() {
     fi
 }
 check_not_deb822() {
-    if { ! is_debian_buster && ! is_debian_bullseye ; }; then
+    if evo::os-release::is_debian 12 ge; then
         for source in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
             test -f "${source}" && grep --quiet '^deb' "${source}" && \
                 failed "IS_NOT_DEB822" "${source} contains a one-line style sources.list entry, and should be converted to deb822 format"
@@ -245,7 +245,7 @@ check_not_deb822() {
     fi
 }
 check_no_signed_by() {
-    if { ! is_debian_buster && ! is_debian_bullseye ; }; then
+    if evo::os-release::is_debian 12 ge; then
         for source in /etc/apt/sources.list.d/*.sources; do
             if [ -f "${source}" ]; then
                 ( grep --quiet '^Signed-by' "${source}" && \
@@ -328,7 +328,7 @@ check_sshallowusers() {
     fi
 }
 check_sshconfsplit() {
-    if { ! is_debian_buster && ! is_debian_bullseye ; }; then
+    if evo::os-release::is_debian 12 ge; then
         ls /etc/ssh/sshd_config.d/* > /dev/null 2> /dev/null \
             || failed "IS_SSHCONFSPLIT" "No files under /etc/ssh/sshd_config.d"
         diff /usr/share/openssh/sshd_config /etc/ssh/sshd_config > /dev/null 2> /dev/null \
@@ -339,7 +339,7 @@ check_sshconfsplit() {
     fi
 }
 check_sshlastmatch() {
-    if { ! is_debian_buster && ! is_debian_bullseye ; }; then
+    if evo::os-release::is_debian 12 ge; then
         for f in /etc/ssh/sshd_config /etc/ssh/sshd_config.d/zzz-evolinux-custom.conf; do
             if ! test -f "${f}"; then
                 continue

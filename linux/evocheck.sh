@@ -6,7 +6,7 @@
 
 #set -x
 
-VERSION="25.04.1"
+VERSION="25.05"
 readonly VERSION
 
 # base functions
@@ -96,13 +96,13 @@ failed() {
 check_lsbrelease(){
     if evo::os-release::is_debian 13 lt; then
         LSB_RELEASE_BIN=$(command -v lsb_release)
-    if [ -x "${LSB_RELEASE_BIN}" ]; then
-        ## only the major version matters
-        lhs=$(${LSB_RELEASE_BIN} --release --short | cut -d "." -f 1)
-        rhs=$(cut -d "." -f 1 < /etc/debian_version)
-        test "$lhs" = "$rhs" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})"
-    else
-        failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
+        if [ -x "${LSB_RELEASE_BIN}" ]; then
+            ## only the major version matters
+            lhs=$(${LSB_RELEASE_BIN} --release --short | cut -d "." -f 1)
+            rhs=$(cut -d "." -f 1 < /etc/debian_version)
+            test "$lhs" = "$rhs" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})"
+        else
+            failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
         fi
     fi
 }

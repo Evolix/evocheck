@@ -94,6 +94,8 @@ failed() {
 # check functions
 
 check_lsbrelease(){
+    if evo::os-release::is_debian 13 lt; then
+        LSB_RELEASE_BIN=$(command -v lsb_release)
     if [ -x "${LSB_RELEASE_BIN}" ]; then
         ## only the major version matters
         lhs=$(${LSB_RELEASE_BIN} --release --short | cut -d "." -f 1)
@@ -101,6 +103,7 @@ check_lsbrelease(){
         test "$lhs" = "$rhs" || failed "IS_LSBRELEASE" "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})"
     else
         failed "IS_LSBRELEASE" "lsb_release is missing or not executable"
+        fi
     fi
 }
 check_dpkgwarning() {

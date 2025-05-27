@@ -8,6 +8,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Changed
 
 * IS_VARTMPFS does not check Trixie or later
+* IS_LSBRELEASE only for Debian < 13
 
 ### Fixed
 

@@ -967,7 +967,7 @@ check_log2mailsystemdunit() {
 check_listupgrade() {
     test -f /etc/cron.d/listupgrade \
         || failed "IS_LISTUPGRADE" "missing listupgrade cron"
-    test -x /usr/share/scripts/listupgrade.sh \
+    test -x /usr/local/sbin/listupgrade.sh || test -x /usr/share/scripts/listupgrade.sh \
         || failed "IS_LISTUPGRADE" "missing listupgrade script or not executable"
 }
 check_mariadbevolinuxconf() {

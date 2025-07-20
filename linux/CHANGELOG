@@ -7,15 +7,21 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
+### Fixed
+
+### Deprecated
+
+### Removed
+
+## [25.05] 2025-07-20
+
+### Changed
+
 * listupgrade.sh can be in /usr/local/sbin as well as /usr/share/scripts
 
 ### Fixed
 
 * [Stretch] IS_MONITORINGCTL: absolute path for monitoringctl (/usr/local/bin not in PATH inside cron)
-
-### Deprecated
-
-### Removed
 
 ## [25.05] 2025-05-27
 

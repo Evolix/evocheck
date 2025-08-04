@@ -1414,6 +1414,21 @@ check_nginx_letsencrypt_uptodate() {
         fi
     fi
 }
+check_wkhtmltopdf() {
+    is_installed wkhtmltopdf && failed "IS_WKHTMLTOPDF" "wkhtmltopdf package should not be installed (cf. https://wiki.evolix.org/HowtoWkhtmltopdf)"
+}
+check_lxc_wkhtmltopdf() {
+    if is_installed lxc; then
+        lxc_path=$(lxc-config lxc.lxcpath)
+        container_list=$(lxc-ls -1 --active)
+        for container_name in ${containers_list}; do
+            if lxc-info --name "${container_name}" > /dev/null; then
+                rootfs="${lxc_path}/${container_name}/rootfs"
+                test -e "${rootfs}/usr/bin/wkhtmltopdf" && failed "IS_LXC_WKHTMLTOPDF" "wkhtmltopdf should not be installed in container ${container_name}"
+            fi
+        done
+    fi
+}
 check_lxc_container_resolv_conf() {
     if is_installed lxc; then
         current_resolvers=$(grep ^nameserver /etc/resolv.conf | sed 's/nameserver//g' )
@@ -1804,6 +1819,8 @@ main() {
     test "${IS_APT_VALID_UNTIL:=1}" = 1 && check_apt_valid_until
     test "${IS_CHROOTED_BINARY_UPTODATE:=1}" = 1 && check_chrooted_binary_uptodate
     test "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" = 1 && check_nginx_letsencrypt_uptodate
+    test "${IS_WKHTMLTOPDF:=1}" = 1 && check_wkhtmltopdf
+    test "${IS_LXC_WKHTMLTOPDF:=1}" = 1 && check_lxc_wkhtmltopdf
     test "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" = 1 && check_lxc_container_resolv_conf
     test "${IS_NO_LXC_CONTAINER:=1}" = 1 && check_no_lxc_container
     test "${IS_LXC_PHP_FPM_SERVICE_UMASK_SET:=1}" = 1 && check_lxc_php_fpm_service_umask_set

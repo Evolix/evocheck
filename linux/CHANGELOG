@@ -7,10 +7,16 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 * Add IS_INTERFACESNETMASK check
 * Add IS_WKHTMLTOPDF and IS_LXC_WKHTMLTOPDF (#180)
+* Add IS_MINIFW_RELATED (#167)
 
 ### Changed
 
+* Enable IS_MINIFWINCLUDES
+
 ### Fixed
+
+* IS_LOG2MAILSYSTEMDUNIT: Drop useless /etc/init.d/log2mail check (#178)
+* Uniform use of containers_list instead of container_list
 
 ### Deprecated
 

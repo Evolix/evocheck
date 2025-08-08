@@ -17,6 +17,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ## [25.08] 2025-08-08
 
+### Added
+
 * Add IS_INTERFACESNETMASK check
 * Add IS_WKHTMLTOPDF and IS_LXC_WKHTMLTOPDF (#180)
 * Add IS_MINIFW_RELATED (#167)

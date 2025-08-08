@@ -1742,8 +1742,7 @@ main() {
     test "${IS_NRPEPERMS:=1}" = 1 && check_nrpeperms
     test "${IS_MINIFWPERMS:=1}" = 1 && check_minifwperms
     test "${IS_MINIFW_RELATED:=1}" = 1 && check_minifw_related
-    # Enable when minifirewall is released
-    test "${IS_MINIFWINCLUDES:=0}" = 1 && check_minifw_includes
+    test "${IS_MINIFWINCLUDES:=1}" = 1 && check_minifw_includes
     test "${IS_NRPEDISKS:=0}" = 1 && check_nrpedisks
     test "${IS_NRPEPID:=1}" = 1 && check_nrpepid
     test "${IS_GRSECPROCS:=1}" = 1 && check_grsecprocs

@@ -970,8 +970,6 @@ check_log2mailsystemdunit() {
         || failed "IS_LOG2MAILSYSTEMDUNIT" "log2mail unit not running"
     test -f /etc/systemd/system/log2mail.service \
         || failed "IS_LOG2MAILSYSTEMDUNIT" "missing log2mail unit file"
-    test -f /etc/init.d/log2mail \
-        && failed "IS_LOG2MAILSYSTEMDUNIT" "/etc/init.d/log2mail may be deleted (use systemd unit)"
 }
 check_listupgrade() {
     test -f /etc/cron.d/listupgrade \

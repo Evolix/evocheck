@@ -6,6 +6,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Added
 
 * Add IS_INTERFACESNETMASK check
+* Add IS_WKHTMLTOPDF and IS_LXC_WKHTMLTOPDF (#180)
 
 ### Changed
 

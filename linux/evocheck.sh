@@ -392,6 +392,11 @@ check_minifw_includes() {
         fi
     fi
 }
+check_minifw_related() {
+    if grep --quiet 'RELATED' "/etc/default/minifirewall" "/etc/minifirewall.d/*"; then
+        failed "IS_MINIFW_RELATED" "RELATED should not be used in minifirewall configuration"
+    fi
+}
 check_nrpeperms() {
     if [ -d /etc/nagios ]; then
         nagiosDir="/etc/nagios"
@@ -1736,6 +1741,7 @@ main() {
     test "${IS_ALERT5MINIFW:=1}" = 1 && test "${IS_MINIFW:=1}" = 1 && check_minifw
     test "${IS_NRPEPERMS:=1}" = 1 && check_nrpeperms
     test "${IS_MINIFWPERMS:=1}" = 1 && check_minifwperms
+    test "${IS_MINIFW_RELATED:=1}" = 1 && check_minifw_related
     # Enable when minifirewall is released
     test "${IS_MINIFWINCLUDES:=0}" = 1 && check_minifw_includes
     test "${IS_NRPEDISKS:=0}" = 1 && check_nrpedisks

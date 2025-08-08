@@ -168,8 +168,8 @@ check_debiansecurity() {
 check_debiansecurity_lxc() {
     if is_installed lxc; then
         lxc_path=$(lxc-config lxc.lxcpath)
-        container_list=$(lxc-ls -1 --active)
-        for container_name in ${container_list}; do
+        containers_list=$(lxc-ls -1 --active)
+        for container_name in ${containers_list}; do
             if lxc-info --name "${container_name}" > /dev/null; then
                 rootfs="${lxc_path}/${container_name}/rootfs"
                 if [ -f "${rootfs}/etc/debian_version" ]; then
@@ -201,8 +201,8 @@ check_oldpub() {
 check_oldpub_lxc() {
     # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Buster as Sury safeguard)
     if is_installed lxc; then
-        container_list=$( lxc-ls -1 --active )
-        for container_name in ${container_list}; do
+        containers_list=$( lxc-ls -1 --active )
+        for container_name in ${containers_list}; do
             APT_CACHE_BIN=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
             if [ -x "${APT_CACHE_BIN}" ]; then
                 lxc-attach --name "${container_name}" apt-cache policy | grep --quiet pub.evolix.net
@@ -226,8 +226,8 @@ check_sury() {
 }
 check_sury_lxc() {
     if is_installed lxc; then
-        container_list=$( lxc-ls -1 --active )
-        for container_name in ${container_list}; do
+        containers_list=$( lxc-ls -1 --active )
+        for container_name in ${containers_list}; do
             APT_CACHE_BIN=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
             if [ -x "${APT_CACHE_BIN}" ]; then
                 lxc-attach --name "${container_name}" apt-cache policy | grep --quiet packages.sury.org
@@ -785,8 +785,8 @@ check_etcgit() {
 check_etcgit_lxc() {
     if is_installed lxc; then
         lxc_path=$(lxc-config lxc.lxcpath)
-        container_list=$(lxc-ls -1 --active)
-        for container_name in ${container_list}; do
+        containers_list=$(lxc-ls -1 --active)
+        for container_name in ${containers_list}; do
             if lxc-info --name "${container_name}" > /dev/null; then
                 rootfs="${lxc_path}/${container_name}/rootfs"
                 export GIT_DIR="${rootfs}/etc/.git"
@@ -809,8 +809,8 @@ check_gitperms() {
 check_gitperms_lxc() {
     if is_installed lxc; then
         lxc_path=$(lxc-config lxc.lxcpath)
-        container_list=$(lxc-ls -1 --active)
-        for container_name in ${container_list}; do
+        containers_list=$(lxc-ls -1 --active)
+        for container_name in ${containers_list}; do
             if lxc-info --name "${container_name}" > /dev/null; then
                 rootfs="${lxc_path}/${container_name}/rootfs"
                 GIT_DIR="${rootfs}/etc/.git"
@@ -1270,9 +1270,8 @@ check_tmp_1777() {
 
     if is_installed lxc; then
         lxc_path=$(lxc-config lxc.lxcpath)
-        container_list=$(lxc-ls -1 --active)
-
-        for container_name in ${container_list}; do
+        containers_list=$(lxc-ls -1 --active)
+        for container_name in ${containers_list}; do
             if lxc-info --name "${container_name}" > /dev/null; then
                 rootfs="${lxc_path}/${container_name}/rootfs"
                 if [ -d "${rootfs}/tmp" ]; then
@@ -1420,7 +1419,7 @@ check_wkhtmltopdf() {
 check_lxc_wkhtmltopdf() {
     if is_installed lxc; then
         lxc_path=$(lxc-config lxc.lxcpath)
-        container_list=$(lxc-ls -1 --active)
+        containers_list=$(lxc-ls -1 --active)
         for container_name in ${containers_list}; do
             if lxc-info --name "${container_name}" > /dev/null; then
                 rootfs="${lxc_path}/${container_name}/rootfs"
@@ -1433,9 +1432,8 @@ check_lxc_container_resolv_conf() {
     if is_installed lxc; then
         current_resolvers=$(grep ^nameserver /etc/resolv.conf | sed 's/nameserver//g' )
         lxc_path=$(lxc-config lxc.lxcpath)
-        container_list=$(lxc-ls -1 --active)
-
-        for container_name in ${container_list}; do
+        containers_list=$(lxc-ls -1 --active)
+        for container_name in ${containers_list}; do
             if lxc-info --name "${container_name}" > /dev/null; then
                 rootfs="${lxc_path}/${container_name}/rootfs"
                 if [ -f "${rootfs}/etc/resolv.conf" ]; then
@@ -1513,7 +1511,7 @@ check_lxc_php_bad_debian_version() {
 check_lxc_openssh() {
     if is_installed lxc; then
         lxc_path=$(lxc-config lxc.lxcpath)
-        container_list=$(lxc-ls -1 --active)
+        containers_list=$(lxc-ls -1 --active)
         for container_name in ${containers_list}; do
             if lxc-info --name "${container_name}" > /dev/null; then
                 rootfs="${lxc_path}/${container_name}/rootfs"
@@ -1525,7 +1523,7 @@ check_lxc_openssh() {
 check_lxc_opensmtpd() {
     if is_installed lxc; then
         lxc_path=$(lxc-config lxc.lxcpath)
-        container_list=$(lxc-ls -1 --active --filter php)
+        containers_list=$(lxc-ls -1 --active --filter php)
         for container_name in ${containers_list}; do
             if lxc-info --name "${container_name}" > /dev/null; then
                 rootfs="${lxc_path}/${container_name}/rootfs"

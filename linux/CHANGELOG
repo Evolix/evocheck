@@ -5,6 +5,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
+* add quotes and curly-braces to some variables
+
 ### Changed
 
 * disable regex when not needed
@@ -12,8 +14,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Fixed
 
 * globbing doesn't work inside double-quotes
-
-### Added
 
 ### Deprecated
 

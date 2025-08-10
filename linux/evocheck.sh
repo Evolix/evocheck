@@ -710,10 +710,10 @@ check_phpmyadminapacheconf() {
     phpmyadminconf0="/etc/apache2/conf-available/phpmyadmin.conf"
     phpmyadminconf1="/etc/apache2/conf-enabled/phpmyadmin.conf"
     if is_installed apache2; then
-        test -e $phpmyadminconf0 && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "$phpmyadminconf0" \
-            && failed "IS_PHPMYADMINAPACHECONF" "default phpmyadmin configuration ($phpmyadminconf0) should be commented or disabled"
-        test -e $phpmyadminconf1 && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "$phpmyadminconf1" \
-            && failed "IS_PHPMYADMINAPACHECONF" "default phpmyadmin configuration ($phpmyadminconf1) should be commented or disabled"
+        test -e "${phpmyadminconf0}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpmyadminconf0}" \
+            && failed "IS_PHPMYADMINAPACHECONF" "default phpmyadmin configuration (${phpmyadminconf0}) should be commented or disabled"
+        test -e "${phpmyadminconf1}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpmyadminconf1}" \
+            && failed "IS_PHPMYADMINAPACHECONF" "default phpmyadmin configuration (${phpmyadminconf1}) should be commented or disabled"
     fi
 }
 # Verification si le système doit redémarrer suite màj kernel.

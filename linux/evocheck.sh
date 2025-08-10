@@ -393,7 +393,7 @@ check_minifw_includes() {
     fi
 }
 check_minifw_related() {
-    if grep --quiet 'RELATED' "/etc/default/minifirewall" "/etc/minifirewall.d/*"; then
+    if grep --quiet 'RELATED' "/etc/default/minifirewall" "/etc/minifirewall.d/"*; then
         failed "IS_MINIFW_RELATED" "RELATED should not be used in minifirewall configuration"
     fi
 }

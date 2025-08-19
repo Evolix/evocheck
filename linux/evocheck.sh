@@ -36,11 +36,13 @@ evocheck is a script that verifies Evolix conventions on Linux (Debian) servers.
 
 Usage: evocheck
   or   evocheck --cron
+  or   evocheck --future
   or   evocheck --quiet
   or   evocheck --verbose
 
 Options
      --cron                  disable a few checks
+     --future                enable checks that will be enabled later
  -v, --verbose               increase verbosity of checks
  -q, --quiet                 nothing is printed on stdout nor stderr
  -h, --help                  print this message and exit
@@ -244,7 +246,7 @@ check_not_deb822() {
         for source in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
             test -f "${source}" && grep --quiet '^deb' "${source}" && \
                 failed "IS_NOT_DEB822" "${source} contains a one-line style sources.list entry, and should be converted to deb822 format"
-	    done
+            done
     fi
 }
 check_no_signed_by() {
@@ -283,11 +285,11 @@ check_homenoexec() {
         options=$(${FINDMNT_BIN} --noheadings --first-only --output OPTIONS /home)
         echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || \
            ( grep --quiet --extended-regexp "/home.*noexec" /etc/fstab && \
-	   failed "IS_HOMENOEXEC" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec'" )
+           failed "IS_HOMENOEXEC" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec'" )
     else
         mount | grep "on /home" | grep --quiet --extended-regexp "\bnoexec\b" || \
            ( grep --quiet --extended-regexp "/home.*noexec" /etc/fstab && \
-	   failed "IS_HOMENOEXEC" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec' (WARNING: findmnt(8) is not found)" )
+           failed "IS_HOMENOEXEC" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec' (WARNING: findmnt(8) is not found)" )
     fi
 }
 check_mountfstab() {
@@ -1898,10 +1900,10 @@ while :; do
             IS_NETWORKING_SERVICE=0
             ;;
         --future)
-	    IS_MINIFW_RELATED=1
-	    IS_NO_SIGNED_BY=1
+            IS_MINIFW_RELATED=1
+            IS_NO_SIGNED_BY=1
             IS_NOT_DEB822=1
-	    IS_POSTFIX_IPV6_DISABLED=1
+            IS_POSTFIX_IPV6_DISABLED=1
             ;;
         -v|--verbose)
             VERBOSE=1

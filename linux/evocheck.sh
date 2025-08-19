@@ -1897,6 +1897,12 @@ while :; do
             IS_CHECK_VERSIONS=0
             IS_NETWORKING_SERVICE=0
             ;;
+        --future)
+	    IS_MINIFW_RELATED=1
+	    IS_NO_SIGNED_BY=1
+            IS_NOT_DEB822=1
+	    IS_POSTFIX_IPV6_DISABLED=1
+            ;;
         -v|--verbose)
             VERBOSE=1
             ;;

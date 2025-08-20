@@ -995,14 +995,22 @@ check_sql_backup() {
     if (is_installed "mysql-server" || is_installed "mariadb-server"); then
         backup_dir="/home/backup"
         if [ -d "${backup_dir}" ]; then
-            # You could change the default path in /etc/evocheck.cf
-            SQL_BACKUP_PATH="${SQL_BACKUP_PATH:-$(find "${backup_dir}" \( -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz" \))}"
+            if [ -z "${SQL_BACKUP_PATH}" ]; then
+                SQL_BACKUP_PATH="$(find "${backup_dir}" -type f -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz")"
+            fi
+            if [ -z "${SQL_BACKUP_PATH}" ]; then
+                failed "IS_SQL_BACKUP" "No MySQL dump found"
+                return 1
+            fi
+            limit=$(date +"%s" -d "now - 2 day")
             for backup_path in ${SQL_BACKUP_PATH}; do
-                if [ ! -f "${backup_path}" ]; then
-                    failed "IS_SQL_BACKUP" "MySQL dump is missing (${backup_path})"
-                    test "${VERBOSE}" = 1 || break
+                updated_at=$(stat -c "%Y" "${backup_path}")
+                if [ "${limit}" -gt "${updated_at}"  ]; then
+                    failed "IS_SQL_BACKUP" "MySQL dump file ${backup_path} has been updated more than 2 days"
+                    break
                 fi
             done
+
         else
             failed "IS_SQL_BACKUP" "${backup_dir}/ is missing"
         fi

@@ -996,7 +996,7 @@ check_sql_backup() {
         backup_dir="/home/backup"
         if [ -d "${backup_dir}" ]; then
             if [ -z "${SQL_BACKUP_PATH}" ]; then
-                SQL_BACKUP_PATH="$(find "${backup_dir}" -type f -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz")"
+                SQL_BACKUP_PATH="$(find "${backup_dir}" -type f \( -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz" \))"
             fi
             if [ -z "${SQL_BACKUP_PATH}" ]; then
                 failed "IS_SQL_BACKUP" "No MySQL dump found"
@@ -1010,7 +1010,6 @@ check_sql_backup() {
                     break
                 fi
             done
-
         else
             failed "IS_SQL_BACKUP" "${backup_dir}/ is missing"
         fi

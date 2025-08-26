@@ -997,6 +997,10 @@ check_sql_backup() {
         if [ -d "${backup_dir}" ]; then
             # You could change the default path in /etc/evocheck.cf
             SQL_BACKUP_PATH="${SQL_BACKUP_PATH:-$(find "${backup_dir}" \( -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz" \))}"
+            if [ -z "${SQL_BACKUP_PATH}" ]; then
+                failed "IS_SQL_BACKUP" "No MySQL dump found"
+                return 1
+            fi
             for backup_path in ${SQL_BACKUP_PATH}; do
                 if [ ! -f "${backup_path}" ]; then
                     failed "IS_SQL_BACKUP" "MySQL dump is missing (${backup_path})"

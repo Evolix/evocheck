@@ -370,14 +370,19 @@ check_alert5boot() {
         failed "IS_ALERT5BOOT" "alert5 unit file is missing"
     fi
 }
+is_minifirewall_native_systemd() {
+  systemctl list-unit-files minifirewall.service | grep minifirewall.service | grep --quiet --invert-match generated
+}
 check_alert5minifw() {
-    grep --quiet --no-messages "^/etc/init.d/minifirewall" /usr/share/scripts/alert5.sh \
-        || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 script or script is missing"
+    if ! is_minifirewall_native_systemd; then
+        grep --quiet --no-messages "^/etc/init.d/minifirewall" /usr/share/scripts/alert5.sh \
+            || failed "IS_ALERT5MINIFW" "Minifirewall is not started by alert5 script or script is missing"
+    fi
 }
 check_minifw() {
     {
-        if [ -f /etc/systemd/system/minifirewall.service ]; then
-            systemctl is-active minifirewall > /dev/null 2>&1
+        if is_minifirewall_native_systemd; then
+            systemctl is-active minifirewall.service >/dev/null 2>&1
         else
             if test -x /usr/share/scripts/minifirewall_status; then
                 /usr/share/scripts/minifirewall_status > /dev/null 2>&1

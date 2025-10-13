@@ -1191,7 +1191,7 @@ check_duplicate_fs_label() {
         tmpFile=$(mktemp --tmpdir "evocheck.duplicate_fs_label.XXXXX")
         files_to_cleanup+=("${tmpFile}")
 
-        parts=$($BLKID_BIN -c /dev/null | grep --invert-match --regexp raid_member --regexp EFI_SYSPART | grep --extended-regexp --only-matching ' LABEL=".*"' | cut -d'"' -f2)
+        parts=$($BLKID_BIN -c /dev/null | grep --invert-match --regexp raid_member --regexp EFI_SYSPART --regexp zfs_member --regexp '/dev/zd*' | grep --extended-regexp --only-matching ' LABEL=".*"' | cut -d'"' -f2)
         for part in $parts; do
             echo "$part" >> "$tmpFile"
         done

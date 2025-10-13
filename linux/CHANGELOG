@@ -5,10 +5,6 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Added
 
-* New --future flag (#182) that activates IS_MINIFW_RELATED, IS_NO_SIGNED_BY,
-  IS_NOT_DEB822, and IS_POSTFIX_IPV6_DISABLED.
-* Support minifirewall managed by systemd
-
 ### Changed
 
 ### Fixed
@@ -16,6 +12,14 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Deprecated
 
 ### Removed
+
+## [25.10] 2025-10-13
+
+### Added
+
+* New --future flag (#182) that activates IS_MINIFW_RELATED, IS_NO_SIGNED_BY,
+  IS_NOT_DEB822, and IS_POSTFIX_IPV6_DISABLED.
+* Support minifirewall managed by systemd
 
 ## [25.08.1] 2025-08-19
 

@@ -276,11 +276,7 @@ check_evomaintenanceconf(){
         perms=$(stat -f "%p" $f)
         test "$perms" = "100600" || echo "IS_EVOMAINTENANCECONF" "Wrong permissions on \`$f' ($perms instead of 100600)"
 
-        { grep "^export PGPASSWORD" $f | grep -qv "your-passwd" \
-            && grep "^PGDB" $f | grep -qv "your-db" \
-            && grep "^PGTABLE" $f | grep -qv "your-table" \
-            && grep "^PGHOST" $f | grep -qv "your-pg-host" \
-            && grep "^FROM" $f | grep -qv "jdoe@example.com" \
+        { grep "^FROM" $f | grep -qv "jdoe@example.com" \
             && grep "^FULLFROM" $f | grep -qv "John Doe <jdoe@example.com>" \
             && grep "^URGENCYFROM" $f | grep -qv "mama.doe@example.com" \
             && grep "^URGENCYTEL" $f | grep -qv "06.00.00.00.00" \

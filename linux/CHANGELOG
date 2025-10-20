@@ -7,6 +7,18 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
+### Fixed
+
+### Deprecated
+
+### Removed
+
+### Security
+
+## [25.10.2] 2025-10-20
+
+### Changed
+
 * IS_NRPEPRESSURE: only in --future
 * IS_MINIFWINCLUDES: accept comments
 
@@ -17,6 +29,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Deprecated
 
 ### Removed
+
+* meta check is useless, and pushed into each check
 
 ## [25.10.1] 2025-10-16
 

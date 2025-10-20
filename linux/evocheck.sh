@@ -1837,7 +1837,7 @@ main() {
     test "${IS_LXC_OPENSMTPD:=1}" = 1 && check_lxc_opensmtpd
     test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
     test "${IS_MONITORINGCTL:=1}" = 1 && check_monitoringctl
-    test "${IS_NRPEPRESSURE:=1}" = 1 && check_nrpepressure
+    test "${IS_NRPEPRESSURE:=0}" = 1 && check_nrpepressure
     test "${IS_POSTFIX_IPV6_DISABLED:=0}" = 1 && check_postfix_ipv6_disabled
 
     if [ -f "${main_output_file}" ]; then
@@ -1909,6 +1909,7 @@ while :; do
             IS_NO_SIGNED_BY=1
             IS_NOT_DEB822=1
             IS_POSTFIX_IPV6_DISABLED=1
+            IS_NRPEPRESSURE=1
             ;;
         -v|--verbose)
             VERBOSE=1

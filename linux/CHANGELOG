@@ -8,6 +8,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Changed
 
 * IS_NRPEPRESSURE: only in --future
+* IS_MINIFWINCLUDES: accept comments
 
 ### Fixed
 

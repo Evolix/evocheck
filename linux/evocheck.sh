@@ -395,7 +395,7 @@ check_minifw() {
 check_minifw_includes() {
     if evo::os-release::is_debian 11 ge; then
         if [ -f "/etc/default/minifirewall" ]; then
-            if grep --quiet --regexp '/sbin/iptables' --regexp '/sbin/ip6tables' "/etc/default/minifirewall"; then
+            if grep --quiet --extended-regexp --regexp '^\s*/sbin/iptables' --regexp '^\s*/sbin/ip6tables' "/etc/default/minifirewall"; then
                 failed "IS_MINIFWINCLUDES" "minifirewall has direct iptables invocations in /etc/default/minifirewall that should go in /etc/minifirewall.d/"
             fi
         fi

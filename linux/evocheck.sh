@@ -394,14 +394,18 @@ check_minifw() {
 }
 check_minifw_includes() {
     if evo::os-release::is_debian 11 ge; then
-        if grep --quiet --regexp '/sbin/iptables' --regexp '/sbin/ip6tables' "/etc/default/minifirewall"; then
-            failed "IS_MINIFWINCLUDES" "minifirewall has direct iptables invocations in /etc/default/minifirewall that should go in /etc/minifirewall.d/"
+        if [ -f "/etc/default/minifirewall" ]; then
+            if grep --quiet --regexp '/sbin/iptables' --regexp '/sbin/ip6tables' "/etc/default/minifirewall"; then
+                failed "IS_MINIFWINCLUDES" "minifirewall has direct iptables invocations in /etc/default/minifirewall that should go in /etc/minifirewall.d/"
+            fi
         fi
     fi
 }
 check_minifw_related() {
-    if grep --quiet --fixed-strings "RELATED" "/etc/default/minifirewall" "/etc/minifirewall.d/"*; then
-        failed "IS_MINIFW_RELATED" "RELATED should not be used in minifirewall configuration"
+    if [ -f "/etc/default/minifirewall" ] || [ -d "/etc/minifirewall.d/" ]; then
+        if grep --no-messages --quiet --fixed-strings "RELATED" "/etc/default/minifirewall" "/etc/minifirewall.d/"*; then
+            failed "IS_MINIFW_RELATED" "RELATED should not be used in minifirewall configuration"
+        fi
     fi
 }
 check_nrpeperms() {
@@ -1589,7 +1593,13 @@ get_command() {
         listupgrade) command -v "evolistupgrade.sh" ;;
         old-kernel-autoremoval) command -v "old-kernel-autoremoval.sh" ;;
         mysql-queries-killer) command -v "mysql-queries-killer.sh" ;;
-        minifirewall) echo "/etc/init.d/minifirewall" ;;
+        minifirewall)
+            if [ -f "/usr/local/sbin/minifirewall" ]; then
+                echo "/usr/local/sbin/minifirewall"
+            elif [ -f "/etc/init.d/minifirewall" ]; then
+                echo "/etc/init.d/minifirewall"
+            fi
+            ;;
 
         ## General case, where the program name is the same as the command name
         *) command -v "${program}" ;;
@@ -1611,7 +1621,9 @@ get_version() {
             grep '^VERSION=' "${command}" | head -1 | cut -d '=' -f 2
             ;;
         minifirewall)
-            ${command} version | head -1 | cut -d ' ' -f 3
+            if [ -n "${command}" ]; then
+                ${command} version | head -1 | cut -d ' ' -f 3
+            fi
             ;;
         ## Let's try the --version flag before falling back to grep for the constant
         kvmstats)

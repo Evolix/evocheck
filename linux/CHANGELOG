@@ -11,6 +11,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* minifirewall might not be installed, it's OK
+
 ### Deprecated
 
 ### Removed

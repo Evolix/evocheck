@@ -1549,13 +1549,18 @@ check_lxc_opensmtpd() {
         done
     fi
 }
-
 check_monitoringctl() {
     if ! /usr/local/bin/monitoringctl list >/dev/null 2>&1; then
         failed "IS_MONITORINGCTL" "monitoringctl is not installed or has a problem (use 'monitoringctl list' to reproduce)."
     fi
 }
-
+check_smartmontools() {
+    if ( LC_ALL=C lscpu | grep "Hypervisor vendor:" | grep -q -e VMware -e KVM || lscpu | grep -q Oracle ); then
+        is_installed smartmontools && failed "IS_SMARTMONTOOLS" "smartmontools should not be installed on a VM"
+    else
+        is_installed smartmontools || failed "IS_SMARTMONTOOLS" "smartmontools should be installed on barematal"
+    fi
+}
 
 download_versions() {
     local file
@@ -1854,6 +1859,7 @@ main() {
     test "${IS_MONITORINGCTL:=1}" = 1 && check_monitoringctl
     test "${IS_NRPEPRESSURE:=0}" = 1 && check_nrpepressure
     test "${IS_POSTFIX_IPV6_DISABLED:=0}" = 1 && check_postfix_ipv6_disabled
+    test "${IS_SMARTMONTOOLS:=0}" = 1 && check_smartmontools
 
     if [ -f "${main_output_file}" ]; then
         lines_found=$(wc -l < "${main_output_file}")
@@ -1925,6 +1931,7 @@ while :; do
             IS_NOT_DEB822=1
             IS_POSTFIX_IPV6_DISABLED=1
             IS_NRPEPRESSURE=1
+            IS_SMARTMONTOOLS=1
             ;;
         -v|--verbose)
             VERBOSE=1

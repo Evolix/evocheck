@@ -13,6 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Removed
+
+### Security
+
+## [25.11] - 2025-11-21
+
+### Added
+
+### Changed
+
+### Fixed
+
 * IS_EVOBACKUP_EXCLUDE_MOUNT: properly exclude commented lines
 
 ### Removed

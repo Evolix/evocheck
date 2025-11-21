@@ -19,10 +19,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [25.11] - 2025-11-21
 
-### Added
-
-### Changed
-
 ### Fixed
 
 * IS_EVOBACKUP_EXCLUDE_MOUNT: properly exclude commented lines
@@ -30,8 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 * IS_EVOMAINTENANCECONF: don't search for DB hook variables anymore
-
-### Security
 
 ## [25.07] - 2025-07-01
 

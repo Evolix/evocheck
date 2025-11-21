@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+* IS_EVOBACKUP_EXCLUDE_MOUNT: properly exclude commented lines
+
 ### Removed
 
 * IS_EVOMAINTENANCECONF: don't search for DB hook variables anymore

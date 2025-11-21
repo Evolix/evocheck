@@ -353,7 +353,7 @@ check_evobackup_exclude_mount() {
     files_to_cleanup="${files_to_cleanup} ${excludes_file}"
 
     # shellcheck disable=SC2013
-    for evobackup_file in $(grep -Eo "/usr/share/scripts/zzz_evobackup.*" /etc/daily.local | grep -v "^#" | awk '{print $1}'); do
+    for evobackup_file in $(grep "/usr/share/scripts/zzz_evobackup.*" /etc/daily.local | grep -v "^#" | awk '{print $2}'); do
         # if the file seems to be a backup script, with an Rsync invocation
         if grep -q "^\s*rsync" "${evobackup_file}"; then
             # If rsync is not limited by "one-file-system"

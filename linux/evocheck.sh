@@ -1844,7 +1844,7 @@ main() {
     test "${IS_SQUIDEVOLINUXCONF:=1}" = 1 && check_squidevolinuxconf
     test "${IS_DUPLICATE_FS_LABEL:=1}" = 1 && check_duplicate_fs_label
     test "${IS_EVOLIX_USER:=1}" = 1 && check_evolix_user
-    test "${IS_EVOLIX_GROUP:=1}" = 1 && check_evolix_group
+    test "${IS_EVOLIX_GROUP:=0}" = 1 && check_evolix_group
     test "${IS_EVOACME_CRON:=1}" = 1 && check_evoacme_cron
     test "${IS_EVOACME_LIVELINKS:=1}" = 1 && check_evoacme_livelinks
     test "${IS_APACHE_CONFENABLED:=1}" = 1 && check_apache_confenabled
@@ -1873,7 +1873,6 @@ main() {
         lines_found=$(wc -l < "${main_output_file}")
         # shellcheck disable=SC2086
         if [ ${lines_found} -gt 0 ]; then
-
             cat "${main_output_file}" 2>&1
         fi
     fi
@@ -1940,6 +1939,7 @@ while :; do
             IS_POSTFIX_IPV6_DISABLED=1
             IS_NRPEPRESSURE=1
             IS_SMARTMONTOOLS=1
+            IS_EVOLIX_GROUP=1
             ;;
         -v|--verbose)
             VERBOSE=1

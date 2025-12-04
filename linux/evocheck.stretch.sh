@@ -1467,9 +1467,7 @@ get_version() {
             grep '^VERSION=' "${command}" | head -1 | cut -d '=' -f 2
             ;;
         minifirewall)
-            if $(${command} version); then
-                ${command} version | head -1 | cut -d ' ' -f 3
-            fi
+            ${command} version | head -1 | cut -d ' ' -f 3
             ;;
         ## Let's try the --version flag before falling back to grep for the constant
         kvmstats)

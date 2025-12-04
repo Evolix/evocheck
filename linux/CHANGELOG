@@ -12,7 +12,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
-* get_version: avoid stderr if minifirewall version can’t be guessed on stretch
+* get_version: avoid stderr if minifirewall version can’t be guessed on wheezy
 
 ### Deprecated
 

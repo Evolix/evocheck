@@ -1073,7 +1073,7 @@ check_ldap_backup() {
         backup_dir="/home/backup"
         if [ -d "${backup_dir}" ]; then
             # You could change the default path in /etc/evocheck.cf
-            LDAP_BACKUP_PATH="${LDAP_BACKUP_PATH:-$(find "${backup_dir}" -iname "ldap*.bak")}"
+            LDAP_BACKUP_PATH="${LDAP_BACKUP_PATH:-$(find "${backup_dir}" -iname "ldap.bak")}"
             test -f "$LDAP_BACKUP_PATH" || failed "IS_LDAP_BACKUP" "LDAP dump is missing (${LDAP_BACKUP_PATH})"
         else
             failed "LDAP_BACKUP_PATH" "${backup_dir}/ is missing"

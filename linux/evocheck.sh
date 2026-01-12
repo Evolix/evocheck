@@ -730,6 +730,28 @@ check_phpmyadminapacheconf() {
             && failed "IS_PHPMYADMINAPACHECONF" "default phpmyadmin configuration (${phpmyadminconf1}) should be commented or disabled"
     fi
 }
+# Check if default Apache configuration file for phpPgAdmin is absent (or empty or commented).
+check_phppgadminapacheconf() {
+    phppgadminconf0="/etc/apache2/conf-available/phppgadmin.conf"
+    phppgadminconf1="/etc/apache2/conf-enabled/phppgadmin.conf"
+    if is_installed apache2; then
+        test -e "${phppgadminconf0}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phppgadminconf0}" \
+            && failed "IS_PHPPGADMINAPACHECONF" "default phppgadmin configuration (${phppgadminconf0}) should be commented or disabled"
+        test -e "${phppgadminconf1}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phppgadminconf1}" \
+            && failed "IS_PHPPGADMINAPACHECONF" "default phppgadmin configuration (${phppgadminconf1}) should be commented or disabled"
+    fi
+}
+# Check if default Apache configuration file for phpMyAdmin is absent (or empty or commented).
+check_phpldapadminapacheconf() {
+    phpldapadminconf0="/etc/apache2/conf-available/phpldapadmin.conf"
+    phpldapadminconf1="/etc/apache2/conf-enabled/phpldapadmin.conf"
+    if is_installed apache2; then
+        test -e "${phpldapadminconf0}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpldapadminconf0}" \
+            && failed "IS_PHPLDAPADMINAPACHECONF" "default phpldapadmin configuration (${phpldapadminconf0}) should be commented or disabled"
+        test -e "${phpldapadminconf1}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpldapadminconf1}" \
+            && failed "IS_PHPLDAPADMINAPACHECONF" "default phpldapadmin configuration (${phpldapadminconf1}) should be commented or disabled"
+    fi
+}
 # Verification si le système doit redémarrer suite màj kernel.
 check_kerneluptodate() {
     if is_installed linux-image*; then
@@ -1808,6 +1830,8 @@ main() {
     test "${IS_APACHEIPINALLOW:=1}" = 1 && check_apacheipinallow
     test "${IS_MUNINAPACHECONF:=1}" = 1 && check_muninapacheconf
     test "${IS_PHPMYADMINAPACHECONF:=1}" = 1 && check_phpmyadminapacheconf
+    test "${IS_PHPPGADMINAPACHECONF:=1}" = 1 && check_phppgadminapacheconf
+    test "${IS_PHPLDAPADMINAPACHECONF:=1}" = 1 && check_phpldapadminapacheconf
     test "${IS_KERNELUPTODATE:=1}" = 1 && check_kerneluptodate
     test "${IS_UPTIME:=1}" = 1 && check_uptime
     test "${IS_MUNINRUNNING:=1}" = 1 && check_muninrunning

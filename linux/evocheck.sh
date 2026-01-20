@@ -355,10 +355,6 @@ check_sshlastmatch() {
         done
     fi
 }
-check_diskperf() {
-    perfFile="/root/disk-perf.txt"
-    test -e $perfFile || failed "IS_DISKPERF" "missing ${perfFile}"
-}
 check_tmoutprofile() {
     grep --no-messages --quiet "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || failed "IS_TMOUTPROFILE" "TMOUT is not set"
 }
@@ -1797,7 +1793,6 @@ main() {
     test "${IS_SSHALLOWUSERS:=1}" = 1 && check_sshallowusers
     test "${IS_SSHCONFSPLIT:=1}" = 1 && check_sshconfsplit
     test "${IS_SSHLASTMATCH:=0}" = 1 && check_sshlastmatch
-    test "${IS_DISKPERF:=0}" = 1 && check_diskperf
     test "${IS_TMOUTPROFILE:=1}" = 1 && check_tmoutprofile
     test "${IS_ALERT5BOOT:=1}" = 1 && check_alert5boot
     test "${IS_ALERT5MINIFW:=1}" = 1 && check_alert5minifw

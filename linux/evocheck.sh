@@ -1028,7 +1028,7 @@ check_sql_backup() {
         backup_dir="/home/backup"
         if [ -d "${backup_dir}" ]; then
             # You could change the default path in /etc/evocheck.cf
-            SQL_BACKUP_PATH="${SQL_BACKUP_PATH:-$(find "${backup_dir}" \( -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz" \))}"
+            SQL_BACKUP_PATH="${SQL_BACKUP_PATH:-$(find -H "${backup_dir}" \( -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz" \))}"
             if [ -z "${SQL_BACKUP_PATH}" ]; then
                 failed "IS_SQL_BACKUP" "No MySQL dump found"
                 return 1
@@ -1050,7 +1050,7 @@ check_postgres_backup() {
         if [ -d "${backup_dir}" ]; then
             # If you use something like barman, you should disable this check
             # You could change the default path in /etc/evocheck.cf
-            POSTGRES_BACKUP_PATH="${POSTGRES_BACKUP_PATH:-$(find "${backup_dir}" -iname "pg.dump.bak*")}"
+            POSTGRES_BACKUP_PATH="${POSTGRES_BACKUP_PATH:-$(find -H "${backup_dir}" -iname "pg.dump.bak*")}"
             for backup_path in ${POSTGRES_BACKUP_PATH}; do
                 if [ ! -f "${backup_path}" ]; then
                     failed "IS_POSTGRES_BACKUP" "PostgreSQL dump is missing (${backup_path})"
@@ -1093,7 +1093,7 @@ check_ldap_backup() {
         backup_dir="/home/backup"
         if [ -d "${backup_dir}" ]; then
             # You could change the default path in /etc/evocheck.cf
-            LDAP_BACKUP_PATH="${LDAP_BACKUP_PATH:-$(find "${backup_dir}" -iname "ldap.bak")}"
+            LDAP_BACKUP_PATH="${LDAP_BACKUP_PATH:-$(find -H "${backup_dir}" -iname "ldap.bak")}"
             test -f "$LDAP_BACKUP_PATH" || failed "IS_LDAP_BACKUP" "LDAP dump is missing (${LDAP_BACKUP_PATH})"
         else
             failed "LDAP_BACKUP_PATH" "${backup_dir}/ is missing"
@@ -1109,7 +1109,7 @@ check_redis_backup() {
             # REDIS_BACKUP_PATH='/home/backup/redis-instance1/dump.rdb /home/backup/redis-instance2/dump.rdb'
             # Warning : this script doesn't handle spaces in file paths !
 
-            REDIS_BACKUP_PATH="${REDIS_BACKUP_PATH:-$(find "${backup_dir}" -iname "*.rdb*")}"
+            REDIS_BACKUP_PATH="${REDIS_BACKUP_PATH:-$(find -H "${backup_dir}" -iname "*.rdb*")}"
 
             # Check number of dumps
             n_instances=$(pgrep 'redis-server' | wc -l)

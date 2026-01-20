@@ -419,11 +419,6 @@ check_minifwperms() {
         test "$expected" = "$actual" || failed "IS_MINIFWPERMS" "/etc/default/minifirewall must be ${expected}"
     fi
 }
-check_nrpedisks() {
-    NRPEDISKS=$(grep command.check_disk /etc/nagios/nrpe.cfg | grep "^command.check_disk[0-9]" | sed -e "s/^command.check_disk\([0-9]\+\).*/\1/" | sort -n | tail -1)
-    DFDISKS=$(df -Pl | grep --count --extended-regexp --invert-match "(^Filesystem|/lib/init/rw|/dev/shm|udev|rpc_pipefs)")
-    test "$NRPEDISKS" = "$DFDISKS" || failed "IS_NRPEDISKS" "there must be $DFDISKS check_disk in nrpe.cfg"
-}
 check_nrpepid() {
     if evo::os-release::is_debian 11 lt; then
         { test -e /etc/nagios/nrpe.cfg \
@@ -1801,7 +1796,6 @@ main() {
     test "${IS_MINIFWPERMS:=1}" = 1 && check_minifwperms
     test "${IS_MINIFW_RELATED:=0}" = 1 && check_minifw_related
     test "${IS_MINIFWINCLUDES:=1}" = 1 && check_minifw_includes
-    test "${IS_NRPEDISKS:=0}" = 1 && check_nrpedisks
     test "${IS_NRPEPID:=1}" = 1 && check_nrpepid
     test "${IS_GRSECPROCS:=1}" = 1 && check_grsecprocs
     test "${IS_APACHEMUNIN:=1}" = 1 && check_apachemunin

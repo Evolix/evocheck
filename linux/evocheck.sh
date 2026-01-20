@@ -1012,6 +1012,13 @@ check_log2mailsystemdunit() {
     test -f /etc/systemd/system/log2mail.service \
         || failed "IS_LOG2MAILSYSTEMDUNIT" "missing log2mail unit file"
 }
+check_systemduserunit() {
+    awk 'BEGIN { FS = ":" } { print $1, $6 }' /etc/passwd | while read -r user dir; do
+        if ls "${dir}"/.config/systemd/user/*.service > /dev/null 2> /dev/null; then
+            failed "IS_SYSTEMDUSERUNIT" "systemd unit found for user ${user}"
+        fi
+    done
+}
 check_listupgrade() {
     test -f /etc/cron.d/listupgrade \
         || failed "IS_LISTUPGRADE" "missing listupgrade cron"
@@ -1852,6 +1859,7 @@ main() {
     test "${IS_BROADCOMFIRMWARE:=1}" = 1 && check_broadcomfirmware
     test "${IS_HARDWARERAIDTOOL:=1}" = 1 && check_hardwareraidtool
     test "${IS_LOG2MAILSYSTEMDUNIT:=1}" = 1 && check_log2mailsystemdunit
+    test "${IS_SYSTEMDUSERUNIT:=0}" = 1 && check_systemduserunit
     test "${IS_LISTUPGRADE:=1}" = 1 && check_listupgrade
     test "${IS_MARIADBEVOLINUXCONF:=0}" = 1 && check_mariadbevolinuxconf
     test "${IS_SQL_BACKUP:=1}" = 1 && check_sql_backup
@@ -1964,6 +1972,7 @@ while :; do
             IS_NRPEPRESSURE=1
             IS_SMARTMONTOOLS=1
             IS_EVOLIX_GROUP=1
+            IS_SYSTEMDUSERUNIT=1
             ;;
         -v|--verbose)
             VERBOSE=1

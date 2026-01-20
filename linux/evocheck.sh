@@ -1962,6 +1962,7 @@ while :; do
             IS_SMARTMONTOOLS=1
             IS_EVOLIX_GROUP=1
             IS_SYSTEMDUSERUNIT=1
+            IS_SSHLASTMATCH=1
             ;;
         -v|--verbose)
             VERBOSE=1

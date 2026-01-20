@@ -1094,7 +1094,14 @@ check_ldap_backup() {
         if [ -d "${backup_dir}" ]; then
             # You could change the default path in /etc/evocheck.cf
             LDAP_BACKUP_PATH="${LDAP_BACKUP_PATH:-$(find -H "${backup_dir}" -iname "ldap.bak")}"
-            test -f "$LDAP_BACKUP_PATH" || failed "IS_LDAP_BACKUP" "LDAP dump is missing (${LDAP_BACKUP_PATH})"
+            if ! test -f "$LDAP_BACKUP_PATH"; then
+                # In newer versions of zzz_evobackup client, dumps have been split in 3 files /home/backup/ldap/{ldap-config,ldap-data}.bak
+                # Let's check for ldap/ldap-data.bak
+                LDAP_BACKUP_PATH="${backup_dir}/ldap/ldap-data.bak"
+                if ! test -f "$LDAP_BACKUP_PATH"; then
+                    failed "IS_LDAP_BACKUP" "LDAP dump is missing (${LDAP_BACKUP_PATH})"
+                fi
+            fi
         else
             failed "LDAP_BACKUP_PATH" "${backup_dir}/ is missing"
         fi

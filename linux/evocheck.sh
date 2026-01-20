@@ -1963,6 +1963,9 @@ while :; do
             IS_EVOLIX_GROUP=1
             IS_SYSTEMDUSERUNIT=1
             IS_SSHLASTMATCH=1
+            IS_MARIADBEVOLINUXCONF=1
+            IS_PHPEVOLINUXCONF=1
+            IS_OLD_HOME_DIR=1
             ;;
         -v|--verbose)
             VERBOSE=1

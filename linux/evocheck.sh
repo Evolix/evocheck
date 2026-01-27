@@ -44,7 +44,7 @@ Usage: evocheck
 Options
      --cron                  disable a few checks
      --future                enable checks that will be enabled later
- -v, --verbose               increase verbosity of checks
+ -v, --verbose               display full documentation for failed checks
  -q, --quiet                 nothing is printed on stdout nor stderr
      --min-level X           executes only checkwith level >= X
      --max-level Y           executes only checkwith level <= Y
@@ -89,7 +89,7 @@ failed() {
 
     RC=1
     if [ "${QUIET}" != 1 ]; then
-        if [ -n "${check_comments}" ] && [ "${VERBOSE}" = 1 ]; then
+        if [ -n "${check_comments}" ]; then
             printf "[%s] %s FAILED! %s\n" "${check_level}-${tag}" "${check_name}" "${check_comments}" >> "${main_output_file}"
         else
             printf "[%s] %s FAILED!\n" "${check_level}-${tag}" "${check_name}" >> "${main_output_file}"
@@ -924,7 +924,6 @@ check_autoif() {
             for interface in $interfaces; do
                 if grep --quiet --dereference-recursive "^iface $interface" /etc/network/interfaces* && ! grep --quiet --dereference-recursive "^auto $interface" /etc/network/interfaces*; then
                     failed "${LEVEL}" "${TAG}" "Network interface \`${interface}' is statically defined but not set to auto"
-                    test "${VERBOSE}" = 1 || break
                 fi
             done
         fi
@@ -1083,13 +1082,9 @@ check_apachesymlink() {
             apacheFind=$(find /etc/apache2/sites-enabled ! -type l -type f -print)
             nbApacheFind=$(wc -m <<< "$apacheFind")
             if [[ $nbApacheFind -gt 1 ]]; then
-                if [[ $VERBOSE == 1 ]]; then
-                    while read -r line; do
-                        failed "${LEVEL}" "${TAG}" "Not a symlink: $line"
-                    done <<< "$apacheFind"
-                else
-                    failed "${LEVEL}" "${TAG}"
-                fi
+                while read -r line; do
+                    failed "${LEVEL}" "${TAG}" "Not a symlink: $line"
+                done <<< "$apacheFind"
             fi
         fi
     fi
@@ -1255,7 +1250,6 @@ check_backupuptodate() {
 
                     if [ "$limit" -gt "$updated_at" ]; then
                         failed "${LEVEL}" "${TAG}" "$file has not been backed up"
-                        test "${VERBOSE}" = 1 || break;
                     fi
                 done
             else
@@ -1431,7 +1425,6 @@ check_userinadmgroup() {
         for user in $users; do
             if ! groups "$user" | grep --quiet adm; then
                 failed "${LEVEL}" "${TAG}" "User $user doesn't belong to \`adm' group"
-                test "${VERBOSE}" = 1 || break
             fi
         done
     fi
@@ -1612,7 +1605,6 @@ check_sql_backup() {
                 for backup_path in ${SQL_BACKUP_PATH}; do
                     if [ ! -f "${backup_path}" ]; then
                         failed "${LEVEL}" "${TAG}" "MySQL dump is missing (${backup_path})"
-                        test "${VERBOSE}" = 1 || break
                     fi
                 done
             else
@@ -1636,7 +1628,6 @@ check_postgres_backup() {
                 for backup_path in ${POSTGRES_BACKUP_PATH}; do
                     if [ ! -f "${backup_path}" ]; then
                         failed "${LEVEL}" "${TAG}" "PostgreSQL dump is missing (${backup_path})"
-                        test "${VERBOSE}" = 1 || break
                     fi
                 done
             else
@@ -1785,7 +1776,6 @@ check_mysqlmunin() {
 
                 if [[ ! -L /etc/munin/plugins/$file ]]; then
                     failed "${LEVEL}" "${TAG}" "missing munin plugin '$file'"
-                    test "${VERBOSE}" = 1 || break
                 fi
             done
             munin-run mysql_commands 2> /dev/null > /dev/null
@@ -1950,7 +1940,6 @@ check_evoacme_livelinks() {
 
                     if [[ "$lastVersion" != "$actualVersion" ]]; then
                         failed "${LEVEL}" "${TAG}" "Certificate \`$certName' hasn't been updated"
-                        test "${VERBOSE}" = 1 || break
                     fi
                 done
             fi
@@ -1984,7 +1973,6 @@ check_meltdown_spectre() {
         for vuln in meltdown spectre_v1 spectre_v2; do
             test -f "/sys/devices/system/cpu/vulnerabilities/$vuln" \
                 || failed "${LEVEL}" "${TAG}" "vulnerable to $vuln"
-            test "${VERBOSE}" = 1 || break
         done
     fi
 }
@@ -2002,7 +1990,6 @@ check_old_home_dir() {
             # There is at least one dir matching
             if [[ -n "$statResult" ]]; then
                 failed "${LEVEL}" "${TAG}" "$statResult"
-                test "${VERBOSE}" = 1 || break
             fi
         done
     fi
@@ -2017,7 +2004,6 @@ check_tmp_1777() {
 
         actual=$(stat --format "%a" /tmp)
         test "${expected}" = "${actual}" || failed "${LEVEL}" "${TAG}" "/tmp must be ${expected}"
-        test "${VERBOSE}" = 1 || return
 
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
@@ -2028,7 +2014,6 @@ check_tmp_1777() {
                     if [ -d "${rootfs}/tmp" ]; then
                         actual=$(stat --format "%a" "${rootfs}/tmp")
                         test "${expected}" = "${actual}" || failed "${LEVEL}" "${TAG}" "${rootfs}/tmp must be ${expected}"
-                        test "${VERBOSE}" = 1 || break
                     fi
                 fi
             done
@@ -2086,7 +2071,6 @@ check_evomaintenanceusers() {
             if [ -n "$user_home" ] && [ -d "$user_home" ]; then
                 if ! grep --quiet --no-messages "^trap.*sudo.*evomaintenance.sh" "${user_home}"/.*profile; then
                     failed "${LEVEL}" "${TAG}" "${user} doesn't have an evomaintenance trap"
-                    test "${VERBOSE}" = 1 || break
                 fi
             fi
         done
@@ -2126,7 +2110,6 @@ check_privatekeyworldreadable() {
                 perms=$(stat -L -c "%a" "$f")
                 if [ "${perms: -1}" != 0 ]; then
                     failed "${LEVEL}" "${TAG}" "$f is world-readable"
-                    test "${VERBOSE}" = 1 || break
                 fi
             done
         fi
@@ -2199,7 +2182,6 @@ check_chrooted_binary_uptodate() {
                     # compare md5 checksums
                     if [ "$original_md5" != "$chrooted_md5" ]; then
                         failed "${LEVEL}" "${TAG}" "${process_bin} (${pid}) is different than ${original_bin}."
-                        test "${VERBOSE}" = 1 || break
                     fi
                 fi
             done

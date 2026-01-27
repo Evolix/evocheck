@@ -13,6 +13,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Changed
 
+* Verbose is the new normal
 * IS_DUPLICATE_FS_LABEL now excludes ZFS pool and device /dev/zd*
 * IS_MARIADBEVOLINUXCONF enabled back in --future
 * IS_OLD_HOME_DIR enabled back in --future

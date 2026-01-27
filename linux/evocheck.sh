@@ -56,9 +56,6 @@ END
 is_pack_web() {
     test -e /usr/share/scripts/web-add.sh || test -e /usr/share/scripts/evoadmin/web-add.sh
 }
-is_pack_samba() {
-    test -e /usr/share/scripts/add.pl
-}
 is_installed() {
     for pkg in "$@"; do
         dpkg -l "$pkg" 2> /dev/null | grep --quiet --extended-regexp '^(i|h)i' || return 1

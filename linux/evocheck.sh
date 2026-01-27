@@ -53,13 +53,13 @@ Options
 END
 }
 
-is_pack_web(){
+is_pack_web() {
     test -e /usr/share/scripts/web-add.sh || test -e /usr/share/scripts/evoadmin/web-add.sh
 }
-is_pack_samba(){
+is_pack_samba() {
     test -e /usr/share/scripts/add.pl
 }
-is_installed(){
+is_installed() {
     for pkg in "$@"; do
         dpkg -l "$pkg" 2> /dev/null | grep --quiet --extended-regexp '^(i|h)i' || return 1
     done
@@ -109,7 +109,7 @@ is_level_in_range() {
 
 # check functions
 
-check_lsbrelease(){
+check_lsbrelease() {
     local LEVEL TAG
     LEVEL=${LEVEL_STANDARD}
     TAG="IS_LSBRELEASE"

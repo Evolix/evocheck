@@ -82,10 +82,14 @@ log() {
 }
 
 failed() {
+    local level name comment
+    level=$1
+    name=$2
+    comment=$3
 
     GLOBAL_RC=1
 
-    case "${check_level}" in
+    case "${level}" in
         "${LEVEL_OPTIONAL}")  tag="OPTIONAL" ;;
         "${LEVEL_STANDARD}")  tag="STANDARD" ;;
         "${LEVEL_IMPORTANT}") tag="IMPORTANT" ;;
@@ -93,15 +97,16 @@ failed() {
     esac
 
     if ! is_quiet; then
-        if [ -n "${check_comments}" ]; then
-            printf "[%s] %s FAILED! %s\n" "${check_level}-${tag}" "${check_name}" "${check_comments}" >> "${main_output_file}"
+        if [ -n "${comment}" ]; then
+            printf "[%s] %s FAILED! %s\n" "${level}-${tag}" "${name}" "${comment}" >> "${main_output_file}"
+
         else
-            printf "[%s] %s FAILED!\n" "${check_level}-${tag}" "${check_name}" >> "${main_output_file}"
+            printf "[%s] %s FAILED!\n" "${level}-${tag}" "${name}" >> "${main_output_file}"
         fi
     fi
 
     # Always log verbose
-    printf "[%s] %s FAILED! %s" "${check_level}-${tag}" "${check_name}" "${check_comments}" | log
+    printf "[%s] %s FAILED! %s" "${level}-${tag}" "${name}" "${comment}" | log
 }
 
 is_level_in_range() {

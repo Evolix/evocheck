@@ -557,12 +557,12 @@ check_sshlastmatch() {
 
     if is_level_in_range ${level}; then
         if evo::os-release::is_debian 12 ge; then
-            for f in /etc/ssh/sshd_config /etc/ssh/sshd_config.d/zzz-evolinux-custom.conf; do
-                if ! test -f "${f}"; then
+            for file in /etc/ssh/sshd_config /etc/ssh/sshd_config.d/zzz-evolinux-custom.conf; do
+                if ! test -f "${file}"; then
                     continue
                 fi
-                if ! awk 'BEGIN { last = "all" } tolower($1) == "match" { last = tolower($2) } END { if (last != "all") exit 1 }' "${f}"; then
-                    failed "${level}" "${tag}" "last Match directive is not \"Match all\" in ${f}"
+                if ! awk 'BEGIN { last = "all" } tolower($1) == "match" { last = tolower($2) } END { if (last != "all") exit 1 }' "${file}"; then
+                    failed "${level}" "${tag}" "last Match directive is not \"Match all\" in ${file}"
                 fi
             done
         fi
@@ -571,21 +571,21 @@ check_sshlastmatch() {
 check_tmoutprofile() {
     local level tag
     level=2
-    tag=""
+    tag="IS_TMOUTPROFILE"
 
     if is_level_in_range ${level}; then
-        grep --no-messages --quiet "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || failed "${level}" "${tag}"IS_TMOUTPROFILE "TMOUT is not set"
+        grep --no-messages --quiet "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || failed "${level}" "${tag}" "TMOUT is not set"
     fi
 }
 check_alert5boot() {
     local level tag
     level=2
-    tag=""
+    tag="IS_ALERT5BOOT"
 
     if is_level_in_range ${level}; then
-        grep --quiet --no-messages "^date" /usr/share/scripts/alert5.sh || failed "${level}" "${tag}"IS_ALERT5BOOT "boot mail is not sent by alert5 init script"
+        grep --quiet --no-messages "^date" /usr/share/scripts/alert5.sh || failed "${level}" "${tag}" "boot mail is not sent by alert5 init script"
         if [ -f /etc/systemd/system/alert5.service ]; then
-            systemctl is-enabled alert5.service -q || failed "${level}" "${tag}"IS_ALERT5BOOT "alert5 unit is not enabled"
+            systemctl is-enabled alert5.service -q || failed "${level}" "${tag}" "alert5 unit is not enabled"
         else
             failed "${level}" "${tag}"IS_ALERT5BOOT "alert5 unit file is missing"
         fi
@@ -597,12 +597,12 @@ is_minifirewall_native_systemd() {
 check_alert5minifw() {
     local level tag
     level=2
-    tag=""
+    tag="IS_ALERT5MINIFW"
 
     if is_level_in_range ${level}; then
         if ! is_minifirewall_native_systemd; then
             grep --quiet --no-messages "^/etc/init.d/minifirewall" /usr/share/scripts/alert5.sh \
-                || failed "${level}" "${tag}"IS_ALERT5MINIFW "Minifirewall is not started by alert5 script or script is missing"
+                || failed "${level}" "${tag}" "Minifirewall is not started by alert5 script or script is missing"
         fi
     fi
 }
@@ -644,6 +644,7 @@ check_minifw_related() {
     local level tag
     level=2
     tag="IS_MINIFW_RELATED"
+
 
     if is_level_in_range ${level}; then
         if [ -f "/etc/default/minifirewall" ] || [ -d "/etc/minifirewall.d/" ]; then

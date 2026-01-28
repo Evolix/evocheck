@@ -1309,9 +1309,9 @@ check_etcgit_lxc() {
 # Check if /etc/.git/ has read/write permissions for root only.
 check_gitperms() {
     local level tag rc
+    rc=0
     level=${LEVEL_STANDARD}
     tag="IS_GITPERMS"
-    rc=0
     doc=$(cat <<EODOC
 # Git repositories must have "700" permissions.
 # 
@@ -1338,9 +1338,9 @@ EODOC
 }
 check_gitperms_lxc() {
     local level tag rc
+    rc=0
     level=${LEVEL_STANDARD}
     tag="IS_GITPERMS_LXC"
-    rc=0
 
     if is_level_in_range ${level}; then
         if is_installed lxc; then

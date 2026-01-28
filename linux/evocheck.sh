@@ -125,10 +125,10 @@ check_lsbrelease() {
 
     if is_level_in_range ${level}; then
         if evo::os-release::is_debian 13 lt; then
-            LSB_RELEASLEVEL_BIN=$(command -v lsb_release)
-            if [ -x "${LSB_RELEASLEVEL_BIN}" ]; then
+            LSB_RELEASE_BIN=$(command -v lsb_release)
+            if [ -x "${LSB_RELEASE_BIN}" ]; then
                 ## only the major version matters
-                lhs=$(${LSB_RELEASLEVEL_BIN} --release --short | cut -d "." -f 1)
+                lhs=$(${LSB_RELEASE_BIN} --release --short | cut -d "." -f 1)
                 rhs=$(cut -d "." -f 1 < /etc/debian_version)
                 if [ "$lhs" != "$rhs" ]; then
                     failed "${level}" "${tag}" "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})"
@@ -315,8 +315,8 @@ check_oldpub_lxc() {
         if is_installed lxc; then
             containers_list=$( lxc-ls -1 --active )
             for container_name in ${containers_list}; do
-                APT_CACHLEVEL_BIN=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
-                if [ -x "${APT_CACHLEVEL_BIN}" ]; then
+                APT_CACHE_BIN=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
+                if [ -x "${APT_CACHE_BIN}" ]; then
                     lxc-attach --name "${container_name}" apt-cache policy | grep --quiet pub.evolix.net
                     test $? -eq 1 || failed "${level}" "${tag}" "Old pub.evolix.net repository is still enabled in container ${container_name}"
                 fi
@@ -358,8 +358,8 @@ check_sury_lxc() {
         if is_installed lxc; then
             containers_list=$( lxc-ls -1 --active )
             for container_name in ${containers_list}; do
-                APT_CACHLEVEL_BIN=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
-                if [ -x "${APT_CACHLEVEL_BIN}" ]; then
+                APT_CACHE_BIN=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
+                if [ -x "${APT_CACHE_BIN}" ]; then
                     lxc-attach --name "${container_name}" apt-cache policy | grep --quiet packages.sury.org
                     if [ $? -eq 0 ]; then
                         lxc-attach --name "${container_name}" apt-cache policy | grep "\bl=Evolix\b" | grep --quiet php
@@ -811,7 +811,7 @@ check_squid() {
 check_evomaintenance_fw() {
     local level tag
     level=${LEVEL_STANDARD}
-    tag="IS_EVOMAINTENANCLEVEL_FW"
+    tag="IS_EVOMAINTENANCE_FW"
 
     if is_level_in_range ${level}; then
         if [ -f "/etc/default/minifirewall" ]; then
@@ -1032,7 +1032,7 @@ check_ssh_fail2ban_jail_renamed() {
 check_evobackup_exclude_mount() {
     local level tag
     level=${LEVEL_STANDARD}
-    tag="IS_EVOBACKUP_EXCLUDLEVEL_MOUNT"
+    tag="IS_EVOBACKUP_EXCLUDE_MOUNT"
 
     if is_level_in_range ${level}; then
         excludes_file=$(mktemp --tmpdir "evocheck.evobackup_exclude_mount.XXXXX")
@@ -1894,7 +1894,7 @@ check_squidevolinuxconf() {
 check_duplicate_fs_label() {
     local level tag
     level=${LEVEL_STANDARD}
-    tag="IS_DUPLICATLEVEL_FS_LABEL"
+    tag="IS_DUPLICATE_FS_LABEL"
 
     if is_level_in_range ${level}; then
         # Do it only if thereis blkid binary
@@ -1946,7 +1946,7 @@ check_evolix_group() {
 check_evoacme_cron() {
     local level tag
     level=${LEVEL_STANDARD}
-    tag="IS_EVOACMLEVEL_CRON"
+    tag="IS_EVOACME_CRON"
 
     if is_level_in_range ${level}; then
         if [ -f "/usr/local/sbin/evoacme" ]; then
@@ -1960,11 +1960,11 @@ check_evoacme_cron() {
 check_evoacme_livelinks() {
     local level tag
     level=${LEVEL_STANDARD}
-    tag="IS_EVOACMLEVEL_LIVELINKS"
+    tag="IS_EVOACME_LIVELINKS"
 
     if is_level_in_range ${level}; then
-        EVOACMLEVEL_BIN=$(command -v evoacme)
-        if [ -x "$EVOACMLEVEL_BIN" ]; then
+        EVOACME_BIN=$(command -v evoacme)
+        if [ -x "$EVOACME_BIN" ]; then
             # Sometimes evoacme is installed but no certificates has been generated
             numberOfLinks=$(find /etc/letsencrypt/ -type l | wc -l)
             if [ "$numberOfLinks" -gt 0 ]; then
@@ -1989,7 +1989,7 @@ check_evoacme_livelinks() {
 check_apache_confenabled() {
     local level tag
     level=${LEVEL_STANDARD}
-    tag="IS_APACHLEVEL_CONFENABLED"
+    tag="IS_APACHE_CONFENABLED"
 
     if is_level_in_range ${level}; then
         # Starting from Jessie and Apache 2.4, /etc/apache2/conf.d/
@@ -2019,7 +2019,7 @@ check_meltdown_spectre() {
 check_old_home_dir() {
     local level tag
     level=${LEVEL_STANDARD}
-    tag="IS_OLD_HOMLEVEL_DIR"
+    tag="IS_OLD_HOME_DIR"
 
     if is_level_in_range ${level}; then
         homeDir=${homeDir:-/home}
@@ -2321,7 +2321,7 @@ check_no_lxc_container() {
 check_lxc_php_fpm_service_umask_set() {
     local level tag
     level=${LEVEL_STANDARD}
-    tag="IS_LXC_PHP_FPM_SERVICLEVEL_UMASK_SET"
+    tag="IS_LXC_PHP_FPM_SERVICE_UMASK_SET"
 
     if is_level_in_range ${level}; then
         if is_installed lxc; then
@@ -2676,7 +2676,7 @@ main() {
     test "${IS_AWSTATSLOGFORMAT:=1}" = 1 && check_awstatslogformat
     test "${IS_MUNINLOGROTATE:=1}" = 1 && check_muninlogrotate
     test "${IS_SQUID:=1}" = 1 && check_squid
-    test "${IS_EVOMAINTENANCLEVEL_FW:=1}" = 1 && check_evomaintenance_fw
+    test "${IS_EVOMAINTENANCE_FW:=1}" = 1 && check_evomaintenance_fw
     test "${IS_MODDEFLATE:=1}" = 1 && check_moddeflate
     test "${IS_LOG2MAILRUNNING:=1}" = 1 && check_log2mailrunning
     test "${IS_LOG2MAILAPACHE:=1}" = 1 && check_log2mailapache
@@ -2691,7 +2691,7 @@ main() {
     test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
     test "${IS_FAIL2BAN_PURGE:=1}" = 1 && check_fail2ban_purge
     test "${IS_SSH_FAIL2BAN_JAIL_RENAMED:=1}" = 1 && check_ssh_fail2ban_jail_renamed
-    test "${IS_EVOBACKUP_EXCLUDLEVEL_MOUNT:=1}" = 1 && check_evobackup_exclude_mount
+    test "${IS_EVOBACKUP_EXCLUDE_MOUNT:=1}" = 1 && check_evobackup_exclude_mount
     test "${IS_USERLOGROTATE:=1}" = 1 && check_userlogrotate
     test "${IS_APACHECTL:=1}" = 1 && check_apachectl
     test "${IS_APACHESYMLINK:=1}" = 1 && check_apachesymlink
@@ -2735,14 +2735,14 @@ main() {
     test "${IS_PHPEVOLINUXCONF:=0}" = 1 && check_phpevolinuxconf
     test "${IS_SQUIDLOGROTATE:=1}" = 1 && check_squidlogrotate
     test "${IS_SQUIDEVOLINUXCONF:=1}" = 1 && check_squidevolinuxconf
-    test "${IS_DUPLICATLEVEL_FS_LABEL:=1}" = 1 && check_duplicate_fs_label
+    test "${IS_DUPLICATE_FS_LABEL:=1}" = 1 && check_duplicate_fs_label
     test "${IS_EVOLIX_USER:=1}" = 1 && check_evolix_user
     test "${IS_EVOLIX_GROUP:=0}" = 1 && check_evolix_group
-    test "${IS_EVOACMLEVEL_CRON:=1}" = 1 && check_evoacme_cron
-    test "${IS_EVOACMLEVEL_LIVELINKS:=1}" = 1 && check_evoacme_livelinks
-    test "${IS_APACHLEVEL_CONFENABLED:=1}" = 1 && check_apache_confenabled
+    test "${IS_EVOACME_CRON:=1}" = 1 && check_evoacme_cron
+    test "${IS_EVOACME_LIVELINKS:=1}" = 1 && check_evoacme_livelinks
+    test "${IS_APACHE_CONFENABLED:=1}" = 1 && check_apache_confenabled
     test "${IS_MELTDOWN_SPECTRE:=1}" = 1 && check_meltdown_spectre
-    test "${IS_OLD_HOMLEVEL_DIR:=0}" = 1 && check_old_home_dir
+    test "${IS_OLD_HOME_DIR:=0}" = 1 && check_old_home_dir
     test "${IS_EVOBACKUP_INCS:=1}" = 1 && check_evobackup_incs
     test "${IS_OSPROBER:=1}" = 1 && check_osprober
     test "${IS_APT_VALID_UNTIL:=1}" = 1 && check_apt_valid_until
@@ -2752,7 +2752,7 @@ main() {
     test "${IS_LXC_WKHTMLTOPDF:=1}" = 1 && check_lxc_wkhtmltopdf
     test "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" = 1 && check_lxc_container_resolv_conf
     test "${IS_NO_LXC_CONTAINER:=1}" = 1 && check_no_lxc_container
-    test "${IS_LXC_PHP_FPM_SERVICLEVEL_UMASK_SET:=1}" = 1 && check_lxc_php_fpm_service_umask_set
+    test "${IS_LXC_PHP_FPM_SERVICE_UMASK_SET:=1}" = 1 && check_lxc_php_fpm_service_umask_set
     test "${IS_LXC_PHP_BAD_DEBIAN_VERSION:=1}" = 1 && check_lxc_php_bad_debian_version
     test "${IS_LXC_OPENSSH:=1}" = 1 && check_lxc_openssh
     test "${IS_LXC_OPENSMTPD:=1}" = 1 && check_lxc_opensmtpd
@@ -2851,7 +2851,7 @@ while :; do
             IS_SSHLASTMATCH=1
             IS_MARIADBEVOLINUXCONF=1
             IS_PHPEVOLINUXCONF=1
-            IS_OLD_HOMLEVEL_DIR=1
+            IS_OLD_HOME_DIR=1
             ;;
         -v|--verbose)
             VERBOSE=1

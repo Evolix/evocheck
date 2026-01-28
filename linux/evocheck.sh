@@ -45,7 +45,7 @@ Options
      --cron                  disable a few checks
      --future                enable checks that will be enabled later
  -v, --verbose               display full documentation for failed checks
- -q, --quiet                 nothing is printed on stdout nor stderr
+ -q, --quiet                 nothing is printed on stdout
      --min-level X           executes only checkwith level >= X
      --max-level Y           executes only checkwith level <= Y
  -h, --help                  print this message and exit
@@ -79,7 +79,7 @@ log() {
 }
 
 failed() {
-    local level name comment
+    local level name comment tag
     level=$1
     name=$2
     comment=$3
@@ -87,10 +87,10 @@ failed() {
     GLOBAL_RC=1
 
     case "${level}" in
-        "${LEVEL_OPTIONAL}")  tag="OPTIONAL" ;;
-        "${LEVEL_STANDARD}")  tag="STANDARD" ;;
-        "${LEVEL_IMPORTANT}") tag="IMPORTANT" ;;
-        "${LEVEL_MANDATORY}") tag="MANDATORY" ;;
+        1) tag="OPTIONAL" ;;
+        2) tag="STANDARD" ;;
+        3) tag="IMPORTANT" ;;
+        4) tag="MANDATORY" ;;
     esac
 
     if ! is_quiet; then
@@ -113,14 +113,14 @@ show_doc() {
     fi
 }
 is_level_in_range() {
-    test ${LEVEL_STANDARD} -ge ${MIN_LEVEL} && test ${LEVEL_STANDARD} -le ${MAX_LEVEL}
+    test ${1} -ge ${MIN_LEVEL} && test ${1} -le ${MAX_LEVEL}
 }
 
 # check functions
 
 check_lsbrelease() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LSBRELEASE"
 
     if is_level_in_range ${level}; then
@@ -143,7 +143,7 @@ check_lsbrelease() {
 }
 check_dpkgwarning() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_DPKGWARNING"
 
     if is_level_in_range ${level}; then
@@ -154,7 +154,7 @@ check_dpkgwarning() {
 # Check if localhost, localhost.localdomain and localhost.$mydomain are set in Postfix mydestination option.
 check_postfix_mydestination() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_POSTFIX_MYDESTINATION"
 
     if is_level_in_range ${level}; then
@@ -173,7 +173,7 @@ check_postfix_mydestination() {
     # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
 check_nrpepostfix() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NRPEPOSTFIX"
 
     if is_level_in_range ${level}; then
@@ -187,7 +187,7 @@ check_nrpepostfix() {
 # Check if mod-security config file is present
 check_customsudoers() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_CUSTOMSUDOERS"
 
     if is_level_in_range ${level}; then
@@ -196,7 +196,7 @@ check_customsudoers() {
 }
 check_vartmpfs() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_VARTMPFS"
 
     if is_level_in_range ${level}; then
@@ -212,7 +212,7 @@ check_vartmpfs() {
 }
 check_serveurbase() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SERVEURBASE"
 
     if is_level_in_range ${level}; then
@@ -221,7 +221,7 @@ check_serveurbase() {
 }
 check_logrotateconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LOGROTATECONF"
 
     if is_level_in_range ${level}; then
@@ -230,7 +230,7 @@ check_logrotateconf() {
 }
 check_syslogconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SYSLOGCONF"
 
     if is_level_in_range ${level}; then
@@ -245,7 +245,7 @@ check_syslogconf() {
 }
 check_debiansecurity() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_DEBIANSECURITY"
 
     if is_level_in_range ${level}; then
@@ -256,7 +256,7 @@ check_debiansecurity() {
 }
 check_debiansecurity_lxc() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_DEBIANSECURITY_LXC"
 
     if is_level_in_range ${level}; then
@@ -280,7 +280,7 @@ check_debiansecurity_lxc() {
 }
 check_backports_version() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_BACKPORTS_VERSION"
 
     if is_level_in_range ${level}; then
@@ -296,7 +296,7 @@ check_backports_version() {
 }
 check_oldpub() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_OLDPUB"
 
     if is_level_in_range ${level}; then
@@ -307,7 +307,7 @@ check_oldpub() {
 }
 check_oldpub_lxc() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_OLDPUB_LXC"
 
     if is_level_in_range ${level}; then
@@ -326,7 +326,7 @@ check_oldpub_lxc() {
 }
 check_newpub() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NEWPUB"
 
     if is_level_in_range ${level}; then
@@ -337,7 +337,7 @@ check_newpub() {
 }
 check_sury() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SURY"
 
     if is_level_in_range ${level}; then
@@ -351,7 +351,7 @@ check_sury() {
 }
 check_sury_lxc() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SURY_LXC"
 
     if is_level_in_range ${level}; then
@@ -372,7 +372,7 @@ check_sury_lxc() {
 }
 check_not_deb822() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NOT_DEB822"
 
     if is_level_in_range ${level}; then
@@ -386,7 +386,7 @@ check_not_deb822() {
 }
 check_no_signed_by() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NO_SIGNED_BY"
 
     if is_level_in_range ${level}; then
@@ -404,7 +404,7 @@ check_no_signed_by() {
 }
 check_aptitude() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_APTITUDE"
 
     if is_level_in_range ${level}; then
@@ -413,7 +413,7 @@ check_aptitude() {
 }
 check_aptgetbak() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_APTGETBAK"
 
     if is_level_in_range ${level}; then
@@ -422,7 +422,7 @@ check_aptgetbak() {
 }
 check_usrro() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_USRRO"
 
     if is_level_in_range ${level}; then
@@ -431,7 +431,7 @@ check_usrro() {
 }
 check_tmpnoexec() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_TMPNOEXEC"
 
     if is_level_in_range ${level}; then
@@ -446,7 +446,7 @@ check_tmpnoexec() {
 }
 check_homenoexec() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_HOMENOEXEC"
 
     if is_level_in_range ${level}; then
@@ -465,7 +465,7 @@ check_homenoexec() {
 }
 check_mountfstab() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MOUNT_FSTAB"
 
     if is_level_in_range ${level}; then
@@ -481,7 +481,7 @@ check_mountfstab() {
 }
 check_listchangesconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LISTCHANGESCONF"
 
     if is_level_in_range ${level}; then
@@ -492,7 +492,7 @@ check_listchangesconf() {
 }
 check_customcrontab() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_CUSTOMCRONTAB"
 
     if is_level_in_range ${level}; then
@@ -502,7 +502,7 @@ check_customcrontab() {
 }
 check_sshallowusers() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SSHALLOWUSERS"
 
     if is_level_in_range ${level}; then
@@ -529,7 +529,7 @@ check_sshallowusers() {
 }
 check_sshconfsplit() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SSHCONFSPLIT"
 
     if is_level_in_range ${level}; then
@@ -546,7 +546,7 @@ check_sshconfsplit() {
 }
 check_sshlastmatch() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SSHLASTMATCH"
 
     if is_level_in_range ${level}; then
@@ -564,7 +564,7 @@ check_sshlastmatch() {
 }
 check_tmoutprofile() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag=""
 
     if is_level_in_range ${level}; then
@@ -573,7 +573,7 @@ check_tmoutprofile() {
 }
 check_alert5boot() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag=""
 
     if is_level_in_range ${level}; then
@@ -590,7 +590,7 @@ is_minifirewall_native_systemd() {
 }
 check_alert5minifw() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag=""
 
     if is_level_in_range ${level}; then
@@ -602,7 +602,7 @@ check_alert5minifw() {
 }
 check_minifw() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MINIFW"
 
     if is_level_in_range ${level}; then
@@ -621,7 +621,7 @@ check_minifw() {
 }
 check_minifw_includes() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MINIFWINCLUDES"
 
     if is_level_in_range ${level}; then
@@ -636,7 +636,7 @@ check_minifw_includes() {
 }
 check_minifw_related() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MINIFW_RELATED"
 
     if is_level_in_range ${level}; then
@@ -649,7 +649,7 @@ check_minifw_related() {
 }
 check_nrpeperms() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NRPEPERMS"
 
     if is_level_in_range ${level}; then
@@ -663,7 +663,7 @@ check_nrpeperms() {
 }
 check_minifwperms() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MINIFWPERMS"
 
     if is_level_in_range ${level}; then
@@ -676,7 +676,7 @@ check_minifwperms() {
 }
 check_nrpepid() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NRPEPID"
 
     if is_level_in_range ${level}; then
@@ -693,7 +693,7 @@ check_nrpepid() {
 }
 check_grsecprocs() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_GRSECPROCS"
 
     if is_level_in_range ${level}; then
@@ -706,7 +706,7 @@ check_grsecprocs() {
 }
 check_apachemunin() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_APACHEMUNIN"
 
     if is_level_in_range ${level}; then
@@ -722,7 +722,7 @@ check_apachemunin() {
 # Verification mytop + Munin si MySQL
 check_mysqlutils() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MYSQLUTILS"
 
     if is_level_in_range ${level}; then
@@ -749,7 +749,7 @@ check_mysqlutils() {
 # Verification de la configuration du raid soft (mdadm)
 check_raidsoft() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_RAIDSOFT"
 
     if is_level_in_range ${level}; then
@@ -764,7 +764,7 @@ check_raidsoft() {
 # Verification du LogFormat de AWStats
 check_awstatslogformat() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_AWSTATSLOGFORMAT"
 
     if is_level_in_range ${level}; then
@@ -778,7 +778,7 @@ check_awstatslogformat() {
 # Verification de la présence de la config logrotate pour Munin
 check_muninlogrotate() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MUNINLOGROTATE"
 
     if is_level_in_range ${level}; then
@@ -790,7 +790,7 @@ check_muninlogrotate() {
 # Verification de l'activation de Squid dans le cas d'un pack mail
 check_squid() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SQUID"
 
     if is_level_in_range ${level}; then
@@ -810,7 +810,7 @@ check_squid() {
 }
 check_evomaintenance_fw() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_EVOMAINTENANCE_FW"
 
     if is_level_in_range ${level}; then
@@ -826,7 +826,7 @@ check_evomaintenance_fw() {
 # Verification de la conf et de l'activation de mod-deflate
 check_moddeflate() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MODDEFLATE"
 
     if is_level_in_range ${level}; then
@@ -842,7 +842,7 @@ check_moddeflate() {
 # Verification de la conf log2mail
 check_log2mailrunning() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LOG2MAILRUNNING"
 
     if is_level_in_range ${level}; then
@@ -853,7 +853,7 @@ check_log2mailrunning() {
 }
 check_log2mailapache() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LOG2MAILAPACHE"
 
     if is_level_in_range ${level}; then
@@ -866,7 +866,7 @@ check_log2mailapache() {
 }
 check_log2mailmysql() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LOG2MAILMYSQL"
 
     if is_level_in_range ${level}; then
@@ -878,7 +878,7 @@ check_log2mailmysql() {
 }
 check_log2mailsquid() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LOG2MAILSQUID"
 
     if is_level_in_range ${level}; then
@@ -891,7 +891,7 @@ check_log2mailsquid() {
 # Verification si bind est chroote
 check_bindchroot() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_BINDCHROOT"
 
     if is_level_in_range ${level}; then
@@ -917,7 +917,7 @@ check_bindchroot() {
 # /etc/network/interfaces should be present, we don't manage systemd-network yet
 check_network_interfaces() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NETWORK_INTERFACES"
 
     if is_level_in_range ${level}; then
@@ -929,7 +929,7 @@ check_network_interfaces() {
 # Verify if all if are in auto
 check_autoif() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_AUTOIF"
 
     if is_level_in_range ${level}; then
@@ -946,7 +946,7 @@ check_autoif() {
 # Network conf verification
 check_interfacesgw() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_INTERFACESGW"
 
     if is_level_in_range ${level}; then
@@ -960,7 +960,7 @@ check_interfacesgw() {
 }
 check_interfacesnetmask() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_INTERFACESNETMASK"
 
     if is_level_in_range ${level}; then
@@ -977,7 +977,7 @@ check_interfacesnetmask() {
 # Verification de l’état du service networking
 check_networking_service() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NETWORKING_SERVICE"
 
     if is_level_in_range ${level}; then
@@ -991,7 +991,7 @@ check_networking_service() {
 # Verification de la mise en place d'evobackup
 check_evobackup() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_EVOBACKUP"
 
     if is_level_in_range ${level}; then
@@ -1002,7 +1002,7 @@ check_evobackup() {
 # Vérification de la mise en place d'un cron de purge de la base SQLite de Fail2ban
 check_fail2ban_purge() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_FAIL2BAN_PURGE"
 
     if is_level_in_range ${level}; then
@@ -1017,7 +1017,7 @@ check_fail2ban_purge() {
 # Vérification qu'il ne reste pas des jails nommées ssh non renommées en sshd
 check_ssh_fail2ban_jail_renamed() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SSH_FAIL2BAN_JAIL_RENAMED"
 
     if is_level_in_range ${level}; then
@@ -1031,7 +1031,7 @@ check_ssh_fail2ban_jail_renamed() {
 # Vérification de l'exclusion des montages (NFS) dans les sauvegardes
 check_evobackup_exclude_mount() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_EVOBACKUP_EXCLUDE_MOUNT"
 
     if is_level_in_range ${level}; then
@@ -1063,7 +1063,7 @@ check_evobackup_exclude_mount() {
 # Verification de la presence du userlogrotate
 check_userlogrotate() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_USERLOGROTATE"
 
     if is_level_in_range ${level}; then
@@ -1075,7 +1075,7 @@ check_userlogrotate() {
 # Verification de la syntaxe de la conf d'Apache
 check_apachectl() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_APACHECTL"
 
     if is_level_in_range ${level}; then
@@ -1088,7 +1088,7 @@ check_apachectl() {
 # Check if there is regular files in Apache sites-enabled.
 check_apachesymlink() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_APACHESYMLINK"
 
     if is_level_in_range ${level}; then
@@ -1106,7 +1106,7 @@ check_apachesymlink() {
 # Check if there is real IP addresses in Allow/Deny directives (no trailing space, inline comments or so).
 check_apacheipinallow() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_APACHEIPINALLOW"
 
     if is_level_in_range ${level}; then
@@ -1123,7 +1123,7 @@ check_apacheipinallow() {
 # Check if default Apache configuration file for munin is absent (or empty or commented).
 check_muninapacheconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MUNINAPACHECONF"
 
     if is_level_in_range ${level}; then
@@ -1137,7 +1137,7 @@ check_muninapacheconf() {
 # Check if default Apache configuration file for phpMyAdmin is absent (or empty or commented).
 check_phpmyadminapacheconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_PHPMYADMINAPACHECONF"
 
     if is_level_in_range ${level}; then
@@ -1154,7 +1154,7 @@ check_phpmyadminapacheconf() {
 # Check if default Apache configuration file for phpPgAdmin is absent (or empty or commented).
 check_phppgadminapacheconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_PHPPGADMINAPACHECONF"
 
     if is_level_in_range ${level}; then
@@ -1171,7 +1171,7 @@ check_phppgadminapacheconf() {
 # Check if default Apache configuration file for phpMyAdmin is absent (or empty or commented).
 check_phpldapadminapacheconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_PHPLDAPADMINAPACHECONF"
 
     if is_level_in_range ${level}; then
@@ -1188,7 +1188,7 @@ check_phpldapadminapacheconf() {
 # Verification si le système doit redémarrer suite màj kernel.
 check_kerneluptodate() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_KERNELUPTODATE"
 
     if is_level_in_range ${level}; then
@@ -1205,7 +1205,7 @@ check_kerneluptodate() {
 # Check if the server is running for more than a year.
 check_uptime() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_UPTIME"
 
     if is_level_in_range ${level}; then
@@ -1221,7 +1221,7 @@ check_uptime() {
 # Check if munin-node running and RRD files are up to date.
 check_muninrunning() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MUNINRUNNING"
 
     if is_level_in_range ${level}; then
@@ -1251,7 +1251,7 @@ check_muninrunning() {
 # Check if files in /home/backup/ are up-to-date
 check_backupuptodate() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_BACKUPUPTODATE"
 
     if is_level_in_range ${level}; then
@@ -1276,7 +1276,7 @@ check_backupuptodate() {
 }
 check_etcgit() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_ETCGIT"
 
     if is_level_in_range ${level}; then
@@ -1287,7 +1287,7 @@ check_etcgit() {
 }
 check_etcgit_lxc() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_ETCGIT_LXC"
 
     if is_level_in_range ${level}; then
@@ -1310,15 +1310,15 @@ check_etcgit_lxc() {
 check_gitperms() {
     local level tag rc
     rc=0
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_GITPERMS"
     doc=$(cat <<EODOC
-# Git repositories must have "700" permissions.
-# 
-# Fix with:
-# ~~~
-# chmod 700 /path/to/repository/.git
-# ~~~
+    Git repositories must have "700" permissions.
+    
+    Fix with:
+    ~~~
+    chmod 700 /path/to/repository/.git
+    ~~~
 EODOC
 )
 
@@ -1339,8 +1339,17 @@ EODOC
 check_gitperms_lxc() {
     local level tag rc
     rc=0
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_GITPERMS_LXC"
+    doc=$(cat <<EODOC
+# Git repositories must have "700" permissions.
+# 
+# Fix with:
+# ~~~
+# chmod 700 /path/to/repository/.git
+# ~~~
+EODOC
+)
 
     if is_level_in_range ${level}; then
         if is_installed lxc; then
@@ -1359,21 +1368,13 @@ check_gitperms_lxc() {
                     fi
                 fi
             done
-            test ${rc} != 0 && is_verbose && cat <<EODOC
-Git repositories must have "700" permissions.
-
-Fix with:
-~~~
-chmod 700 /path/to/repository/.git
-~~~
-EODOC
         fi
     fi
 }
 # Check if no package has been upgraded since $limit.
 check_notupgraded() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NOTUPGRADED"
 
     if is_level_in_range ${level}; then
@@ -1412,7 +1413,7 @@ check_notupgraded() {
 # Check if reserved blocks for root is at least 5% on every mounted partitions.
 check_tune2fs_m5() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_TUNE2FS_M5"
 
     if is_level_in_range ${level}; then
@@ -1443,7 +1444,7 @@ check_tune2fs_m5() {
 }
 check_evolinuxsudogroup() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_EVOLINUXSUDOGROUP"
 
     if is_level_in_range ${level}; then
@@ -1457,7 +1458,7 @@ check_evolinuxsudogroup() {
 }
 check_userinadmgroup() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_USERINADMGROUP"
 
     if is_level_in_range ${level}; then
@@ -1471,7 +1472,7 @@ check_userinadmgroup() {
 }
 check_apache2evolinuxconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_APACHE2EVOLINUXCONF"
 
     if is_level_in_range ${level}; then
@@ -1485,7 +1486,7 @@ check_apache2evolinuxconf() {
 }
 check_backportsconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_BACKPORTSCONF"
 
     if is_level_in_range ${level}; then
@@ -1495,7 +1496,7 @@ check_backportsconf() {
 }
 check_bind9munin() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_BIND9MUNIN"
 
     if is_level_in_range ${level}; then
@@ -1508,7 +1509,7 @@ check_bind9munin() {
 }
 check_bind9logrotate() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_BIND9LOGROTATE"
 
     if is_level_in_range ${level}; then
@@ -1519,7 +1520,7 @@ check_bind9logrotate() {
 }
 check_drbd_two_primaries() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_DRBDTWOPRIMARIES"
 
     if is_level_in_range ${level}; then
@@ -1538,7 +1539,7 @@ check_drbd_two_primaries() {
 }
 check_broadcomfirmware() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_BROADCOMFIRMWARE"
 
     if is_level_in_range ${level}; then
@@ -1556,7 +1557,7 @@ check_broadcomfirmware() {
 }
 check_hardwareraidtool() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_HARDWARERAIDTOOL"
 
     if is_level_in_range ${level}; then
@@ -1579,7 +1580,7 @@ check_hardwareraidtool() {
 }
 check_log2mailsystemdunit() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LOG2MAILSYSTEMDUNIT"
 
     if is_level_in_range ${level}; then
@@ -1591,7 +1592,7 @@ check_log2mailsystemdunit() {
 }
 check_systemduserunit() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SYSTEMDUSERUNIT"
 
     if is_level_in_range ${level}; then
@@ -1604,7 +1605,7 @@ check_systemduserunit() {
 }
 check_listupgrade() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LISTUPGRADE"
 
     if is_level_in_range ${level}; then
@@ -1616,7 +1617,7 @@ check_listupgrade() {
 }
 check_mariadbevolinuxconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MARIADBEVOLINUXCONF"
 
     if is_level_in_range ${level}; then
@@ -1629,7 +1630,7 @@ check_mariadbevolinuxconf() {
 }
 check_sql_backup() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SQL_BACKUP"
 
     if is_level_in_range ${level}; then
@@ -1655,7 +1656,7 @@ check_sql_backup() {
 }
 check_postgres_backup() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_POSTGRES_BACKUP"
 
     if is_level_in_range ${level}; then
@@ -1678,7 +1679,7 @@ check_postgres_backup() {
 }
 check_mongo_backup() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MONGO_BACKUP"
 
     if is_level_in_range ${level}; then
@@ -1710,7 +1711,7 @@ check_mongo_backup() {
 }
 check_ldap_backup() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LDAP_BACKUP"
 
     if is_level_in_range ${level}; then
@@ -1735,7 +1736,7 @@ check_ldap_backup() {
 }
 check_redis_backup() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_REDIS_BACKUP"
 
     if is_level_in_range ${level}; then
@@ -1772,7 +1773,7 @@ check_redis_backup() {
 }
 check_elastic_backup() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_ELASTIC_BACKUP"
 
     if is_level_in_range ${level}; then
@@ -1785,7 +1786,7 @@ check_elastic_backup() {
 }
 check_mariadbsystemdunit() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MARIADBSYSTEMDUNIT"
 
     if is_level_in_range ${level}; then
@@ -1802,7 +1803,7 @@ check_mariadbsystemdunit() {
 }
 check_mysqlmunin() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=3
     tag="IS_MYSQLMUNIN"
 
     if is_level_in_range ${level}; then
@@ -1814,18 +1815,18 @@ check_mysqlmunin() {
                 mysql_myisam_indexes mysql_qcache mysql_qcache_mem \
                 mysql_sorts mysql_tmp_tables; do
 
-                if [[ ! -L /etc/munin/plugins/$file ]]; then
-                    failed "${level}" "${tag}" "missing munin plugin '$file'"
+                if [[ ! -L /etc/munin/plugins/${file} ]]; then
+                    failed "${level}" "${tag}" "missing munin plugin '${file}'"
                 fi
             done
             munin-run mysql_commands 2> /dev/null > /dev/null
-            test $? -eq 0 || failed "${level}" "${tag}" "Munin plugin mysql_commands returned an error"
+            test $? -eq 0 || failed "${level}" "${tag}" "Munin plugin 'mysql_commands' returned an error"
         fi
     fi
 }
 check_mysqlnrpe() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MYSQLNRPE"
 
     if is_level_in_range ${level}; then
@@ -1845,7 +1846,7 @@ check_mysqlnrpe() {
 }
 check_phpevolinuxconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_PHPEVOLINUXCONF"
 
     if is_level_in_range ${level}; then
@@ -1863,7 +1864,7 @@ check_phpevolinuxconf() {
 }
 check_squidlogrotate() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SQUIDLOGROTATE"
 
     if is_level_in_range ${level}; then
@@ -1875,7 +1876,7 @@ check_squidlogrotate() {
 }
 check_squidevolinuxconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SQUIDEVOLINUXCONF"
 
     if is_level_in_range ${level}; then
@@ -1893,7 +1894,7 @@ check_squidevolinuxconf() {
 }
 check_duplicate_fs_label() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_DUPLICATE_FS_LABEL"
 
     if is_level_in_range ${level}; then
@@ -1922,7 +1923,7 @@ check_duplicate_fs_label() {
 }
 check_evolix_user() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_EVOLIX_USER"
 
     if is_level_in_range ${level}; then
@@ -1932,7 +1933,7 @@ check_evolix_user() {
 }
 check_evolix_group() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_EVOLIX_GROUP"
 
     if is_level_in_range ${level}; then
@@ -1945,7 +1946,7 @@ check_evolix_group() {
 }
 check_evoacme_cron() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_EVOACME_CRON"
 
     if is_level_in_range ${level}; then
@@ -1959,7 +1960,7 @@ check_evoacme_cron() {
 }
 check_evoacme_livelinks() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_EVOACME_LIVELINKS"
 
     if is_level_in_range ${level}; then
@@ -1988,7 +1989,7 @@ check_evoacme_livelinks() {
 }
 check_apache_confenabled() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_APACHE_CONFENABLED"
 
     if is_level_in_range ${level}; then
@@ -2005,7 +2006,7 @@ check_apache_confenabled() {
 }
 check_meltdown_spectre() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MELTDOWN_SPECTRE"
 
     if is_level_in_range ${level}; then
@@ -2018,7 +2019,7 @@ check_meltdown_spectre() {
 }
 check_old_home_dir() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_OLD_HOME_DIR"
 
     if is_level_in_range ${level}; then
@@ -2036,7 +2037,7 @@ check_old_home_dir() {
 }
 check_tmp_1777() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_TMP_1777"
 
     if is_level_in_range ${level}; then
@@ -2062,7 +2063,7 @@ check_tmp_1777() {
 }
 check_root_0700() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_ROOT_0700"
 
     if is_level_in_range ${level}; then
@@ -2073,7 +2074,7 @@ check_root_0700() {
 }
 check_usrsharescripts() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_USRSHARESCRIPTS"
 
     if is_level_in_range ${level}; then
@@ -2084,7 +2085,7 @@ check_usrsharescripts() {
 }
 check_sshpermitrootno() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SSHPERMITROOTNO"
 
     if is_level_in_range ${level}; then
@@ -2101,7 +2102,7 @@ check_sshpermitrootno() {
 }
 check_evomaintenanceusers() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_EVOMAINTENANCEUSERS"
 
     if is_level_in_range ${level}; then
@@ -2118,7 +2119,7 @@ check_evomaintenanceusers() {
 }
 check_evomaintenanceconf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_EVOMAINTENANCECONF"
 
     if is_level_in_range ${level}; then
@@ -2140,7 +2141,7 @@ check_evomaintenanceconf() {
 }
 check_privatekeyworldreadable() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_PRIVKEYWOLRDREADABLE"
 
     if is_level_in_range ${level}; then
@@ -2157,7 +2158,7 @@ check_privatekeyworldreadable() {
 }
 check_evobackup_incs() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_EVOBACKUP_INCS"
 
     if is_level_in_range ${level}; then
@@ -2175,7 +2176,7 @@ check_evobackup_incs() {
 }
 check_osprober() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_OSPROBER"
 
     if is_level_in_range ${level}; then
@@ -2187,7 +2188,7 @@ check_osprober() {
 }
 check_apt_valid_until() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_APT_VALID_UNTIL"
 
     if is_level_in_range ${level}; then
@@ -2203,7 +2204,7 @@ check_apt_valid_until() {
 }
 check_chrooted_binary_uptodate() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_CHROOTED_BINARY_UPTODATE"
 
     if is_level_in_range ${level}; then
@@ -2230,7 +2231,7 @@ check_chrooted_binary_uptodate() {
 }
 check_nginx_letsencrypt_uptodate() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NGINX_LETSENCRYPT_UPTODATE"
 
     if is_level_in_range ${level}; then
@@ -2248,7 +2249,7 @@ check_nginx_letsencrypt_uptodate() {
 }
 check_wkhtmltopdf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_WKHTMLTOPDF"
 
     if is_level_in_range ${level}; then
@@ -2257,7 +2258,7 @@ check_wkhtmltopdf() {
 }
 check_lxc_wkhtmltopdf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LXC_WKHTMLTOPDF"
 
     if is_level_in_range ${level}; then
@@ -2275,7 +2276,7 @@ check_lxc_wkhtmltopdf() {
 }
 check_lxc_container_resolv_conf() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LXC_CONTAINER_RESOLV_CONF"
 
     if is_level_in_range ${level}; then
@@ -2305,7 +2306,7 @@ check_lxc_container_resolv_conf() {
 # Check that there are containers if lxc is installed.
 check_no_lxc_container() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NO_LXC_CONTAINER"
 
     if is_level_in_range ${level}; then
@@ -2320,7 +2321,7 @@ check_no_lxc_container() {
 # Check that in LXC containers, phpXX-fpm services have UMask set to 0007.
 check_lxc_php_fpm_service_umask_set() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LXC_PHP_FPM_SERVICE_UMASK_SET"
 
     if is_level_in_range ${level}; then
@@ -2348,7 +2349,7 @@ check_lxc_php_fpm_service_umask_set() {
 # Check that LXC containers have the proper Debian version.
 check_lxc_php_bad_debian_version() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LXC_PHP_BAD_DEBIAN_VERSION"
 
     if is_level_in_range ${level}; then
@@ -2379,7 +2380,7 @@ check_lxc_php_bad_debian_version() {
 }
 check_lxc_openssh() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LXC_OPENSSH"
 
     if is_level_in_range ${level}; then
@@ -2397,7 +2398,7 @@ check_lxc_openssh() {
 }
 check_lxc_opensmtpd() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_LXC_OPENSMTPD"
 
     if is_level_in_range ${level}; then
@@ -2415,7 +2416,7 @@ check_lxc_opensmtpd() {
 }
 check_monitoringctl() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_MONITORINGCTL"
 
     if is_level_in_range ${level}; then
@@ -2426,7 +2427,7 @@ check_monitoringctl() {
 }
 check_smartmontools() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_SMARTMONTOOLS"
 
     if is_level_in_range ${level}; then
@@ -2522,7 +2523,7 @@ get_version() {
 }
 check_version() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_CHECK_VERSIONS"
 
     if is_level_in_range ${level}; then
@@ -2555,7 +2556,7 @@ add_to_path() {
 }
 check_versions() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_CHECK_VERSIONS"
 
     if is_level_in_range ${level}; then
@@ -2583,7 +2584,7 @@ check_versions() {
 }
 check_nrpepressure() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_NRPEPRESSURE"
 
     if is_level_in_range ${level}; then
@@ -2598,7 +2599,7 @@ check_nrpepressure() {
 }
 check_postfix_ipv6_disabled() {
     local level tag
-    level=${LEVEL_STANDARD}
+    level=2
     tag="IS_POSTFIX_IPV6_DISABLED"
 
     if is_level_in_range ${level}; then
@@ -2801,15 +2802,6 @@ readonly DATEFORMAT
 export LANG=C
 export LANGUAGE=C
 
-LEVEL_OPTIONAL=1
-readonly LEVEL_OPTIONAL
-LEVEL_STANDARD=2
-readonly LEVEL_STANDARD
-LEVEL_IMPORTANT=3
-readonly LEVEL_IMPORTANT
-LEVEL_MANDATORY=4
-readonly LEVEL_MANDATORY
-
 MIN_LEVEL=0
 MAX_LEVEL=9
 
@@ -2861,10 +2853,9 @@ while :; do
         --min-level)
                 shift
                 case $1 in
-                    ${LEVEL_OPTIONAL}|OPTIONAL|optional)    MIN_LEVEL=${LEVEL_OPTIONAL} ;;
-                    ${LEVEL_STANDARD}|STANDARD|standard)    MIN_LEVEL=${LEVEL_STANDARD} ;;
-                    ${LEVEL_IMPORTANT}|IMPORTANT|important) MIN_LEVEL=${LEVEL_IMPORTANT} ;;
-                    ${LEVEL_MANDATORY}|MANDATORY|mandatory) MIN_LEVEL=${LEVEL_MANDATORY} ;;
+                    [0-9])
+                        MIN_LEVEL=$1
+                        ;;
                     *)
                         printf 'ERROR: invalid value for --min-level option: %s\n' "$1" >&2
                         exit 1
@@ -2874,10 +2865,9 @@ while :; do
         --max-level)
                 shift
                 case $1 in
-                    ${LEVEL_OPTIONAL}|OPTIONAL|optional)    MAX_LEVEL=${LEVEL_OPTIONAL} ;;
-                    ${LEVEL_STANDARD}|STANDARD|standard)    MAX_LEVEL=${LEVEL_STANDARD} ;;
-                    ${LEVEL_IMPORTANT}|IMPORTANT|important) MAX_LEVEL=${LEVEL_IMPORTANT} ;;
-                    ${LEVEL_MANDATORY}|MANDATORY|mandatory) MAX_LEVEL=${LEVEL_MANDATORY} ;;
+                    [0-9])
+                        MAX_LEVEL=$1
+                        ;;
                     *)
                         printf 'ERROR: invalid value for --max-level option: %s\n' "$1" >&2
                         exit 1
@@ -2918,7 +2908,9 @@ files_to_cleanup=""
 trap cleanup EXIT INT TERM
 
 log '-----------------------------------------------'
-log "Running ${PROGNAME} ${VERSION}..."
+log "Running ${PROGNAME} ${VERSION} (levels: ${MIN_LEVEL}-${MAX_LEVEL})"
+
+
 
 # Log config file content
 if [ -f "${CONFIGFILE}" ]; then

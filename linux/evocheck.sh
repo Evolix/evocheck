@@ -127,7 +127,9 @@ check_lsbrelease() {
                 ## only the major version matters
                 lhs=$(${LSB_RELEASLEVEL_BIN} --release --short | cut -d "." -f 1)
                 rhs=$(cut -d "." -f 1 < /etc/debian_version)
-                test "$lhs" = "$rhs" || failed "${LEVEL}" "${TAG}" "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})"
+                if [ "$lhs" != "$rhs" ]; then
+                    failed "${LEVEL}" "${TAG}" "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})"
+                fi
             else
                 failed "${LEVEL}" "${TAG}" "lsb_release is missing or not executable"
             fi
@@ -1329,10 +1331,12 @@ check_gitperms_lxc() {
                 if lxc-info --name "${container_name}" > /dev/null; then
                     rootfs="${lxc_path}/${container_name}/rootfs"
                     GIT_DIR="${rootfs}/etc/.git"
-                    if test -d $GIT_DIR; then
+                    if test -d "${GIT_DIR}"; then
                         expected="700"
-                        actual=$(stat -c "%a" $GIT_DIR)
-                        [ "$expected" = "$actual" ] || failed "${LEVEL}" "${TAG}" "$GIT_DIR must be $expected (in container ${container_name})"
+                        actual=$(stat -c "%a" "${GIT_DIR}")
+                        if [ "${expected}" != "${actual}" ]; then
+                            failed "${LEVEL}" "${TAG}" "$GIT_DIR must be $expected (in container ${container_name})"
+                        fi
                     fi
                 fi
             done

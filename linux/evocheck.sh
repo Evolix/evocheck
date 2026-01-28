@@ -2587,9 +2587,7 @@ check_nrpepressure() {
     tag="IS_NRPEPRESSURE"
 
     if is_level_in_range ${level}; then
-        # Taken from detect_os function
-        DEBIAN_MAIN_VERSION=$(cut -d "." -f 1 < /etc/debian_version)
-        if [ "${DEBIAN_MAIN_VERSION}" -ge 12 ]; then
+        if evo::os-release::is_debian 12 ge; then
             /usr/local/bin/monitoringctl status pressure_cpu > /dev/null 2>&1
             rc="$?"
             if [ "${rc}" -ne 0 ]; then

@@ -72,7 +72,7 @@ is_installed() {
 
 log() {
     local date msg
-    date=$(/bin/date +"${DATLEVEL_FORMAT}")
+    date=$(/bin/date +"${DATE_FORMAT}")
     msg="${1:-$(cat /dev/stdin)}"
     
     printf "[%s] %s: %s\\n" "${date}" "${PROGNAME}" "${msg}" >> "${LOGFILE}"
@@ -119,11 +119,11 @@ is_level_in_range() {
 # check functions
 
 check_lsbrelease() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LSBRELEASE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LSBRELEASE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if evo::os-release::is_debian 13 lt; then
             LSB_RELEASLEVEL_BIN=$(command -v lsb_release)
             if [ -x "${LSB_RELEASLEVEL_BIN}" ]; then
@@ -131,135 +131,135 @@ check_lsbrelease() {
                 lhs=$(${LSB_RELEASLEVEL_BIN} --release --short | cut -d "." -f 1)
                 rhs=$(cut -d "." -f 1 < /etc/debian_version)
                 if [ "$lhs" != "$rhs" ]; then
-                    failed "${LEVEL}" "${TAG}" "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})"
+                    failed "${level}" "${tag}" "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})"
                 fi
             else
-                failed "${LEVEL}" "${TAG}" "lsb_release is missing or not executable"
+                failed "${level}" "${tag}" "lsb_release is missing or not executable"
             fi
         fi
     # else
-    #     echo "${TAG} not executed (${LEVEL} not in ${MIN_LEVEL}<${MAX_LEVEL})"
+    #     echo "${tag} not executed (${level} not in ${MIN_LEVEL}<${MAX_LEVEL})"
     fi
 }
 check_dpkgwarning() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_DPKGWARNING"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_DPKGWARNING"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         test -e /etc/apt/apt.conf.d/z-evolinux.conf \
-            || failed "${LEVEL}" "${TAG}" "/etc/apt/apt.conf.d/z-evolinux.conf is missing"
+            || failed "${level}" "${tag}" "/etc/apt/apt.conf.d/z-evolinux.conf is missing"
     fi
 }
 # Check if localhost, localhost.localdomain and localhost.$mydomain are set in Postfix mydestination option.
 check_postfix_mydestination() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_POSTFIX_MYDESTINATION"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_POSTFIX_MYDESTINATION"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # shellcheck disable=SC2016
         if ! grep mydestination /etc/postfix/main.cf | grep --quiet --extended-regexp 'localhost([[:blank:]]|$)'; then
-            failed "${LEVEL}" "${TAG}" "'localhost' is missing in Postfix mydestination option."
+            failed "${level}" "${tag}" "'localhost' is missing in Postfix mydestination option."
         fi
         if ! grep mydestination /etc/postfix/main.cf | grep --quiet --fixed-strings 'localhost.localdomain'; then
-            failed "${LEVEL}" "${TAG}" "'localhost.localdomain' is missing in Postfix mydestination option."
+            failed "${level}" "${tag}" "'localhost.localdomain' is missing in Postfix mydestination option."
         fi
         if ! grep mydestination /etc/postfix/main.cf | grep --quiet --fixed-strings 'localhost.$mydomain'; then
-            failed "${LEVEL}" "${TAG}" "'localhost.\$mydomain' is missing in Postfix mydestination option."
+            failed "${level}" "${tag}" "'localhost.\$mydomain' is missing in Postfix mydestination option."
         fi
     fi
 }
     # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
 check_nrpepostfix() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG=""
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag=""
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed postfix; then
             { test -e /etc/nagios/nrpe.cfg \
                 && grep --quiet --recursive "^command.*check_mailq -M postfix" /etc/nagios/nrpe.*;
-            } || failed "${LEVEL}" "${TAG}"IS_NRPEPOSTFIX "NRPE \"check_mailq\" for postfix is missing"
+            } || failed "${level}" "${tag}"IS_NRPEPOSTFIX "NRPE \"check_mailq\" for postfix is missing"
         fi
     fi
 }
 # Check if mod-security config file is present
 check_customsudoers() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_CUSTOMSUDOERS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_CUSTOMSUDOERS"
 
-    if is_level_in_range ${LEVEL}; then
-        grep --extended-regexp --quiet --recursive "umask=0077" /etc/sudoers* || failed "${LEVEL}" "${TAG}" "missing umask=0077 in sudoers file"
+    if is_level_in_range ${level}; then
+        grep --extended-regexp --quiet --recursive "umask=0077" /etc/sudoers* || failed "${level}" "${tag}" "missing umask=0077 in sudoers file"
     fi
 }
 check_vartmpfs() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_VARTMPFS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_VARTMPFS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if evo::os-release::is_debian 13 lt; then
             FINDMNT_BIN=$(command -v findmnt)
             if [ -x "${FINDMNT_BIN}" ]; then
-                ${FINDMNT_BIN} /var/tmp --type tmpfs --noheadings > /dev/null || failed "${LEVEL}" "${TAG}" "/var/tmp is not a tmpfs"
+                ${FINDMNT_BIN} /var/tmp --type tmpfs --noheadings > /dev/null || failed "${level}" "${tag}" "/var/tmp is not a tmpfs"
             else
-                df /var/tmp | grep --quiet tmpfs || failed "${LEVEL}" "${TAG}" "/var/tmp is not a tmpfs"
+                df /var/tmp | grep --quiet tmpfs || failed "${level}" "${tag}" "/var/tmp is not a tmpfs"
             fi
         fi
     fi
 }
 check_serveurbase() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SERVEURBASE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SERVEURBASE"
 
-    if is_level_in_range ${LEVEL}; then
-        is_installed serveur-base || failed "${LEVEL}" "${TAG}" "serveur-base package is not installed"
+    if is_level_in_range ${level}; then
+        is_installed serveur-base || failed "${level}" "${tag}" "serveur-base package is not installed"
     fi
 }
 check_logrotateconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LOGROTATECONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LOGROTATECONF"
 
-    if is_level_in_range ${LEVEL}; then
-        test -e /etc/logrotate.d/zsyslog || failed "${LEVEL}" "${TAG}" "missing zsyslog in logrotate.d"
+    if is_level_in_range ${level}; then
+        test -e /etc/logrotate.d/zsyslog || failed "${level}" "${tag}" "missing zsyslog in logrotate.d"
     fi
 }
 check_syslogconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SYSLOGCONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SYSLOGCONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Test for modern servers
         if [ ! -f /etc/rsyslog.d/10-evolinux-default.conf ]; then
             # Fallback test for legacy servers
             if ! grep --quiet --ignore-case "Syslog for Pack Evolix" /etc/*syslog*/*.conf /etc/*syslog.conf; then
-                failed "${LEVEL}" "${TAG}" "Evolix syslog config is missing"
+                failed "${level}" "${tag}" "Evolix syslog config is missing"
             fi
         fi
     fi
 }
 check_debiansecurity() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_DEBIANSECURITY"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_DEBIANSECURITY"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Look for enabled "Debian-Security" sources from the "Debian" origin
         apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
-        test $? -eq 0 || failed "${LEVEL}" "${TAG}" "missing Debian-Security repository"
+        test $? -eq 0 || failed "${level}" "${tag}" "missing Debian-Security repository"
     fi
 }
 check_debiansecurity_lxc() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_DEBIANSECURITY_LXC"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_DEBIANSECURITY_LXC"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active)
@@ -270,7 +270,7 @@ check_debiansecurity_lxc() {
                         DEBIAN_LXC_VERSION=$(cut -d "." -f 1 < "${rootfs}/etc/debian_version")
                         if [ "${DEBIAN_LXC_VERSION}" -ge 9 ]; then
                             lxc-attach --name "${container_name}" apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
-                            test $? -eq 0 || failed "${LEVEL}" "${TAG}" "missing Debian-Security repository in container ${container_name}"
+                            test $? -eq 0 || failed "${level}" "${tag}" "missing Debian-Security repository in container ${container_name}"
                         fi
                     fi
                 fi
@@ -279,11 +279,11 @@ check_debiansecurity_lxc() {
     fi
 }
 check_backports_version() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_BACKPORTS_VERSION"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_BACKPORTS_VERSION"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         local os_codename
         os_codename=$( evo::os-release::get_version_codename )
 
@@ -291,26 +291,26 @@ check_backports_version() {
         apt-cache policy | grep "\bl=Debian Backports\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
         test $? -eq 1 || ( \
             apt-cache policy | grep "\bl=Debian Backports\b" | grep --quiet "\bn=${os_codename}-backports\b" && \
-            test $? -eq 0 || failed "${LEVEL}" "${TAG}" "Debian Backports enabled for another release than ${os_codename}" )
+            test $? -eq 0 || failed "${level}" "${tag}" "Debian Backports enabled for another release than ${os_codename}" )
     fi
 }
 check_oldpub() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_OLDPUB"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_OLDPUB"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Stretch)
         apt-cache policy | grep --quiet pub.evolix.net
-        test $? -eq 1 || failed "${LEVEL}" "${TAG}" "Old pub.evolix.net repository is still enabled"
+        test $? -eq 1 || failed "${level}" "${tag}" "Old pub.evolix.net repository is still enabled"
     fi
 }
 check_oldpub_lxc() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_OLDPUB_LXC"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_OLDPUB_LXC"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Buster as Sury safeguard)
         if is_installed lxc; then
             containers_list=$( lxc-ls -1 --active )
@@ -318,43 +318,43 @@ check_oldpub_lxc() {
                 APT_CACHLEVEL_BIN=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
                 if [ -x "${APT_CACHLEVEL_BIN}" ]; then
                     lxc-attach --name "${container_name}" apt-cache policy | grep --quiet pub.evolix.net
-                    test $? -eq 1 || failed "${LEVEL}" "${TAG}" "Old pub.evolix.net repository is still enabled in container ${container_name}"
+                    test $? -eq 1 || failed "${level}" "${tag}" "Old pub.evolix.net repository is still enabled in container ${container_name}"
                 fi
             done
         fi
     fi
 }
 check_newpub() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_NEWPUB"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_NEWPUB"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Look for enabled pub.evolix.org sources
         apt-cache policy | grep "\bl=Evolix\b" | grep --quiet --invert-match php
-        test $? -eq 0 || failed "${LEVEL}" "${TAG}" "New pub.evolix.org repository is missing"
+        test $? -eq 0 || failed "${level}" "${tag}" "New pub.evolix.org repository is missing"
     fi
 }
 check_sury() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SURY"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SURY"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Look for enabled packages.sury.org sources
         apt-cache policy | grep --quiet packages.sury.org
         if [ $? -eq 0 ]; then
             apt-cache policy | grep "\bl=Evolix\b" | grep --quiet php
-            test $? -eq 0 || failed "${LEVEL}" "${TAG}" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing"
+            test $? -eq 0 || failed "${level}" "${tag}" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing"
         fi
     fi
 }
 check_sury_lxc() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SURY_LXC"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SURY_LXC"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed lxc; then
             containers_list=$( lxc-ls -1 --active )
             for container_name in ${containers_list}; do
@@ -363,7 +363,7 @@ check_sury_lxc() {
                     lxc-attach --name "${container_name}" apt-cache policy | grep --quiet packages.sury.org
                     if [ $? -eq 0 ]; then
                         lxc-attach --name "${container_name}" apt-cache policy | grep "\bl=Evolix\b" | grep --quiet php
-                        test $? -eq 0 || failed "${LEVEL}" "${TAG}" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing in container ${container_name}"
+                        test $? -eq 0 || failed "${level}" "${tag}" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing in container ${container_name}"
                     fi
                 fi
             done
@@ -371,217 +371,217 @@ check_sury_lxc() {
     fi
 }
 check_not_deb822() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_NOT_DEB822"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_NOT_DEB822"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if evo::os-release::is_debian 12 ge; then
             for source in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
                 test -f "${source}" && grep --quiet '^deb' "${source}" && \
-                    failed "${LEVEL}" "${TAG}" "${source} contains a one-line style sources.list entry, and should be converted to deb822 format"
+                    failed "${level}" "${tag}" "${source} contains a one-line style sources.list entry, and should be converted to deb822 format"
                 done
         fi
     fi
 }
 check_no_signed_by() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_NO_SIGNED_BY"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_NO_SIGNED_BY"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if evo::os-release::is_debian 12 ge; then
             for source in /etc/apt/sources.list.d/*.sources; do
                 if [ -f "${source}" ]; then
                     ( grep --quiet '^Signed-by' "${source}" && \
-                        failed "${LEVEL}" "${TAG}" "${source} contains a Source-by entry that should be capitalized as Signed-By" ) || \
+                        failed "${level}" "${tag}" "${source} contains a Source-by entry that should be capitalized as Signed-By" ) || \
                     ( grep --quiet '^Signed-By' "${source}" || \
-                        failed "${LEVEL}" "${TAG}" "${source} has no Signed-By entry" )
+                        failed "${level}" "${tag}" "${source} has no Signed-By entry" )
                 fi
             done
         fi
     fi
 }
 check_aptitude() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_APTITUDE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_APTITUDE"
 
-    if is_level_in_range ${LEVEL}; then
-        test -e /usr/bin/aptitude && failed "${LEVEL}" "${TAG}" "aptitude may not be installed on Debian >=8"
+    if is_level_in_range ${level}; then
+        test -e /usr/bin/aptitude && failed "${level}" "${tag}" "aptitude may not be installed on Debian >=8"
     fi
 }
 check_aptgetbak() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_APTGETBAK"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_APTGETBAK"
 
-    if is_level_in_range ${LEVEL}; then
-        test -e /usr/bin/apt-get.bak && failed "${LEVEL}" "${TAG}" "prohibit the installation of apt-get.bak with dpkg-divert(1)"
+    if is_level_in_range ${level}; then
+        test -e /usr/bin/apt-get.bak && failed "${level}" "${tag}" "prohibit the installation of apt-get.bak with dpkg-divert(1)"
     fi
 }
 check_usrro() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_USRRO"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_USRRO"
 
-    if is_level_in_range ${LEVEL}; then
-        grep /usr /etc/fstab | grep --quiet --extended-regexp "\bro\b" || failed "${LEVEL}" "${TAG}" "missing ro directive on fstab for /usr"
+    if is_level_in_range ${level}; then
+        grep /usr /etc/fstab | grep --quiet --extended-regexp "\bro\b" || failed "${level}" "${tag}" "missing ro directive on fstab for /usr"
     fi
 }
 check_tmpnoexec() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_TMPNOEXEC"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_TMPNOEXEC"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         FINDMNT_BIN=$(command -v findmnt)
         if [ -x "${FINDMNT_BIN}" ]; then
             options=$(${FINDMNT_BIN} --noheadings --first-only --output OPTIONS /tmp)
-            echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || failed "${LEVEL}" "${TAG}" "/tmp is not mounted with 'noexec'"
+            echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || failed "${level}" "${tag}" "/tmp is not mounted with 'noexec'"
         else
-            mount | grep "on /tmp" | grep --quiet --extended-regexp "\bnoexec\b" || failed "${LEVEL}" "${TAG}" "/tmp is not mounted with 'noexec' (WARNING: findmnt(8) is not found)"
+            mount | grep "on /tmp" | grep --quiet --extended-regexp "\bnoexec\b" || failed "${level}" "${tag}" "/tmp is not mounted with 'noexec' (WARNING: findmnt(8) is not found)"
         fi
     fi
 }
 check_homenoexec() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_HOMENOEXEC"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_HOMENOEXEC"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         FINDMNT_BIN=$(command -v findmnt)
         if [ -x "${FINDMNT_BIN}" ]; then
             options=$(${FINDMNT_BIN} --noheadings --first-only --output OPTIONS /home)
             echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || \
             ( grep --quiet --extended-regexp "/home.*noexec" /etc/fstab && \
-            failed "${LEVEL}" "${TAG}" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec'" )
+            failed "${level}" "${tag}" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec'" )
         else
             mount | grep "on /home" | grep --quiet --extended-regexp "\bnoexec\b" || \
             ( grep --quiet --extended-regexp "/home.*noexec" /etc/fstab && \
-            failed "${LEVEL}" "${TAG}" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec' (WARNING: findmnt(8) is not found)" )
+            failed "${level}" "${tag}" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec' (WARNING: findmnt(8) is not found)" )
         fi
     fi
 }
 check_mountfstab() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MOUNT_FSTAB"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MOUNT_FSTAB"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Test if lsblk available, if not skip this test...
         LSBLK_BIN=$(command -v lsblk)
         if test -x "${LSBLK_BIN}"; then
             for mountPoint in $(${LSBLK_BIN} -o MOUNTPOINT -l -n | grep '/'); do
                 grep --quiet --extended-regexp "$mountPoint\W" /etc/fstab \
-                    || failed "${LEVEL}" "${TAG}" "partition(s) detected mounted but no presence in fstab"
+                    || failed "${level}" "${tag}" "partition(s) detected mounted but no presence in fstab"
             done
         fi
     fi
 }
 check_listchangesconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LISTCHANGESCONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LISTCHANGESCONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed apt-listchanges; then
-            failed "${LEVEL}" "${TAG}" "apt-listchanges must not be installed on Debian >=9"
+            failed "${level}" "${tag}" "apt-listchanges must not be installed on Debian >=9"
         fi
     fi
 }
 check_customcrontab() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_CUSTOMCRONTAB"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_CUSTOMCRONTAB"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         found_lines=$(grep --count --extended-regexp "^(17 \*|25 6|47 6|52 6)" /etc/crontab)
-        test "$found_lines" = 4 && failed "${LEVEL}" "${TAG}" "missing custom field in crontab"
+        test "$found_lines" = 4 && failed "${level}" "${tag}" "missing custom field in crontab"
     fi
 }
 check_sshallowusers() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SSHALLOWUSERS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SSHALLOWUSERS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if evo::os-release::is_debian 12 ge; then
             if [ -d /etc/ssh/sshd_config.d/ ]; then
                 # AllowUsers or AllowGroups should be in /etc/ssh/sshd_config.d/
                 grep --extended-regexp --quiet --ignore-case --recursive "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config.d/ \
-                    || failed "${LEVEL}" "${TAG}" "missing AllowUsers or AllowGroups directive in sshd_config.d/*"
+                    || failed "${level}" "${tag}" "missing AllowUsers or AllowGroups directive in sshd_config.d/*"
             fi
             # AllowUsers or AllowGroups should not be in /etc/ssh/sshd_config
             grep --extended-regexp --quiet --ignore-case "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config \
-                && failed "${LEVEL}" "${TAG}" "AllowUsers or AllowGroups directive present in sshd_config"
+                && failed "${level}" "${tag}" "AllowUsers or AllowGroups directive present in sshd_config"
         else
             # AllowUsers or AllowGroups should be in /etc/ssh/sshd_config or /etc/ssh/sshd_config.d/
             if [ -d /etc/ssh/sshd_config.d/ ]; then
                 grep --extended-regexp --quiet --ignore-case --recursive "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config /etc/ssh/sshd_config.d/ \
-                    || failed "${LEVEL}" "${TAG}" "missing AllowUsers or AllowGroups directive in sshd_config"
+                    || failed "${level}" "${tag}" "missing AllowUsers or AllowGroups directive in sshd_config"
             else
                 grep --extended-regexp --quiet --ignore-case "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config \
-                    || failed "${LEVEL}" "${TAG}" "missing AllowUsers or AllowGroups directive in sshd_config"
+                    || failed "${level}" "${tag}" "missing AllowUsers or AllowGroups directive in sshd_config"
             fi
         fi
     fi
 }
 check_sshconfsplit() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SSHCONFSPLIT"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SSHCONFSPLIT"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if evo::os-release::is_debian 12 ge; then
             ls /etc/ssh/sshd_config.d/* > /dev/null 2> /dev/null \
-                || failed "${LEVEL}" "${TAG}" "No files under /etc/ssh/sshd_config.d"
+                || failed "${level}" "${tag}" "No files under /etc/ssh/sshd_config.d"
             diff /usr/share/openssh/sshd_config /etc/ssh/sshd_config > /dev/null 2> /dev/null \
-                || failed "${LEVEL}" "${TAG}" "Files /etc/ssh/sshd_config and /usr/share/openssh/sshd_config differ"
+                || failed "${level}" "${tag}" "Files /etc/ssh/sshd_config and /usr/share/openssh/sshd_config differ"
             for f in /etc/ssh/sshd_config.d/z-evolinux-defaults.conf /etc/ssh/sshd_config.d/zzz-evolinux-custom.conf; do
-                test -f "${f}" || failed "${LEVEL}" "${TAG}" "${f} is not a regular file"
+                test -f "${f}" || failed "${level}" "${tag}" "${f} is not a regular file"
             done
         fi
     fi
 }
 check_sshlastmatch() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SSHLASTMATCH"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SSHLASTMATCH"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if evo::os-release::is_debian 12 ge; then
             for f in /etc/ssh/sshd_config /etc/ssh/sshd_config.d/zzz-evolinux-custom.conf; do
                 if ! test -f "${f}"; then
                     continue
                 fi
                 if ! awk 'BEGIN { last = "all" } tolower($1) == "match" { last = tolower($2) } END { if (last != "all") exit 1 }' "${f}"; then
-                    failed "${LEVEL}" "${TAG}" "last Match directive is not \"Match all\" in ${f}"
+                    failed "${level}" "${tag}" "last Match directive is not \"Match all\" in ${f}"
                 fi
             done
         fi
     fi
 }
 check_tmoutprofile() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG=""
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag=""
 
-    if is_level_in_range ${LEVEL}; then
-        grep --no-messages --quiet "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || failed "${LEVEL}" "${TAG}"IS_TMOUTPROFILE "TMOUT is not set"
+    if is_level_in_range ${level}; then
+        grep --no-messages --quiet "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || failed "${level}" "${tag}"IS_TMOUTPROFILE "TMOUT is not set"
     fi
 }
 check_alert5boot() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG=""
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag=""
 
-    if is_level_in_range ${LEVEL}; then
-        grep --quiet --no-messages "^date" /usr/share/scripts/alert5.sh || failed "${LEVEL}" "${TAG}"IS_ALERT5BOOT "boot mail is not sent by alert5 init script"
+    if is_level_in_range ${level}; then
+        grep --quiet --no-messages "^date" /usr/share/scripts/alert5.sh || failed "${level}" "${tag}"IS_ALERT5BOOT "boot mail is not sent by alert5 init script"
         if [ -f /etc/systemd/system/alert5.service ]; then
-            systemctl is-enabled alert5.service -q || failed "${LEVEL}" "${TAG}"IS_ALERT5BOOT "alert5 unit is not enabled"
+            systemctl is-enabled alert5.service -q || failed "${level}" "${tag}"IS_ALERT5BOOT "alert5 unit is not enabled"
         else
-            failed "${LEVEL}" "${TAG}"IS_ALERT5BOOT "alert5 unit file is missing"
+            failed "${level}" "${tag}"IS_ALERT5BOOT "alert5 unit file is missing"
         fi
     fi
 }
@@ -589,23 +589,23 @@ is_minifirewall_native_systemd() {
     systemctl list-unit-files minifirewall.service | grep minifirewall.service | grep --quiet --invert-match generated
 }
 check_alert5minifw() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG=""
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag=""
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if ! is_minifirewall_native_systemd; then
             grep --quiet --no-messages "^/etc/init.d/minifirewall" /usr/share/scripts/alert5.sh \
-                || failed "${LEVEL}" "${TAG}"IS_ALERT5MINIFW "Minifirewall is not started by alert5 script or script is missing"
+                || failed "${level}" "${tag}"IS_ALERT5MINIFW "Minifirewall is not started by alert5 script or script is missing"
         fi
     fi
 }
 check_minifw() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MINIFW"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MINIFW"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         {
             if is_minifirewall_native_systemd; then
                 systemctl is-active minifirewall.service >/dev/null 2>&1
@@ -616,184 +616,184 @@ check_minifw() {
                     /sbin/iptables -L -n 2> /dev/null | grep --quiet --extended-regexp "^(DROP\s+(udp|17)|ACCEPT\s+(icmp|1))\s+--\s+0\.0\.0\.0\/0\s+0\.0\.0\.0\/0\s*$"
                 fi
             fi
-        } || failed "${LEVEL}" "${TAG}" "minifirewall seems not started"
+        } || failed "${level}" "${tag}" "minifirewall seems not started"
     fi
 }
 check_minifw_includes() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MINIFWINCLUDES"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MINIFWINCLUDES"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if evo::os-release::is_debian 11 ge; then
             if [ -f "/etc/default/minifirewall" ]; then
                 if grep --quiet --extended-regexp --regexp '^\s*/sbin/iptables' --regexp '^\s*/sbin/ip6tables' "/etc/default/minifirewall"; then
-                    failed "${LEVEL}" "${TAG}" "minifirewall has direct iptables invocations in /etc/default/minifirewall that should go in /etc/minifirewall.d/"
+                    failed "${level}" "${tag}" "minifirewall has direct iptables invocations in /etc/default/minifirewall that should go in /etc/minifirewall.d/"
                 fi
             fi
         fi
     fi
 }
 check_minifw_related() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MINIFW_RELATED"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MINIFW_RELATED"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if [ -f "/etc/default/minifirewall" ] || [ -d "/etc/minifirewall.d/" ]; then
             if grep --no-messages --quiet --fixed-strings "RELATED" "/etc/default/minifirewall" "/etc/minifirewall.d/"*; then
-                failed "${LEVEL}" "${TAG}" "RELATED should not be used in minifirewall configuration"
+                failed "${level}" "${tag}" "RELATED should not be used in minifirewall configuration"
             fi
         fi
     fi
 }
 check_nrpeperms() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_NRPEPERMS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_NRPEPERMS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if [ -d /etc/nagios ]; then
             nagiosDir="/etc/nagios"
             actual=$(stat --format "%a" $nagiosDir)
             expected="750"
-            test "$expected" = "$actual" || failed "${LEVEL}" "${TAG}" "${nagiosDir} must be ${expected}"
+            test "$expected" = "$actual" || failed "${level}" "${tag}" "${nagiosDir} must be ${expected}"
         fi
     fi
 }
 check_minifwperms() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MINIFWPERMS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MINIFWPERMS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if [ -f "/etc/default/minifirewall" ]; then
             actual=$(stat --format "%a" "/etc/default/minifirewall")
             expected="600"
-            test "$expected" = "$actual" || failed "${LEVEL}" "${TAG}" "/etc/default/minifirewall must be ${expected}"
+            test "$expected" = "$actual" || failed "${level}" "${tag}" "/etc/default/minifirewall must be ${expected}"
         fi
     fi
 }
 check_nrpepid() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_NRPEPID"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_NRPEPID"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if evo::os-release::is_debian 11 lt; then
             { test -e /etc/nagios/nrpe.cfg \
                 && grep --quiet "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
-            } || failed "${LEVEL}" "${TAG}" "missing or wrong pid_file directive in nrpe.cfg"
+            } || failed "${level}" "${tag}" "missing or wrong pid_file directive in nrpe.cfg"
         else
             { test -e /etc/nagios/nrpe.cfg \
                 && grep --quiet "^pid_file=/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
-            } || failed "${LEVEL}" "${TAG}" "missing or wrong pid_file directive in nrpe.cfg"
+            } || failed "${level}" "${tag}" "missing or wrong pid_file directive in nrpe.cfg"
         fi
     fi
 }
 check_grsecprocs() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_GRSECPROCS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_GRSECPROCS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if uname -a | grep --quiet grsec; then
             { grep --quiet "^command.check_total_procs..sudo" /etc/nagios/nrpe.cfg \
                 && grep --after-context=1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep --quiet "^user root";
-            } || failed "${LEVEL}" "${TAG}" "missing munin's plugin processes directive for grsec"
+            } || failed "${level}" "${tag}" "missing munin's plugin processes directive for grsec"
         fi
     fi
 }
 check_apachemunin() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_APACHEMUNIN"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_APACHEMUNIN"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if test -e /etc/apache2/apache2.conf; then
             { test -h /etc/apache2/mods-enabled/status.load \
                 && test -h /etc/munin/plugins/apache_accesses \
                 && test -h /etc/munin/plugins/apache_processes \
                 && test -h /etc/munin/plugins/apache_volume;
-            } || failed "${LEVEL}" "${TAG}" "missing munin plugins for Apache"
+            } || failed "${level}" "${tag}" "missing munin plugins for Apache"
         fi
     fi
 }
 # Verification mytop + Munin si MySQL
 check_mysqlutils() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MYSQLUTILS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MYSQLUTILS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         MYSQL_ADMIN=${MYSQL_ADMIN:-mysqladmin}
         if is_installed mysql-server; then
             # With Debian 11 and later, root can connect to MariaDB with the socket
             if evo::os-release::is_debian 11 lt; then
                 # You can configure MYSQL_ADMIN in evocheck.cf
                 if ! grep --quiet --no-messages "^user *= *${MYSQL_ADMIN}" /root/.my.cnf; then
-                    failed "${LEVEL}" "${TAG}" "${MYSQL_ADMIN} missing in /root/.my.cnf"
+                    failed "${level}" "${tag}" "${MYSQL_ADMIN} missing in /root/.my.cnf"
                 fi
             fi
             if ! test -x /usr/bin/mytop; then
                 if ! test -x /usr/local/bin/mytop; then
-                    failed "${LEVEL}" "${TAG}" "mytop binary missing"
+                    failed "${level}" "${tag}" "mytop binary missing"
                 fi
             fi
             if ! grep --quiet --no-messages '^user *=' /root/.mytop; then
-                failed "${LEVEL}" "${TAG}" "credentials missing in /root/.mytop"
+                failed "${level}" "${tag}" "credentials missing in /root/.mytop"
             fi
         fi
     fi
 }
 # Verification de la configuration du raid soft (mdadm)
 check_raidsoft() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_RAIDSOFT"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_RAIDSOFT"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if test -e /proc/mdstat && grep --quiet md /proc/mdstat; then
             { grep --quiet "^AUTOCHECK=true" /etc/default/mdadm \
                 && grep --quiet "^START_DAEMON=true" /etc/default/mdadm \
                 && grep --quiet --invert-match "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf;
-            } || failed "${LEVEL}" "${TAG}" "missing or wrong config for mdadm"
+            } || failed "${level}" "${tag}" "missing or wrong config for mdadm"
         fi
     fi
 }
 # Verification du LogFormat de AWStats
 check_awstatslogformat() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_AWSTATSLOGFORMAT"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_AWSTATSLOGFORMAT"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed apache2 awstats; then
             awstatsFile="/etc/awstats/awstats.conf.local"
             grep --quiet --extended-regexp '^LogFormat=1' $awstatsFile \
-                || failed "${LEVEL}" "${TAG}" "missing or wrong LogFormat directive in $awstatsFile"
+                || failed "${level}" "${tag}" "missing or wrong LogFormat directive in $awstatsFile"
         fi
     fi
 }
 # Verification de la présence de la config logrotate pour Munin
 check_muninlogrotate() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MUNINLOGROTATE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MUNINLOGROTATE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         { test -e /etc/logrotate.d/munin-node \
             && test -e /etc/logrotate.d/munin;
-        } || failed "${LEVEL}" "${TAG}" "missing lorotate file for munin"
+        } || failed "${level}" "${tag}" "missing lorotate file for munin"
     fi
 }    
 # Verification de l'activation de Squid dans le cas d'un pack mail
 check_squid() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SQUID"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SQUID"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         squidconffile="/etc/squid/evolinux-custom.conf"
         if is_pack_web && (is_installed squid || is_installed squid3); then
             host=$(hostname -i)
@@ -804,97 +804,97 @@ check_squid() {
                 && grep --quiet --extended-regexp "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" "/etc/default/minifirewall" \
                 && grep --quiet --extended-regexp "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* $http_port" "/etc/default/minifirewall";
             } || grep --quiet --extended-regexp "^PROXY='?on'?" "/etc/default/minifirewall" \
-            || failed "${LEVEL}" "${TAG}" "missing squid rules in minifirewall"
+            || failed "${level}" "${tag}" "missing squid rules in minifirewall"
         fi
     fi
 }
 check_evomaintenance_fw() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_EVOMAINTENANCLEVEL_FW"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_EVOMAINTENANCLEVEL_FW"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if [ -f "/etc/default/minifirewall" ]; then
             hook_db=$(grep --extended-regexp '^\s*HOOK_DB' /etc/evomaintenance.cf | tr -d ' ' | cut -d= -f2)
             rulesNumber=$(grep --count --extended-regexp "/sbin/iptables -A INPUT -p tcp --sport 5432 --dport 1024:65535 -s .* -m state --state ESTABLISHED(,RELATED)? -j ACCEPT" "/etc/default/minifirewall")
             if [ "$hook_db" = "1" ] && [ "$rulesNumber" -lt 2 ]; then
-                failed "${LEVEL}" "${TAG}" "HOOK_DB is enabled but missing evomaintenance rules in minifirewall"
+                failed "${level}" "${tag}" "HOOK_DB is enabled but missing evomaintenance rules in minifirewall"
             fi
         fi
     fi
 }
 # Verification de la conf et de l'activation de mod-deflate
 check_moddeflate() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MODDEFLATE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MODDEFLATE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         f=/etc/apache2/mods-enabled/deflate.conf
         if is_installed apache2.2; then
             { test -e $f && grep --quiet "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
                 && grep --quiet "AddOutputFilterByType DEFLATE text/css" $f \
                 && grep --quiet "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f;
-            } || failed "${LEVEL}" "${TAG}" "missing AddOutputFilterByType directive for apache mod deflate"
+            } || failed "${level}" "${tag}" "missing AddOutputFilterByType directive for apache mod deflate"
         fi
     fi
 }
 # Verification de la conf log2mail
 check_log2mailrunning() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LOG2MAILRUNNING"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LOG2MAILRUNNING"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_pack_web && is_installed log2mail; then
-            pgrep log2mail >/dev/null || failed "${LEVEL}" "${TAG}" "log2mail is not running"
+            pgrep log2mail >/dev/null || failed "${level}" "${tag}" "log2mail is not running"
         fi
     fi
 }
 check_log2mailapache() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LOG2MAILAPACHE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LOG2MAILAPACHE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         conf=/etc/log2mail/config/apache
         if is_pack_web && is_installed log2mail; then
             grep --no-messages --quiet "^file = /var/log/apache2/error.log" $conf \
-                || failed "${LEVEL}" "${TAG}" "missing log2mail directive for apache"
+                || failed "${level}" "${tag}" "missing log2mail directive for apache"
         fi
     fi
 }
 check_log2mailmysql() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LOG2MAILMYSQL"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LOG2MAILMYSQL"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_pack_web && is_installed log2mail; then
             grep --no-messages --quiet "^file = /var/log/syslog" /etc/log2mail/config/{default,mysql,mysql.conf} \
-                || failed "${LEVEL}" "${TAG}" "missing log2mail directive for mysql"
+                || failed "${level}" "${tag}" "missing log2mail directive for mysql"
         fi
     fi
 }
 check_log2mailsquid() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LOG2MAILSQUID"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LOG2MAILSQUID"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_pack_web && is_installed log2mail; then
             grep --no-messages --quiet "^file = /var/log/squid.*/access.log" /etc/log2mail/config/* \
-                || failed "${LEVEL}" "${TAG}" "missing log2mail directive for squid"
+                || failed "${level}" "${tag}" "missing log2mail directive for squid"
         fi
     fi
 }
 # Verification si bind est chroote
 check_bindchroot() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_BINDCHROOT"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_BINDCHROOT"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed bind9; then
             if netstat -utpln | grep "/named" | grep :53 | grep --quiet --invert-match --extended-regexp "(127.0.0.1|::1)"; then
                 default_conf=/etc/default/named
@@ -905,10 +905,10 @@ check_bindchroot() {
                     md5_original=$(md5sum /usr/sbin/named | cut -f 1 -d ' ')
                     md5_chrooted=$(md5sum /var/chroot-bind/usr/sbin/named | cut -f 1 -d ' ')
                     if [ "$md5_original" != "$md5_chrooted" ]; then
-                        failed "${LEVEL}" "${TAG}" "the chrooted bind binary is different than the original binary"
+                        failed "${level}" "${tag}" "the chrooted bind binary is different than the original binary"
                     fi
                 else
-                    failed "${LEVEL}" "${TAG}" "bind process is not chrooted"
+                    failed "${level}" "${tag}" "bind process is not chrooted"
                 fi
             fi
         fi
@@ -916,28 +916,28 @@ check_bindchroot() {
 }
 # /etc/network/interfaces should be present, we don't manage systemd-network yet
 check_network_interfaces() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_NETWORK_INTERFACES"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_NETWORK_INTERFACES"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if ! test -f /etc/network/interfaces; then
-            failed "${LEVEL}" "${TAG}" "systemd network configuration is not supported yet"
+            failed "${level}" "${tag}" "systemd network configuration is not supported yet"
         fi
     fi
 }
 # Verify if all if are in auto
 check_autoif() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_AUTOIF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_AUTOIF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if test -f /etc/network/interfaces; then
             interfaces=$(/sbin/ip address show up | grep "^[0-9]*:" | grep --extended-regexp --invert-match "(lo|vnet|docker|veth|tun|tap|macvtap|vrrp|lxcbr|wg)" | cut -d " " -f 2 | tr -d : | cut -d@ -f1 | tr "\n" " ")
             for interface in $interfaces; do
                 if grep --quiet --dereference-recursive "^iface $interface" /etc/network/interfaces* && ! grep --quiet --dereference-recursive "^auto $interface" /etc/network/interfaces*; then
-                    failed "${LEVEL}" "${TAG}" "Network interface \`${interface}' is statically defined but not set to auto"
+                    failed "${level}" "${tag}" "Network interface \`${interface}' is statically defined but not set to auto"
                 fi
             done
         fi
@@ -945,96 +945,96 @@ check_autoif() {
 }
 # Network conf verification
 check_interfacesgw() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_INTERFACESGW"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_INTERFACESGW"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if test -f /etc/network/interfaces; then
             number=$(grep --extended-regexp --count "^[^#]*gateway [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" /etc/network/interfaces)
-            test "$number" -gt 1 && failed "${LEVEL}" "${TAG}" "there is more than 1 IPv4 gateway"
+            test "$number" -gt 1 && failed "${level}" "${tag}" "there is more than 1 IPv4 gateway"
             number=$(grep --extended-regexp --count "^[^#]*gateway [0-9a-fA-F]+:" /etc/network/interfaces)
-            test "$number" -gt 1 && failed "${LEVEL}" "${TAG}" "there is more than 1 IPv6 gateway"
+            test "$number" -gt 1 && failed "${level}" "${tag}" "there is more than 1 IPv6 gateway"
         fi
     fi
 }
 check_interfacesnetmask() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_INTERFACESNETMASK"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_INTERFACESNETMASK"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if test -f /etc/network/interfaces; then
             addresses_number=$(grep "address" /etc/network/interfaces | grep -cv -e "hwaddress" -e "#")
             symbol_netmask_number=$(grep address /etc/network/interfaces | grep -v "#" | grep -c "/")
             text_netmask_number=$(grep "netmask" /etc/network/interfaces | grep -cv -e "#" -e "route add" -e "route del")
             if [ "$((symbol_netmask_number + text_netmask_number))" -ne "$addresses_number" ]; then
-                failed "${LEVEL}" "${TAG}" "the number of addresses configured is not equal to the number of netmask configured : one netmask is missing or duplicated"
+                failed "${level}" "${tag}" "the number of addresses configured is not equal to the number of netmask configured : one netmask is missing or duplicated"
             fi
         fi
     fi
 }
 # Verification de l’état du service networking
 check_networking_service() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_NETWORKING_SERVICE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_NETWORKING_SERVICE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if systemctl is-enabled networking.service > /dev/null; then
             if ! systemctl is-active networking.service > /dev/null; then
-                failed "${LEVEL}" "${TAG}" "networking.service is not active"
+                failed "${level}" "${tag}" "networking.service is not active"
             fi
         fi
     fi
 }
 # Verification de la mise en place d'evobackup
 check_evobackup() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_EVOBACKUP"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_EVOBACKUP"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         evobackup_found=$(find /etc/cron* -name '*evobackup*' | wc -l)
-        test "$evobackup_found" -gt 0 || failed "${LEVEL}" "${TAG}" "missing evobackup cron"
+        test "$evobackup_found" -gt 0 || failed "${level}" "${tag}" "missing evobackup cron"
     fi
 }
 # Vérification de la mise en place d'un cron de purge de la base SQLite de Fail2ban
 check_fail2ban_purge() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_FAIL2BAN_PURGE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_FAIL2BAN_PURGE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Nécessaire seulement en Debian 9 ou 10
         if evo::os-release::is_debian 11 lt; then
         if is_installed fail2ban; then
-            test -f /etc/cron.daily/fail2ban_dbpurge || failed "${LEVEL}" "${TAG}" "missing script fail2ban_dbpurge cron"
+            test -f /etc/cron.daily/fail2ban_dbpurge || failed "${level}" "${tag}" "missing script fail2ban_dbpurge cron"
         fi
         fi
     fi
 }
 # Vérification qu'il ne reste pas des jails nommées ssh non renommées en sshd
 check_ssh_fail2ban_jail_renamed() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SSH_FAIL2BAN_JAIL_RENAMED"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SSH_FAIL2BAN_JAIL_RENAMED"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed fail2ban && [ -f /etc/fail2ban/jail.local ]; then
             if grep --quiet --fixed-strings "[ssh]" /etc/fail2ban/jail.local; then
-                failed "${LEVEL}" "${TAG}" "Jail ssh must be renamed sshd in fail2ban >= 0.9."
+                failed "${level}" "${tag}" "Jail ssh must be renamed sshd in fail2ban >= 0.9."
             fi
         fi
     fi
 }
 # Vérification de l'exclusion des montages (NFS) dans les sauvegardes
 check_evobackup_exclude_mount() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_EVOBACKUP_EXCLUDLEVEL_MOUNT"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_EVOBACKUP_EXCLUDLEVEL_MOUNT"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         excludes_file=$(mktemp --tmpdir "evocheck.evobackup_exclude_mount.XXXXX")
         files_to_cleanup+=("${excludes_file}")
 
@@ -1053,7 +1053,7 @@ check_evobackup_exclude_mount() {
                     fi
                     not_excluded=$(findmnt --type nfs,nfs4,fuse.sshfs, -o target --noheadings | grep --invert-match --file="${excludes_file}")
                     for mount in ${not_excluded}; do
-                        failed "${LEVEL}" "${TAG}" "${mount} is not excluded from ${evobackup_file} backup script"
+                        failed "${level}" "${tag}" "${mount} is not excluded from ${evobackup_file} backup script"
                     done
                 fi
             fi
@@ -1062,42 +1062,42 @@ check_evobackup_exclude_mount() {
 }
 # Verification de la presence du userlogrotate
 check_userlogrotate() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_USERLOGROTATE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_USERLOGROTATE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_pack_web; then
-            test -x /etc/cron.weekly/userlogrotate || failed "${LEVEL}" "${TAG}" "missing userlogrotate cron"
+            test -x /etc/cron.weekly/userlogrotate || failed "${level}" "${tag}" "missing userlogrotate cron"
         fi
     fi
 }
 # Verification de la syntaxe de la conf d'Apache
 check_apachectl() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_APACHECTL"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_APACHECTL"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed apache2; then
             /usr/sbin/apache2ctl configtest 2>&1 | grep --quiet "^Syntax OK$" \
-                || failed "${LEVEL}" "${TAG}" "apache errors detected, run a configtest"
+                || failed "${level}" "${tag}" "apache errors detected, run a configtest"
         fi
     fi
 }
 # Check if there is regular files in Apache sites-enabled.
 check_apachesymlink() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_APACHESYMLINK"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_APACHESYMLINK"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed apache2; then
             apacheFind=$(find /etc/apache2/sites-enabled ! -type l -type f -print)
             nbApacheFind=$(wc -m <<< "$apacheFind")
             if [[ $nbApacheFind -gt 1 ]]; then
                 while read -r line; do
-                    failed "${LEVEL}" "${TAG}" "Not a symlink: $line"
+                    failed "${level}" "${tag}" "Not a symlink: $line"
                 done <<< "$apacheFind"
             fi
         fi
@@ -1105,156 +1105,156 @@ check_apachesymlink() {
 }
 # Check if there is real IP addresses in Allow/Deny directives (no trailing space, inline comments or so).
 check_apacheipinallow() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_APACHEIPINALLOW"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_APACHEIPINALLOW"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Note: Replace "exit 1" by "print" in Perl code to debug it.
         if is_installed apache2; then
             grep -I --recursive --extended-regexp "^[^#] *(Allow|Deny) from" /etc/apache2/ \
                 | grep --ignore-case --invert-match "from all" \
                 | grep --ignore-case --invert-match "env=" \
                 | perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)' \
-                || failed "${LEVEL}" "${TAG}" "bad (Allow|Deny) directives in apache"
+                || failed "${level}" "${tag}" "bad (Allow|Deny) directives in apache"
         fi
     fi
 }
 # Check if default Apache configuration file for munin is absent (or empty or commented).
 check_muninapacheconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MUNINAPACHECONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MUNINAPACHECONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         muninconf="/etc/apache2/conf-available/munin.conf"
         if is_installed apache2; then
             test -e $muninconf && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "$muninconf" \
-                && failed "${LEVEL}" "${TAG}" "default munin configuration may be commented or disabled"
+                && failed "${level}" "${tag}" "default munin configuration may be commented or disabled"
         fi
     fi
 }
 # Check if default Apache configuration file for phpMyAdmin is absent (or empty or commented).
 check_phpmyadminapacheconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_PHPMYADMINAPACHECONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_PHPMYADMINAPACHECONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         phpmyadminconf0="/etc/apache2/conf-available/phpmyadmin.conf"
         phpmyadminconf1="/etc/apache2/conf-enabled/phpmyadmin.conf"
         if is_installed apache2; then
             test -e "${phpmyadminconf0}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpmyadminconf0}" \
-                && failed "${LEVEL}" "${TAG}" "default phpmyadmin configuration (${phpmyadminconf0}) should be commented or disabled"
+                && failed "${level}" "${tag}" "default phpmyadmin configuration (${phpmyadminconf0}) should be commented or disabled"
             test -e "${phpmyadminconf1}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpmyadminconf1}" \
-                && failed "${LEVEL}" "${TAG}" "default phpmyadmin configuration (${phpmyadminconf1}) should be commented or disabled"
+                && failed "${level}" "${tag}" "default phpmyadmin configuration (${phpmyadminconf1}) should be commented or disabled"
         fi
     fi
 }
 # Check if default Apache configuration file for phpPgAdmin is absent (or empty or commented).
 check_phppgadminapacheconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_PHPPGADMINAPACHECONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_PHPPGADMINAPACHECONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         phppgadminconf0="/etc/apache2/conf-available/phppgadmin.conf"
         phppgadminconf1="/etc/apache2/conf-enabled/phppgadmin.conf"
         if is_installed apache2; then
             test -e "${phppgadminconf0}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phppgadminconf0}" \
-                && failed "${LEVEL}" "${TAG}" "default phppgadmin configuration (${phppgadminconf0}) should be commented or disabled"
+                && failed "${level}" "${tag}" "default phppgadmin configuration (${phppgadminconf0}) should be commented or disabled"
             test -e "${phppgadminconf1}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phppgadminconf1}" \
-                && failed "${LEVEL}" "${TAG}" "default phppgadmin configuration (${phppgadminconf1}) should be commented or disabled"
+                && failed "${level}" "${tag}" "default phppgadmin configuration (${phppgadminconf1}) should be commented or disabled"
         fi
     fi
 }
 # Check if default Apache configuration file for phpMyAdmin is absent (or empty or commented).
 check_phpldapadminapacheconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_PHPLDAPADMINAPACHECONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_PHPLDAPADMINAPACHECONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         phpldapadminconf0="/etc/apache2/conf-available/phpldapadmin.conf"
         phpldapadminconf1="/etc/apache2/conf-enabled/phpldapadmin.conf"
         if is_installed apache2; then
             test -e "${phpldapadminconf0}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpldapadminconf0}" \
-                && failed "${LEVEL}" "${TAG}" "default phpldapadmin configuration (${phpldapadminconf0}) should be commented or disabled"
+                && failed "${level}" "${tag}" "default phpldapadmin configuration (${phpldapadminconf0}) should be commented or disabled"
             test -e "${phpldapadminconf1}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpldapadminconf1}" \
-                && failed "${LEVEL}" "${TAG}" "default phpldapadmin configuration (${phpldapadminconf1}) should be commented or disabled"
+                && failed "${level}" "${tag}" "default phpldapadmin configuration (${phpldapadminconf1}) should be commented or disabled"
         fi
     fi
 }
 # Verification si le système doit redémarrer suite màj kernel.
 check_kerneluptodate() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_KERNELUPTODATE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_KERNELUPTODATE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed linux-image*; then
             # shellcheck disable=SC2012
             kernel_installed_at=$(date -d "$(ls --full-time -lcrt /boot/*lin* | tail -n1 | awk '{print $6}')" +%s)
             last_reboot_at=$(($(date +%s) - $(cut -f1 -d '.' /proc/uptime)))
             if [ "$kernel_installed_at" -gt "$last_reboot_at" ]; then
-                failed "${LEVEL}" "${TAG}" "machine is running an outdated kernel, reboot advised"
+                failed "${level}" "${tag}" "machine is running an outdated kernel, reboot advised"
             fi
         fi
     fi
 }
 # Check if the server is running for more than a year.
 check_uptime() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_UPTIME"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_UPTIME"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed linux-image*; then
             limit=$(date -d "now - 2 year" +%s)
             last_reboot_at=$(($(date +%s) - $(cut -f1 -d '.' /proc/uptime)))
             if [ "$limit" -gt "$last_reboot_at" ]; then
-                failed "${LEVEL}" "${TAG}" "machine has an uptime of more than 2 years, reboot on new kernel advised"
+                failed "${level}" "${tag}" "machine has an uptime of more than 2 years, reboot on new kernel advised"
             fi
         fi
     fi
 }
 # Check if munin-node running and RRD files are up to date.
 check_muninrunning() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MUNINRUNNING"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MUNINRUNNING"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if ! pgrep munin-node >/dev/null; then
-            failed "${LEVEL}" "${TAG}" "Munin is not running"
+            failed "${level}" "${tag}" "Munin is not running"
         elif [ -d "/var/lib/munin/" ] && [ -d "/var/cache/munin/" ]; then
             limit=$(date +"%s" -d "now - 10 minutes")
 
             if [ -n "$(find /var/lib/munin/ -name '*load-g.rrd')" ]; then
                 updated_at=$(stat -c "%Y" /var/lib/munin/*/*load-g.rrd |sort |tail -1)
-                [ "$limit" -gt "$updated_at" ] && failed "${LEVEL}" "${TAG}" "Munin load RRD has not been updated in the last 10 minutes"
+                [ "$limit" -gt "$updated_at" ] && failed "${level}" "${tag}" "Munin load RRD has not been updated in the last 10 minutes"
             else
-                failed "${LEVEL}" "${TAG}" "Munin is not installed properly (load RRD not found)"
+                failed "${level}" "${tag}" "Munin is not installed properly (load RRD not found)"
             fi
 
             if [ -n "$(find  /var/cache/munin/www/ -name 'load-day.png')" ]; then
                 updated_at=$(stat -c "%Y" /var/cache/munin/www/*/*/load-day.png |sort |tail -1)
-                grep --no-messages --quiet "^graph_strategy cron" /etc/munin/munin.conf && [ "$limit" -gt "$updated_at" ] && failed "${LEVEL}" "${TAG}" "Munin load PNG has not been updated in the last 10 minutes"
+                grep --no-messages --quiet "^graph_strategy cron" /etc/munin/munin.conf && [ "$limit" -gt "$updated_at" ] && failed "${level}" "${tag}" "Munin load PNG has not been updated in the last 10 minutes"
             else
-                failed "${LEVEL}" "${TAG}" "Munin is not installed properly (load PNG not found)"
+                failed "${level}" "${tag}" "Munin is not installed properly (load PNG not found)"
             fi
         else
-            failed "${LEVEL}" "${TAG}" "Munin is not installed properly (main directories are missing)"
+            failed "${level}" "${tag}" "Munin is not installed properly (main directories are missing)"
         fi
     fi
 }
 # Check if files in /home/backup/ are up-to-date
 check_backupuptodate() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_BACKUPUPTODATE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_BACKUPUPTODATE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         backup_dir="/home/backup"
         if [ -d "${backup_dir}" ]; then
             if [ -n "$(ls -A ${backup_dir})" ]; then
@@ -1263,34 +1263,34 @@ check_backupuptodate() {
                     updated_at=$(stat -c "%Y" "$file")
 
                     if [ "$limit" -gt "$updated_at" ]; then
-                        failed "${LEVEL}" "${TAG}" "$file has not been backed up"
+                        failed "${level}" "${tag}" "$file has not been backed up"
                     fi
                 done
             else
-                failed "${LEVEL}" "${TAG}" "${backup_dir}/ is empty"
+                failed "${level}" "${tag}" "${backup_dir}/ is empty"
             fi
         else
-            failed "${LEVEL}" "${TAG}" "${backup_dir}/ is missing"
+            failed "${level}" "${tag}" "${backup_dir}/ is missing"
         fi
     fi
 }
 check_etcgit() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_ETCGIT"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_ETCGIT"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         export GIT_DIR="/etc/.git" GIT_WORK_TREE="/etc"
         git rev-parse --is-inside-work-tree > /dev/null 2>&1 \
-            || failed "${LEVEL}" "${TAG}" "/etc is not a git repository"
+            || failed "${level}" "${tag}" "/etc is not a git repository"
     fi
 }
 check_etcgit_lxc() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_ETCGIT_LXC"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_ETCGIT_LXC"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active)
@@ -1300,7 +1300,7 @@ check_etcgit_lxc() {
                     export GIT_DIR="${rootfs}/etc/.git"
                     export GIT_WORK_TREE="${rootfs}/etc"
                     git rev-parse --is-inside-work-tree > /dev/null 2>&1 \
-                        || failed "${LEVEL}" "${TAG}" "/etc is not a git repository in container ${container_name}"
+                        || failed "${level}" "${tag}" "/etc is not a git repository in container ${container_name}"
                 fi
             done
         fi
@@ -1308,10 +1308,10 @@ check_etcgit_lxc() {
 }
 # Check if /etc/.git/ has read/write permissions for root only.
 check_gitperms() {
-    local LEVEL TAG RC
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_GITPERMS"
-    RC=0
+    local level tag rc
+    level=${LEVEL_STANDARD}
+    tag="IS_GITPERMS"
+    rc=0
     DOC=$(cat <<EODOC
 # Git repositories must have "700" permissions.
 # 
@@ -1322,27 +1322,27 @@ check_gitperms() {
 EODOC
 )
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         for GIT_DIR in "/etc/.git" "/etc/bind.git" "/usr/share/scripts/.git"; do
             if [ -d "${GIT_DIR}" ]; then
                 expected="700"
                 actual=$(stat -c "%a" $GIT_DIR)
                 if [ "${expected}" != "${actual}" ]; then
-                    RC=1
-                    failed "${LEVEL}" "${TAG}" "${GIT_DIR} must be ${expected}"
+                    rc=1
+                    failed "${level}" "${tag}" "${GIT_DIR} must be ${expected}"
                 fi
             fi
         done
-        test "${RC}" != 0 && show_doc "${DOC}"
+        test "${rc}" != 0 && show_doc "${DOC}"
     fi
 }
 check_gitperms_lxc() {
-    local LEVEL TAG RC
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_GITPERMS_LXC"
-    RC=0
+    local level tag rc
+    level=${LEVEL_STANDARD}
+    tag="IS_GITPERMS_LXC"
+    rc=0
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active)
@@ -1354,12 +1354,12 @@ check_gitperms_lxc() {
                         expected="700"
                         actual=$(stat -c "%a" "${GIT_DIR}")
                         if [ "${expected}" != "${actual}" ]; then
-                            failed "${LEVEL}" "${TAG}" "$GIT_DIR must be $expected (in container ${container_name})"
+                            failed "${level}" "${tag}" "$GIT_DIR must be $expected (in container ${container_name})"
                         fi
                     fi
                 fi
             done
-            test ${RC} != 0 && is_verbose && cat <<EODOC
+            test ${rc} != 0 && is_verbose && cat <<EODOC
 Git repositories must have "700" permissions.
 
 Fix with:
@@ -1372,11 +1372,11 @@ EODOC
 }
 # Check if no package has been upgraded since $limit.
 check_notupgraded() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_NOTUPGRADED"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_NOTUPGRADED"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         last_upgrade=0
         upgraded=false
         for log in /var/log/dpkg.log*; do
@@ -1403,19 +1403,19 @@ check_notupgraded() {
         fi
         # Check install_date if the system never received an upgrade
         if [ "$last_upgrade" -eq 0 ]; then
-            [ "$install_date" -lt "$limit" ] && failed "${LEVEL}" "${TAG}" "The system has never been updated"
+            [ "$install_date" -lt "$limit" ] && failed "${level}" "${tag}" "The system has never been updated"
         else
-            [ "$last_upgrade" -lt "$limit" ] && failed "${LEVEL}" "${TAG}" "The system hasn't been updated for too long"
+            [ "$last_upgrade" -lt "$limit" ] && failed "${level}" "${tag}" "The system hasn't been updated for too long"
         fi
     fi
 }
 # Check if reserved blocks for root is at least 5% on every mounted partitions.
 check_tune2fs_m5() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_TUNE2FS_M5"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_TUNE2FS_M5"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         min=5
         parts=$(grep --extended-regexp "ext(3|4)" /proc/mounts | cut -d ' ' -f1 | tr -s '\n' ' ')
         FINDMNT_BIN=$(command -v findmnt)
@@ -1436,229 +1436,229 @@ check_tune2fs_m5() {
                 else
                     mount="unknown mount point"
                 fi
-                failed "${LEVEL}" "${TAG}" "Partition ${part} (${mount}) has less than ${min}% reserved blocks (${percentage}%)"
+                failed "${level}" "${tag}" "Partition ${part} (${mount}) has less than ${min}% reserved blocks (${percentage}%)"
             fi
         done
     fi
 }
 check_evolinuxsudogroup() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_EVOLINUXSUDOGROUP"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_EVOLINUXSUDOGROUP"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if grep --quiet "^evolinux-sudo:" /etc/group; then
             if [ -f /etc/sudoers.d/evolinux ]; then
                 grep --quiet --extended-regexp '^%evolinux-sudo +ALL ?= ?\(ALL:ALL\) ALL' /etc/sudoers.d/evolinux \
-                    || failed "${LEVEL}" "${TAG}" "missing evolinux-sudo directive in sudoers file"
+                    || failed "${level}" "${tag}" "missing evolinux-sudo directive in sudoers file"
             fi
         fi
     fi
 }
 check_userinadmgroup() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_USERINADMGROUP"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_USERINADMGROUP"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         users=$(grep "^evolinux-sudo:" /etc/group | awk -F: '{print $4}' | tr ',' ' ')
         for user in $users; do
             if ! groups "$user" | grep --quiet adm; then
-                failed "${LEVEL}" "${TAG}" "User $user doesn't belong to \`adm' group"
+                failed "${level}" "${tag}" "User $user doesn't belong to \`adm' group"
             fi
         done
     fi
 }
 check_apache2evolinuxconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_APACHE2EVOLINUXCONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_APACHE2EVOLINUXCONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed apache2; then
             { test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
                 && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
                 && test -f /etc/apache2/ipaddr_whitelist.conf;
-            } || failed "${LEVEL}" "${TAG}" "missing custom evolinux apache config"
+            } || failed "${level}" "${tag}" "missing custom evolinux apache config"
         fi
     fi
 }
 check_backportsconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_BACKPORTSCONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_BACKPORTSCONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         grep --quiet --no-messages --extended-regexp "^[^#].*backports" /etc/apt/sources.list \
-            && failed "${LEVEL}" "${TAG}" "backports can't be in main sources list"
+            && failed "${level}" "${tag}" "backports can't be in main sources list"
     fi
 }
 check_bind9munin() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_BIND9MUNIN"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_BIND9MUNIN"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed bind9; then
             { test -L /etc/munin/plugins/bind9 \
                 && test -e /etc/munin/plugin-conf.d/bind9;
-            } || failed "${LEVEL}" "${TAG}" "missing bind plugin for munin"
+            } || failed "${level}" "${tag}" "missing bind plugin for munin"
         fi
     fi
 }
 check_bind9logrotate() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_BIND9LOGROTATE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_BIND9LOGROTATE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed bind9; then
-            test -e /etc/logrotate.d/bind9 || failed "${LEVEL}" "${TAG}" "missing bind logrotate file"
+            test -e /etc/logrotate.d/bind9 || failed "${level}" "${tag}" "missing bind logrotate file"
         fi
     fi
 }
 check_drbd_two_primaries() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_DRBDTWOPRIMARIES"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_DRBDTWOPRIMARIES"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed drbd-utils; then
             if command -v drbd-overview >/dev/null; then
                 if drbd-overview 2>&1 | grep --quiet "Primary/Primary"; then
-                    failed "${LEVEL}" "${TAG}" "Some DRBD ressources have two primaries, you risk a split brain!"
+                    failed "${level}" "${tag}" "Some DRBD ressources have two primaries, you risk a split brain!"
                 fi
             elif command -v drbdadm >/dev/null; then
                 if drbdadm role all 2>&1 | grep --quiet 'Primary/Primary'; then
-                    failed "${LEVEL}" "${TAG}" "Some DRBD ressources have two primaries, you risk a split brain!"
+                    failed "${level}" "${tag}" "Some DRBD ressources have two primaries, you risk a split brain!"
                 fi
             fi
         fi
     fi
 }
 check_broadcomfirmware() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_BROADCOMFIRMWARE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_BROADCOMFIRMWARE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         LSPCI_BIN=$(command -v lspci)
         if [ -x "${LSPCI_BIN}" ]; then
             if ${LSPCI_BIN} | grep --quiet 'NetXtreme II'; then
                 { is_installed firmware-bnx2 \
                     && apt-cache policy | grep "\bl=Debian\b" | grep --quiet -v "\b,c=non-free\b"
-                } || failed "${LEVEL}" "${TAG}" "missing non-free repository"
+                } || failed "${level}" "${tag}" "missing non-free repository"
             fi
         else
-            failed "${LEVEL}" "${TAG}" "lspci not found in ${PATH}"
+            failed "${level}" "${tag}" "lspci not found in ${PATH}"
         fi
     fi
 }
 check_hardwareraidtool() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_HARDWARERAIDTOOL"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_HARDWARERAIDTOOL"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         LSPCI_BIN=$(command -v lspci)
         if [ -x "${LSPCI_BIN}" ]; then
             if ${LSPCI_BIN} | grep --quiet 'MegaRAID'; then
                 if ! { command -v perccli || command -v perccli2; } >/dev/null  ; then
                     # shellcheck disable=SC2015
                     is_installed megacli && { is_installed megaclisas-status || is_installed megaraidsas-status; } \
-                        || failed "${LEVEL}" "${TAG}" "Mega tools not found"
+                        || failed "${level}" "${tag}" "Mega tools not found"
                 fi
             fi
             if ${LSPCI_BIN} | grep --quiet 'Hewlett-Packard Company Smart Array'; then
-                is_installed cciss-vol-status || failed "${LEVEL}" "${TAG}" "cciss-vol-status not installed"
+                is_installed cciss-vol-status || failed "${level}" "${tag}" "cciss-vol-status not installed"
             fi
         else
-            failed "${LEVEL}" "${TAG}" "lspci not found in ${PATH}"
+            failed "${level}" "${tag}" "lspci not found in ${PATH}"
         fi
     fi
 }
 check_log2mailsystemdunit() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LOG2MAILSYSTEMDUNIT"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LOG2MAILSYSTEMDUNIT"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         systemctl -q is-active log2mail.service \
-            || failed "${LEVEL}" "${TAG}" "log2mail unit not running"
+            || failed "${level}" "${tag}" "log2mail unit not running"
         test -f /etc/systemd/system/log2mail.service \
-            || failed "${LEVEL}" "${TAG}" "missing log2mail unit file"
+            || failed "${level}" "${tag}" "missing log2mail unit file"
     fi
 }
 check_systemduserunit() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SYSTEMDUSERUNIT"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SYSTEMDUSERUNIT"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         awk 'BEGIN { FS = ":" } { print $1, $6 }' /etc/passwd | while read -r user dir; do
             if ls "${dir}"/.config/systemd/user/*.service > /dev/null 2> /dev/null; then
-                failed "${LEVEL}" "${TAG}" "systemd unit found for user ${user}"
+                failed "${level}" "${tag}" "systemd unit found for user ${user}"
             fi
         done
     fi
 }
 check_listupgrade() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LISTUPGRADE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LISTUPGRADE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         test -f /etc/cron.d/listupgrade \
-            || failed "${LEVEL}" "${TAG}" "missing listupgrade cron"
+            || failed "${level}" "${tag}" "missing listupgrade cron"
         test -x /usr/local/sbin/listupgrade.sh || test -x /usr/share/scripts/listupgrade.sh \
-            || failed "${LEVEL}" "${TAG}" "missing listupgrade script or not executable"
+            || failed "${level}" "${tag}" "missing listupgrade script or not executable"
     fi
 }
 check_mariadbevolinuxconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MARIADBEVOLINUXCONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MARIADBEVOLINUXCONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed mariadb-server; then
             { test -f /etc/mysql/mariadb.conf.d/z-evolinux-defaults.cnf \
                 && test -f /etc/mysql/mariadb.conf.d/zzz-evolinux-custom.cnf;
-            } || failed "${LEVEL}" "${TAG}" "missing mariadb custom config"
+            } || failed "${level}" "${tag}" "missing mariadb custom config"
             fi
     fi
 }
 check_sql_backup() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SQL_BACKUP"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SQL_BACKUP"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if (is_installed "mysql-server" || is_installed "mariadb-server"); then
             backup_dir="/home/backup"
             if [ -d "${backup_dir}" ]; then
                 # You could change the default path in /etc/evocheck.cf
                 SQL_BACKUP_PATH="${SQL_BACKUP_PATH:-$(find -H "${backup_dir}" \( -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz" \))}"
                 if [ -z "${SQL_BACKUP_PATH}" ]; then
-                    failed "${LEVEL}" "${TAG}" "No MySQL dump found"
+                    failed "${level}" "${tag}" "No MySQL dump found"
                     return 1
                 fi
                 for backup_path in ${SQL_BACKUP_PATH}; do
                     if [ ! -f "${backup_path}" ]; then
-                        failed "${LEVEL}" "${TAG}" "MySQL dump is missing (${backup_path})"
+                        failed "${level}" "${tag}" "MySQL dump is missing (${backup_path})"
                     fi
                 done
             else
-                failed "${LEVEL}" "${TAG}" "${backup_dir}/ is missing"
+                failed "${level}" "${tag}" "${backup_dir}/ is missing"
             fi
         fi
     fi
 }
 check_postgres_backup() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_POSTGRES_BACKUP"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_POSTGRES_BACKUP"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed "postgresql-9*" || is_installed "postgresql-1*"; then
             backup_dir="/home/backup"
             if [ -d "${backup_dir}" ]; then
@@ -1667,21 +1667,21 @@ check_postgres_backup() {
                 POSTGRES_BACKUP_PATH="${POSTGRES_BACKUP_PATH:-$(find -H "${backup_dir}" -iname "pg.dump.bak*")}"
                 for backup_path in ${POSTGRES_BACKUP_PATH}; do
                     if [ ! -f "${backup_path}" ]; then
-                        failed "${LEVEL}" "${TAG}" "PostgreSQL dump is missing (${backup_path})"
+                        failed "${level}" "${tag}" "PostgreSQL dump is missing (${backup_path})"
                     fi
                 done
             else
-                failed "${LEVEL}" "${TAG}" "${backup_dir}/ is missing"
+                failed "${level}" "${tag}" "${backup_dir}/ is missing"
             fi
         fi
     fi
 }
 check_mongo_backup() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MONGO_BACKUP"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MONGO_BACKUP"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed "mongodb-org-server"; then
             backup_dir="/home/backup"
             if [ -d "${backup_dir}" ]; then
@@ -1694,26 +1694,26 @@ check_mongo_backup() {
                             limit=$(date +"%s" -d "now - 2 day")
                             updated_at=$(stat -c "%Y" "$file")
                             if [ -f "$file" ] && [ "$limit" -gt "$updated_at"  ]; then
-                                failed "${LEVEL}" "${TAG}" "MongoDB hasn't been dumped for more than 2 days"
+                                failed "${level}" "${tag}" "MongoDB hasn't been dumped for more than 2 days"
                                 break
                             fi
                         fi
                     done
                 else
-                    failed "${LEVEL}" "${TAG}" "MongoDB dump directory is missing (${MONGO_BACKUP_PATH})"
+                    failed "${level}" "${tag}" "MongoDB dump directory is missing (${MONGO_BACKUP_PATH})"
                 fi
             else
-                failed "${LEVEL}" "${TAG}" "${backup_dir}/ is missing"
+                failed "${level}" "${tag}" "${backup_dir}/ is missing"
             fi
         fi
     fi
 }
 check_ldap_backup() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LDAP_BACKUP"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LDAP_BACKUP"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed slapd; then
             backup_dir="/home/backup"
             if [ -d "${backup_dir}" ]; then
@@ -1724,21 +1724,21 @@ check_ldap_backup() {
                     # Let's check for ldap/ldap-data.bak
                     LDAP_BACKUP_PATH="${backup_dir}/ldap/ldap-data.bak"
                     if ! test -f "$LDAP_BACKUP_PATH"; then
-                        failed "${LEVEL}" "${TAG}" "LDAP dump is missing (${LDAP_BACKUP_PATH})"
+                        failed "${level}" "${tag}" "LDAP dump is missing (${LDAP_BACKUP_PATH})"
                     fi
                 fi
             else
-                failed "${LEVEL}" "${TAG}"  "${backup_dir}/ is missing"
+                failed "${level}" "${tag}"  "${backup_dir}/ is missing"
             fi
         fi
     fi
 }
 check_redis_backup() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_REDIS_BACKUP"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_REDIS_BACKUP"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed redis-server; then
             backup_dir="/home/backup"
                 if [ -d "${backup_dir}" ]; then
@@ -1753,7 +1753,7 @@ check_redis_backup() {
                 n_instances=$(pgrep 'redis-server' | wc -l)
                 n_dumps=$(echo $REDIS_BACKUP_PATH | wc -w)
                 if [ ${n_dumps} -lt ${n_instances} ]; then
-                    failed "${LEVEL}" "${TAG}" "Missing Redis dump : ${n_instances} instance(s) found versus ${n_dumps} dump(s) found."
+                    failed "${level}" "${tag}" "Missing Redis dump : ${n_instances} instance(s) found versus ${n_dumps} dump(s) found."
                 fi
 
                 # Check last dump date
@@ -1761,51 +1761,51 @@ check_redis_backup() {
                 for dump in ${REDIS_BACKUP_PATH}; do
                     last_update=$(stat -c "%Z" $dump)
                     if [ "${last_update}" -lt "${age_threshold}" ]; then
-                        failed "${LEVEL}" "${TAG}" "Redis dump ${dump} is older than 2 days."
+                        failed "${level}" "${tag}" "Redis dump ${dump} is older than 2 days."
                     fi
                 done
             else
-                failed "${LEVEL}" "${TAG}" "${backup_dir}/ is missing"
+                failed "${level}" "${tag}" "${backup_dir}/ is missing"
             fi
         fi
     fi
 }
 check_elastic_backup() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_ELASTIC_BACKUP"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_ELASTIC_BACKUP"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed elasticsearch; then
             # You could change the default path in /etc/evocheck.cf
             ELASTIC_BACKUP_PATH=${ELASTIC_BACKUP_PATH:-"/home/backup-elasticsearch"}
-            test -d "$ELASTIC_BACKUP_PATH" || failed "${LEVEL}" "${TAG}" "Elastic snapshot is missing (${ELASTIC_BACKUP_PATH})"
+            test -d "$ELASTIC_BACKUP_PATH" || failed "${level}" "${tag}" "Elastic snapshot is missing (${ELASTIC_BACKUP_PATH})"
         fi
     fi
 }
 check_mariadbsystemdunit() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MARIADBSYSTEMDUNIT"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MARIADBSYSTEMDUNIT"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # TODO: check if it is still needed for bullseye
         if evo::os-release::is_debian 11 lt; then
             if is_installed mariadb-server; then
                 if systemctl -q is-active mariadb.service; then
                     test -f /etc/systemd/system/mariadb.service.d/evolinux.conf \
-                        || failed "${LEVEL}" "${TAG}" "missing systemd override for mariadb unit"
+                        || failed "${level}" "${tag}" "missing systemd override for mariadb unit"
                 fi
             fi
         fi
     fi
 }
 check_mysqlmunin() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MYSQLMUNIN"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MYSQLMUNIN"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed mariadb-server; then
             for file in mysql_bytes mysql_queries mysql_slowqueries \
                 mysql_threads mysql_connections mysql_files_tables \
@@ -1815,40 +1815,40 @@ check_mysqlmunin() {
                 mysql_sorts mysql_tmp_tables; do
 
                 if [[ ! -L /etc/munin/plugins/$file ]]; then
-                    failed "${LEVEL}" "${TAG}" "missing munin plugin '$file'"
+                    failed "${level}" "${tag}" "missing munin plugin '$file'"
                 fi
             done
             munin-run mysql_commands 2> /dev/null > /dev/null
-            test $? -eq 0 || failed "${LEVEL}" "${TAG}" "Munin plugin mysql_commands returned an error"
+            test $? -eq 0 || failed "${level}" "${tag}" "Munin plugin mysql_commands returned an error"
         fi
     fi
 }
 check_mysqlnrpe() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MYSQLNRPE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MYSQLNRPE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed mariadb-server; then
             nagios_file=~nagios/.my.cnf
             if ! test -f ${nagios_file}; then
-                failed "${LEVEL}" "${TAG}" "${nagios_file} is missing"
+                failed "${level}" "${tag}" "${nagios_file} is missing"
             elif [ "$(stat -c %U ${nagios_file})" != "nagios" ] \
                 || [ "$(stat -c %a ${nagios_file})" != "600" ]; then
-                failed "${LEVEL}" "${TAG}" "${nagios_file} has wrong permissions"
+                failed "${level}" "${tag}" "${nagios_file} has wrong permissions"
             else
                 grep --quiet --extended-regexp "command\[check_mysql\]=.*/usr/lib/nagios/plugins/check_mysql" /etc/nagios/nrpe.d/evolix.cfg \
-                || failed "${LEVEL}" "${TAG}" "check_mysql is missing"
+                || failed "${level}" "${tag}" "check_mysql is missing"
             fi
         fi
     fi
 }
 check_phpevolinuxconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_PHPEVOLINUXCONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_PHPEVOLINUXCONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         evo::os-release::is_debian 10 && phpVersion="7.3"
         evo::os-release::is_debian 11 && phpVersion="7.4"
         evo::os-release::is_debian 12 && phpVersion="8.2"
@@ -1857,28 +1857,28 @@ check_phpevolinuxconf() {
         if is_installed php; then
             { test -f "/etc/php/${phpVersion}/cli/conf.d/z-evolinux-defaults.ini" \
                 && test -f "/etc/php/${phpVersion}/cli/conf.d/zzz-evolinux-custom.ini"
-            } || failed "${LEVEL}" "${TAG}" "missing php evolinux config"
+            } || failed "${level}" "${tag}" "missing php evolinux config"
         fi
     fi
 }
 check_squidlogrotate() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SQUIDLOGROTATE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SQUIDLOGROTATE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed squid; then
             grep --quiet --regexp monthly --regexp daily /etc/logrotate.d/squid \
-                || failed "${LEVEL}" "${TAG}" "missing squid logrotate file"
+                || failed "${level}" "${tag}" "missing squid logrotate file"
         fi
     fi
 }
 check_squidevolinuxconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SQUIDEVOLINUXCONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SQUIDEVOLINUXCONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed squid; then
             { grep --quiet --no-messages "^CONFIG=/etc/squid/evolinux-defaults.conf$" /etc/default/squid \
                 && test -f /etc/squid/evolinux-defaults.conf \
@@ -1887,16 +1887,16 @@ check_squidevolinuxconf() {
                 && test -f /etc/squid/evolinux-acl.conf \
                 && test -f /etc/squid/evolinux-httpaccess.conf \
                 && test -f /etc/squid/evolinux-custom.conf;
-            } || failed "${LEVEL}" "${TAG}" "missing squid evolinux config"
+            } || failed "${level}" "${tag}" "missing squid evolinux config"
         fi
     fi
 }
 check_duplicate_fs_label() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_DUPLICATLEVEL_FS_LABEL"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_DUPLICATLEVEL_FS_LABEL"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Do it only if thereis blkid binary
         BLKID_BIN=$(command -v blkid)
         if [ -n "$BLKID_BIN" ]; then
@@ -1913,56 +1913,56 @@ check_duplicate_fs_label() {
             if [ -n "$tmpOutput" ]; then
                 # shellcheck disable=SC2086
                 labels=$(echo -n $tmpOutput | tr '\n' ' ')
-                failed "${LEVEL}" "${TAG}" "Duplicate labels: $labels"
+                failed "${level}" "${tag}" "Duplicate labels: $labels"
             fi
         else
-            failed "${LEVEL}" "${TAG}" "blkid not found in ${PATH}"
+            failed "${level}" "${tag}" "blkid not found in ${PATH}"
         fi
     fi
 }
 check_evolix_user() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_EVOLIX_USER"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_EVOLIX_USER"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         grep --quiet --extended-regexp "^evolix:" /etc/passwd \
-            && failed "${LEVEL}" "${TAG}" "evolix user should be deleted, used only for install"
+            && failed "${level}" "${tag}" "evolix user should be deleted, used only for install"
     fi
 }
 check_evolix_group() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_EVOLIX_GROUP"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_EVOLIX_GROUP"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         users=$(grep ":20..:20..:" /etc/passwd | cut -d ":" -f 1)
         for user in ${users}; do
             grep -E "^evolix:" /etc/group | grep -q -E "\b${user}\b" \
-                || failed "${LEVEL}" "${TAG}" "user \`${user}' should be in \`evolix' group"
+                || failed "${level}" "${tag}" "user \`${user}' should be in \`evolix' group"
         done
     fi
 }
 check_evoacme_cron() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_EVOACMLEVEL_CRON"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_EVOACMLEVEL_CRON"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if [ -f "/usr/local/sbin/evoacme" ]; then
             # Old cron file, should be deleted
-            test -f /etc/cron.daily/certbot && failed "${LEVEL}" "${TAG}" "certbot cron is incompatible with evoacme"
+            test -f /etc/cron.daily/certbot && failed "${level}" "${tag}" "certbot cron is incompatible with evoacme"
             # evoacme cron file should be present
-            test -f /etc/cron.daily/evoacme || failed "${LEVEL}" "${TAG}" "evoacme cron is missing"
+            test -f /etc/cron.daily/evoacme || failed "${level}" "${tag}" "evoacme cron is missing"
         fi
     fi
 }
 check_evoacme_livelinks() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_EVOACMLEVEL_LIVELINKS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_EVOACMLEVEL_LIVELINKS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         EVOACMLEVEL_BIN=$(command -v evoacme)
         if [ -x "$EVOACMLEVEL_BIN" ]; then
             # Sometimes evoacme is installed but no certificates has been generated
@@ -1979,7 +1979,7 @@ check_evoacme_livelinks() {
                     lastVersion=$(basename "$lastCertDir")
 
                     if [[ "$lastVersion" != "$actualVersion" ]]; then
-                        failed "${LEVEL}" "${TAG}" "Certificate \`$certName' hasn't been updated"
+                        failed "${level}" "${tag}" "Certificate \`$certName' hasn't been updated"
                     fi
                 done
             fi
@@ -1987,41 +1987,41 @@ check_evoacme_livelinks() {
     fi
 }
 check_apache_confenabled() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_APACHLEVEL_CONFENABLED"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_APACHLEVEL_CONFENABLED"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Starting from Jessie and Apache 2.4, /etc/apache2/conf.d/
         # must be replaced by conf-available/ and config files symlinked
         # to conf-enabled/
         if [ -f /etc/apache2/apache2.conf ]; then
             test -d /etc/apache2/conf.d/ \
-                && failed "${LEVEL}" "${TAG}" "apache's conf.d directory must not exists"
+                && failed "${level}" "${tag}" "apache's conf.d directory must not exists"
             grep --quiet 'Include conf.d' /etc/apache2/apache2.conf \
-                && failed "${LEVEL}" "${TAG}" "apache2.conf must not Include conf.d"
+                && failed "${level}" "${tag}" "apache2.conf must not Include conf.d"
         fi
     fi
 }
 check_meltdown_spectre() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MELTDOWN_SPECTRE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MELTDOWN_SPECTRE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # /sys/devices/system/cpu/vulnerabilities/
         for vuln in meltdown spectre_v1 spectre_v2; do
             test -f "/sys/devices/system/cpu/vulnerabilities/$vuln" \
-                || failed "${LEVEL}" "${TAG}" "vulnerable to $vuln"
+                || failed "${level}" "${tag}" "vulnerable to $vuln"
         done
     fi
 }
 check_old_home_dir() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_OLD_HOMLEVEL_DIR"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_OLD_HOMLEVEL_DIR"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         homeDir=${homeDir:-/home}
         for dir in "$homeDir"/*; do
             statResult=$(stat -c "%n has owner %u resolved as %U" "$dir" \
@@ -2029,21 +2029,21 @@ check_old_home_dir() {
                 | grep "UNKNOWN")
             # There is at least one dir matching
             if [[ -n "$statResult" ]]; then
-                failed "${LEVEL}" "${TAG}" "$statResult"
+                failed "${level}" "${tag}" "$statResult"
             fi
         done
     fi
 }
 check_tmp_1777() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_TMP_1777"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_TMP_1777"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         expected="1777"
 
         actual=$(stat --format "%a" /tmp)
-        test "${expected}" = "${actual}" || failed "${LEVEL}" "${TAG}" "/tmp must be ${expected}"
+        test "${expected}" = "${actual}" || failed "${level}" "${tag}" "/tmp must be ${expected}"
 
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
@@ -2053,7 +2053,7 @@ check_tmp_1777() {
                     rootfs="${lxc_path}/${container_name}/rootfs"
                     if [ -d "${rootfs}/tmp" ]; then
                         actual=$(stat --format "%a" "${rootfs}/tmp")
-                        test "${expected}" = "${actual}" || failed "${LEVEL}" "${TAG}" "${rootfs}/tmp must be ${expected}"
+                        test "${expected}" = "${actual}" || failed "${level}" "${tag}" "${rootfs}/tmp must be ${expected}"
                     fi
                 fi
             done
@@ -2061,33 +2061,33 @@ check_tmp_1777() {
     fi
 }
 check_root_0700() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_ROOT_0700"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_ROOT_0700"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         actual=$(stat --format "%a" /root)
         expected="700"
-        test "$expected" = "$actual" || failed "${LEVEL}" "${TAG}" "/root must be $expected"
+        test "$expected" = "$actual" || failed "${level}" "${tag}" "/root must be $expected"
     fi
 }
 check_usrsharescripts() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_USRSHARESCRIPTS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_USRSHARESCRIPTS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         actual=$(stat --format "%a" /usr/share/scripts)
         expected="700"
-        test "$expected" = "$actual" || failed "${LEVEL}" "${TAG}" "/usr/share/scripts must be $expected"
+        test "$expected" = "$actual" || failed "${level}" "${tag}" "/usr/share/scripts must be $expected"
     fi
 }
 check_sshpermitrootno() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SSHPERMITROOTNO"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SSHPERMITROOTNO"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # You could change the SSH port in /etc/evocheck.cf
         sshd_args="-C addr=,user=,host=,laddr=,lport=${SSH_PORT:-22}"
         if evo::os-release::is_debian 10; then
@@ -2095,118 +2095,118 @@ check_sshpermitrootno() {
         fi
         # shellcheck disable=SC2086
         if ! (sshd -T ${sshd_args} 2> /dev/null | grep --quiet --ignore-case 'permitrootlogin no'); then
-            failed "${LEVEL}" "${TAG}" "PermitRoot should be set to no"
+            failed "${level}" "${tag}" "PermitRoot should be set to no"
         fi
     fi
 }
 check_evomaintenanceusers() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_EVOMAINTENANCEUSERS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_EVOMAINTENANCEUSERS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         users=$(getent group evolinux-sudo | cut -d':' -f4 | tr ',' ' ')
         for user in $users; do
             user_home=$(getent passwd "$user" | cut -d: -f6)
             if [ -n "$user_home" ] && [ -d "$user_home" ]; then
                 if ! grep --quiet --no-messages "^trap.*sudo.*evomaintenance.sh" "${user_home}"/.*profile; then
-                    failed "${LEVEL}" "${TAG}" "${user} doesn't have an evomaintenance trap"
+                    failed "${level}" "${tag}" "${user} doesn't have an evomaintenance trap"
                 fi
             fi
         done
     fi
 }
 check_evomaintenanceconf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_EVOMAINTENANCECONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_EVOMAINTENANCECONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         f=/etc/evomaintenance.cf
         if [ -e "$f" ]; then
             perms=$(stat -c "%a" $f)
-            test "$perms" = "600" || failed "${LEVEL}" "${TAG}" "Wrong permissions on \`$f' ($perms instead of 600)"
+            test "$perms" = "600" || failed "${level}" "${tag}" "Wrong permissions on \`$f' ($perms instead of 600)"
 
             { grep "^FROM" $f | grep --quiet --invert-match "jdoe@example.com" \
                 && grep "^FULLFROM" $f | grep --quiet --invert-match "John Doe <jdoe@example.com>" \
                 && grep "^URGENCYFROM" $f | grep --quiet --invert-match "mama.doe@example.com" \
                 && grep "^URGENCYTEL" $f | grep --quiet --invert-match "06.00.00.00.00" \
                 && grep "^REALM" $f | grep --quiet --invert-match "example.com"
-            } || failed "${LEVEL}" "${TAG}" "evomaintenance is not correctly configured"
+            } || failed "${level}" "${tag}" "evomaintenance is not correctly configured"
         else
-            failed "${LEVEL}" "${TAG}" "Configuration file \`$f' is missing"
+            failed "${level}" "${tag}" "Configuration file \`$f' is missing"
         fi
     fi
 }
 check_privatekeyworldreadable() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_PRIVKEYWOLRDREADABLE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_PRIVKEYWOLRDREADABLE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # a simple globbing fails if directory is empty
         if [ -n "$(ls -A /etc/ssl/private/)" ]; then
             for f in /etc/ssl/private/*; do
                 perms=$(stat -L -c "%a" "$f")
                 if [ "${perms: -1}" != 0 ]; then
-                    failed "${LEVEL}" "${TAG}" "$f is world-readable"
+                    failed "${level}" "${tag}" "$f is world-readable"
                 fi
             done
         fi
     fi
 }
 check_evobackup_incs() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_EVOBACKUP_INCS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_EVOBACKUP_INCS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed bkctld; then
             bkctld_cron_file=${bkctld_cron_file:-/etc/cron.d/bkctld}
             if [ -f "${bkctld_cron_file}" ]; then
                 root_crontab=$(grep -v "^#" "${bkctld_cron_file}")
-                echo "${root_crontab}" | grep --quiet "bkctld inc" || failed "${LEVEL}" "${TAG}" "'bkctld inc' is missing in ${bkctld_cron_file}"
-                echo "${root_crontab}" | grep --quiet --extended-regexp "(check-incs.sh|bkctld check-incs)" || failed "${LEVEL}" "${TAG}" "'check-incs.sh' is missing in ${bkctld_cron_file}"
+                echo "${root_crontab}" | grep --quiet "bkctld inc" || failed "${level}" "${tag}" "'bkctld inc' is missing in ${bkctld_cron_file}"
+                echo "${root_crontab}" | grep --quiet --extended-regexp "(check-incs.sh|bkctld check-incs)" || failed "${level}" "${tag}" "'check-incs.sh' is missing in ${bkctld_cron_file}"
             else
-                failed "${LEVEL}" "${TAG}" "Crontab \`${bkctld_cron_file}' is missing"
+                failed "${level}" "${tag}" "Crontab \`${bkctld_cron_file}' is missing"
             fi
         fi
     fi
 }
 check_osprober() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_OSPROBER"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_OSPROBER"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed os-prober qemu-kvm; then
-            failed "${LEVEL}" "${TAG}" \
+            failed "${level}" "${tag}" \
                 "Removal of os-prober package is recommended as it can cause serious issue on KVM server"
         fi
     fi
 }
 check_apt_valid_until() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_APT_VALID_UNTIL"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_APT_VALID_UNTIL"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         aptvalidFile="/etc/apt/apt.conf.d/99no-check-valid-until"
         aptvalidText="Acquire::Check-Valid-Until no;"
         if grep --quiet --no-messages "archive.debian.org" /etc/apt/sources.list /etc/apt/sources.list.d/*; then
             if ! grep --quiet --no-messages "$aptvalidText" /etc/apt/apt.conf.d/*; then
-                failed "${LEVEL}" "${TAG}" \
+                failed "${level}" "${tag}" \
                     "As you use archive.mirror.org you need ${aptvalidFile}: ${aptvalidText}"
             fi
         fi
     fi
 }
 check_chrooted_binary_uptodate() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_CHROOTED_BINARY_UPTODATE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_CHROOTED_BINARY_UPTODATE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # list of processes to check
         process_list="sshd"
         for process_name in ${process_list}; do
@@ -2221,7 +2221,7 @@ check_chrooted_binary_uptodate() {
                     original_md5=$(md5sum "${original_bin}" | cut -f 1 -d ' ')
                     # compare md5 checksums
                     if [ "$original_md5" != "$chrooted_md5" ]; then
-                        failed "${LEVEL}" "${TAG}" "${process_bin} (${pid}) is different than ${original_bin}."
+                        failed "${level}" "${tag}" "${process_bin} (${pid}) is different than ${original_bin}."
                     fi
                 fi
             done
@@ -2229,17 +2229,17 @@ check_chrooted_binary_uptodate() {
     fi
 }
 check_nginx_letsencrypt_uptodate() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_NGINX_LETSENCRYPT_UPTODATE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_NGINX_LETSENCRYPT_UPTODATE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if [ -d /etc/nginx ]; then
             snippets=$(find /etc/nginx -type f -name "letsencrypt.conf")
             if [ -n "${snippets}" ]; then
                 while read -r snippet; do
                     if grep --quiet --extended-regexp "^\s*alias\s+/.+/\.well-known/acme-challenge" "${snippet}"; then
-                        failed "${LEVEL}" "${TAG}" "Nginx snippet ${snippet} is not compatible with Nginx on Debian 9+."
+                        failed "${level}" "${tag}" "Nginx snippet ${snippet} is not compatible with Nginx on Debian 9+."
                     fi
                 done <<< "${snippets}"
             fi
@@ -2247,38 +2247,38 @@ check_nginx_letsencrypt_uptodate() {
     fi
 }
 check_wkhtmltopdf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_WKHTMLTOPDF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_WKHTMLTOPDF"
 
-    if is_level_in_range ${LEVEL}; then
-        is_installed wkhtmltopdf && failed "${LEVEL}" "${TAG}" "wkhtmltopdf package should not be installed (cf. https://wiki.evolix.org/HowtoWkhtmltopdf)"
+    if is_level_in_range ${level}; then
+        is_installed wkhtmltopdf && failed "${level}" "${tag}" "wkhtmltopdf package should not be installed (cf. https://wiki.evolix.org/HowtoWkhtmltopdf)"
     fi
 }
 check_lxc_wkhtmltopdf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LXC_WKHTMLTOPDF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LXC_WKHTMLTOPDF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active)
             for container_name in ${containers_list}; do
                 if lxc-info --name "${container_name}" > /dev/null; then
                     rootfs="${lxc_path}/${container_name}/rootfs"
-                    test -e "${rootfs}/usr/bin/wkhtmltopdf" && failed "${LEVEL}" "${TAG}" "wkhtmltopdf should not be installed in container ${container_name}"
+                    test -e "${rootfs}/usr/bin/wkhtmltopdf" && failed "${level}" "${tag}" "wkhtmltopdf should not be installed in container ${container_name}"
                 fi
             done
         fi
     fi
 }
 check_lxc_container_resolv_conf() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LXC_CONTAINER_RESOLV_CONF"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LXC_CONTAINER_RESOLV_CONF"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed lxc; then
             current_resolvers=$(grep ^nameserver /etc/resolv.conf | sed 's/nameserver//g' )
             lxc_path=$(lxc-config lxc.lxcpath)
@@ -2290,12 +2290,12 @@ check_lxc_container_resolv_conf() {
 
                         while read -r resolver; do
                             if ! grep --quiet --extended-regexp "^nameserver\s+${resolver}" "${rootfs}/etc/resolv.conf"; then
-                                failed "${LEVEL}" "${TAG}" "resolv.conf miss-match beween host and container : missing nameserver ${resolver} in container ${container_name} resolv.conf"
+                                failed "${level}" "${tag}" "resolv.conf miss-match beween host and container : missing nameserver ${resolver} in container ${container_name} resolv.conf"
                             fi
                         done <<< "${current_resolvers}"
 
                     else
-                        failed "${LEVEL}" "${TAG}" "resolv.conf missing in container ${container_name}"
+                        failed "${level}" "${tag}" "resolv.conf missing in container ${container_name}"
                     fi
                 fi
             done
@@ -2304,26 +2304,26 @@ check_lxc_container_resolv_conf() {
 }
 # Check that there are containers if lxc is installed.
 check_no_lxc_container() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_NO_LXC_CONTAINER"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_NO_LXC_CONTAINER"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed lxc; then
             containers_count=$(lxc-ls -1 --active | wc -l)
             if [ "${containers_count}" -eq 0 ]; then
-                failed "${LEVEL}" "${TAG}" "LXC is installed but have no active container. Consider removing it."
+                failed "${level}" "${tag}" "LXC is installed but have no active container. Consider removing it."
             fi
         fi
     fi
 }
 # Check that in LXC containers, phpXX-fpm services have UMask set to 0007.
 check_lxc_php_fpm_service_umask_set() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LXC_PHP_FPM_SERVICLEVEL_UMASK_SET"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LXC_PHP_FPM_SERVICLEVEL_UMASK_SET"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed lxc; then
             containers_list=$(lxc-ls -1 --active --filter php)
             missing_umask=""
@@ -2340,18 +2340,18 @@ check_lxc_php_fpm_service_umask_set() {
                 fi
             done
             if [ -n "${missing_umask}" ]; then
-                failed "${LEVEL}" "${TAG}" "UMask is not set to 0007 in PHP-FPM services of theses containers : ${missing_umask}."
+                failed "${level}" "${tag}" "UMask is not set to 0007 in PHP-FPM services of theses containers : ${missing_umask}."
             fi
         fi
     fi
 }
 # Check that LXC containers have the proper Debian version.
 check_lxc_php_bad_debian_version() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LXC_PHP_BAD_DEBIAN_VERSION"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LXC_PHP_BAD_DEBIAN_VERSION"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active --filter php)
@@ -2360,17 +2360,17 @@ check_lxc_php_bad_debian_version() {
                 if lxc-info --name "${container_name}" > /dev/null; then
                     rootfs="${lxc_path}/${container_name}/rootfs"
                     if [ "$container_name" = "php56" ]; then
-                        grep --quiet 'VERSION_ID="8"' "${rootfs}/etc/os-release" || failed "${LEVEL}" "${TAG}" "Container ${container_name} should use Jessie"
+                        grep --quiet 'VERSION_ID="8"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Jessie"
                     elif [ "$container_name" = "php70" ]; then
-                        grep --quiet 'VERSION_ID="9"' "${rootfs}/etc/os-release" || failed "${LEVEL}" "${TAG}" "Container ${container_name} should use Stretch"
+                        grep --quiet 'VERSION_ID="9"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Stretch"
                     elif [ "$container_name" = "php73" ]; then
-                        grep --quiet 'VERSION_ID="10"' "${rootfs}/etc/os-release" || failed "${LEVEL}" "${TAG}" "Container ${container_name} should use Buster"
+                        grep --quiet 'VERSION_ID="10"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Buster"
                     elif [ "$container_name" = "php74" ]; then
-                        grep --quiet 'VERSION_ID="11"' "${rootfs}/etc/os-release" || failed "${LEVEL}" "${TAG}" "Container ${container_name} should use Bullseye"
+                        grep --quiet 'VERSION_ID="11"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Bullseye"
                     elif [ "$container_name" = "php82" ]; then
-                        grep --quiet 'VERSION_ID="12"' "${rootfs}/etc/os-release" || failed "${LEVEL}" "${TAG}" "Container ${container_name} should use Bookworm"
+                        grep --quiet 'VERSION_ID="12"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Bookworm"
                     elif [ "$container_name" = "php84" ]; then
-                        grep --quiet 'VERSION_ID="13"' "${rootfs}/etc/os-release" || failed "${LEVEL}" "${TAG}" "Container ${container_name} should use Trixie"
+                        grep --quiet 'VERSION_ID="13"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Trixie"
                     fi
                 fi
             done
@@ -2378,62 +2378,62 @@ check_lxc_php_bad_debian_version() {
     fi
 }
 check_lxc_openssh() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LXC_OPENSSH"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LXC_OPENSSH"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active)
             for container_name in ${containers_list}; do
                 if lxc-info --name "${container_name}" > /dev/null; then
                     rootfs="${lxc_path}/${container_name}/rootfs"
-                    test -e "${rootfs}/usr/sbin/sshd" && failed "${LEVEL}" "${TAG}" "openssh-server should not be installed in container ${container_name}"
+                    test -e "${rootfs}/usr/sbin/sshd" && failed "${level}" "${tag}" "openssh-server should not be installed in container ${container_name}"
                 fi
             done
         fi
     fi
 }
 check_lxc_opensmtpd() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_LXC_OPENSMTPD"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_LXC_OPENSMTPD"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active --filter php)
             for container_name in ${containers_list}; do
                 if lxc-info --name "${container_name}" > /dev/null; then
                     rootfs="${lxc_path}/${container_name}/rootfs"
-                    test -e "${rootfs}/usr/sbin/smtpd" || test -e "${rootfs}/usr/sbin/ssmtp" || failed "${LEVEL}" "${TAG}" "opensmtpd should be installed in container ${container_name}"
+                    test -e "${rootfs}/usr/sbin/smtpd" || test -e "${rootfs}/usr/sbin/ssmtp" || failed "${level}" "${tag}" "opensmtpd should be installed in container ${container_name}"
                 fi
             done
         fi
     fi
 }
 check_monitoringctl() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_MONITORINGCTL"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_MONITORINGCTL"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if ! /usr/local/bin/monitoringctl list >/dev/null 2>&1; then
-            failed "${LEVEL}" "${TAG}" "monitoringctl is not installed or has a problem (use 'monitoringctl list' to reproduce)."
+            failed "${level}" "${tag}" "monitoringctl is not installed or has a problem (use 'monitoringctl list' to reproduce)."
         fi
     fi
 }
 check_smartmontools() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_SMARTMONTOOLS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_SMARTMONTOOLS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         if ( LC_ALL=C lscpu | grep "Hypervisor vendor:" | grep -q -e VMware -e KVM || lscpu | grep -q Oracle ); then
-            is_installed smartmontools && failed "${LEVEL}" "${TAG}" "smartmontools should not be installed on a VM"
+            is_installed smartmontools && failed "${level}" "${tag}" "smartmontools should not be installed on a VM"
         else
-            is_installed smartmontools || failed "${LEVEL}" "${TAG}" "smartmontools should be installed on barematal"
+            is_installed smartmontools || failed "${level}" "${tag}" "smartmontools should be installed on barematal"
         fi
     fi
 }
@@ -2461,9 +2461,9 @@ download_versions() {
     elif command -v GET; then
         GET -t ${timeout}s "${versions_url}" > "${versions_file}"
     else
-        failed "${LEVEL}" "IS_CHECK_VERSIONS" "failed to find curl, wget or GET"
+        failed "${level}" "IS_CHECK_VERSIONS" "failed to find curl, wget or GET"
     fi
-    test "$?" -eq 0 || failed "${LEVEL}" "IS_CHECK_VERSIONS" "failed to download ${versions_url} to ${versions_file}"
+    test "$?" -eq 0 || failed "${level}" "IS_CHECK_VERSIONS" "failed to download ${versions_url} to ${versions_file}"
 }
 get_command() {
     local program
@@ -2521,11 +2521,11 @@ get_version() {
     esac
 }
 check_version() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_CHECK_VERSIONS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_CHECK_VERSIONS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         local program expected_version
         program=${1:-}
         expected_version=${2:-}
@@ -2536,11 +2536,11 @@ check_version() {
             actual_version=$(get_version "${program}" "${command}")
             # printf "program:%s expected:%s actual:%s\n" "${program}" "${expected_version}" "${actual_version}"
             if [ -z "${actual_version}" ]; then
-                failed "${LEVEL}" "${TAG}" "failed to lookup actual version of ${program}"
+                failed "${level}" "${tag}" "failed to lookup actual version of ${program}"
             elif dpkg --compare-versions "${actual_version}" lt "${expected_version}"; then
-                failed "${LEVEL}" "${TAG}" "${program} version ${actual_version} is older than expected version ${expected_version}"
+                failed "${level}" "${tag}" "${program} version ${actual_version} is older than expected version ${expected_version}"
             elif dpkg --compare-versions "${actual_version}" gt "${expected_version}"; then
-                failed "${LEVEL}" "${TAG}" "${program} version ${actual_version} is newer than expected version ${expected_version}, you should update your index."
+                failed "${level}" "${tag}" "${program} version ${actual_version} is newer than expected version ${expected_version}, you should update your index."
             else
                 : # Version check OK
             fi
@@ -2554,11 +2554,11 @@ add_to_path() {
     echo "$PATH" | grep --quiet --fixed-strings "${new_path}" || export PATH="${PATH}:${new_path}"
 }
 check_versions() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_CHECK_VERSIONS"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_CHECK_VERSIONS"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         versions_file=$(mktemp --tmpdir "evocheck.versions.XXXXX")
         files_to_cleanup+=("${versions_file}")
 
@@ -2575,39 +2575,39 @@ check_versions() {
                 if [ -n "${version}" ]; then
                     check_version "${program}" "${version}"
                 else
-                    failed "${LEVEL}" "${TAG}" "failed to lookup expected version for ${program}"
+                    failed "${level}" "${tag}" "failed to lookup expected version for ${program}"
                 fi
             fi
         done
     fi
 }
 check_nrpepressure() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_NRPEPRESSURE"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_NRPEPRESSURE"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         # Taken from detect_os function
         DEBIAN_MAIN_VERSION=$(cut -d "." -f 1 < /etc/debian_version)
         if [ "${DEBIAN_MAIN_VERSION}" -ge 12 ]; then
             /usr/local/bin/monitoringctl status pressure_cpu > /dev/null 2>&1
             rc="$?"
             if [ "${rc}" -ne 0 ]; then
-                failed "${LEVEL}" "${TAG}" "pressure_cpu check not defined or monitoringctl not correctly installed"
+                failed "${level}" "${tag}" "pressure_cpu check not defined or monitoringctl not correctly installed"
             fi
         fi
     fi
 }
 check_postfix_ipv6_disabled() {
-    local LEVEL TAG
-    LEVEL=${LEVEL_STANDARD}
-    TAG="IS_POSTFIX_IPV6_DISABLED"
+    local level tag
+    level=${LEVEL_STANDARD}
+    tag="IS_POSTFIX_IPV6_DISABLED"
 
-    if is_level_in_range ${LEVEL}; then
+    if is_level_in_range ${level}; then
         postconf -n 2>/dev/null | grep --no-messages --extended-regex '^inet_protocols\>' | grep --no-messages --invert-match --fixed-strings ipv6 | grep --no-messages --invert-match --fixed-strings all | grep --no-messages --silent --fixed-strings ipv4
         rc="$?"
         if [ "${rc}" -ne 0 ]; then
-            failed "${LEVEL}" "${TAG}" "IPv6 must be disabled in Postfix main.cf (inet_protocols = ipv4)"
+            failed "${level}" "${tag}" "IPv6 must be disabled in Postfix main.cf (inet_protocols = ipv4)"
         fi
     fi
 }
@@ -2795,7 +2795,7 @@ readonly LOGFILE
 CONFIGFILE="/etc/evocheck.cf"
 readonly CONFIGFILE
 
-DATLEVEL_FORMAT="%Y-%m-%d %H:%M:%S"
+DATE_FORMAT="%Y-%m-%d %H:%M:%S"
 # shellcheck disable=SC2034
 readonly DATEFORMAT
 

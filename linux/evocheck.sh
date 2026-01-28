@@ -50,6 +50,12 @@ Options
      --max-level Y           executes only checkwith level <= Y
  -h, --help                  print this message and exit
      --version               print version and exit
+
+Check levels :
+ 1 : optional
+ 2 : standard
+ 3 : important
+ 4 : mandatory
 END
 }
 

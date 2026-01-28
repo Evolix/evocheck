@@ -53,6 +53,12 @@ Options
 END
 }
 
+is_quiet() {
+    test "${QUIET}" = 1
+}
+is_verbose() {
+    test "${VERBOSE}" = 1
+}
 is_pack_web() {
     test -e /usr/share/scripts/web-add.sh || test -e /usr/share/scripts/evoadmin/web-add.sh
 }
@@ -87,8 +93,7 @@ failed() {
         "${LEVEL_MANDATORY}") tag="MANDATORY" ;;
     esac
 
-    RC=1
-    if [ "${QUIET}" != 1 ]; then
+    if ! is_quiet; then
         if [ -n "${check_comments}" ]; then
             printf "[%s] %s FAILED! %s\n" "${check_level}-${tag}" "${check_name}" "${check_comments}" >> "${main_output_file}"
         else
@@ -2853,7 +2858,7 @@ while :; do
             ;;
         -?*|[[:alnum:]]*)
             # ignore unknown options
-            if [ "${QUIET}" != 1 ]; then
+            if ! is_quiet; then
                 printf 'WARN: Unknown option (ignored): %s\n' "$1" >&2
             fi
             ;;

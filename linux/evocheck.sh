@@ -125,10 +125,10 @@ check_lsbrelease() {
 
     if is_level_in_range ${level}; then
         if evo::os-release::is_debian 13 lt; then
-            LSB_RELEASE_BIN=$(command -v lsb_release)
-            if [ -x "${LSB_RELEASE_BIN}" ]; then
+            lsb_release_bin=$(command -v lsb_release)
+            if [ -x "${lsb_release_bin}" ]; then
                 ## only the major version matters
-                lhs=$(${LSB_RELEASE_BIN} --release --short | cut -d "." -f 1)
+                lhs=$(${lsb_release_bin} --release --short | cut -d "." -f 1)
                 rhs=$(cut -d "." -f 1 < /etc/debian_version)
                 if [ "$lhs" != "$rhs" ]; then
                     failed "${level}" "${tag}" "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})"
@@ -174,13 +174,13 @@ check_postfix_mydestination() {
 check_nrpepostfix() {
     local level tag
     level=${LEVEL_STANDARD}
-    tag=""
+    tag="IS_NRPEPOSTFIX"
 
     if is_level_in_range ${level}; then
         if is_installed postfix; then
             { test -e /etc/nagios/nrpe.cfg \
                 && grep --quiet --recursive "^command.*check_mailq -M postfix" /etc/nagios/nrpe.*;
-            } || failed "${level}" "${tag}"IS_NRPEPOSTFIX "NRPE \"check_mailq\" for postfix is missing"
+            } || failed "${level}" "${tag}" "NRPE \"check_mailq\" for postfix is missing"
         fi
     fi
 }
@@ -201,9 +201,9 @@ check_vartmpfs() {
 
     if is_level_in_range ${level}; then
         if evo::os-release::is_debian 13 lt; then
-            FINDMNT_BIN=$(command -v findmnt)
-            if [ -x "${FINDMNT_BIN}" ]; then
-                ${FINDMNT_BIN} /var/tmp --type tmpfs --noheadings > /dev/null || failed "${level}" "${tag}" "/var/tmp is not a tmpfs"
+            findmnt_bin=$(command -v findmnt)
+            if [ -x "${findmnt_bin}" ]; then
+                ${findmnt_bin} /var/tmp --type tmpfs --noheadings > /dev/null || failed "${level}" "${tag}" "/var/tmp is not a tmpfs"
             else
                 df /var/tmp | grep --quiet tmpfs || failed "${level}" "${tag}" "/var/tmp is not a tmpfs"
             fi
@@ -267,8 +267,8 @@ check_debiansecurity_lxc() {
                 if lxc-info --name "${container_name}" > /dev/null; then
                     rootfs="${lxc_path}/${container_name}/rootfs"
                     if [ -f "${rootfs}/etc/debian_version" ]; then
-                        DEBIAN_LXC_VERSION=$(cut -d "." -f 1 < "${rootfs}/etc/debian_version")
-                        if [ "${DEBIAN_LXC_VERSION}" -ge 9 ]; then
+                        debian_lxc_version=$(cut -d "." -f 1 < "${rootfs}/etc/debian_version")
+                        if [ "${debian_lxc_version}" -ge 9 ]; then
                             lxc-attach --name "${container_name}" apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
                             test $? -eq 0 || failed "${level}" "${tag}" "missing Debian-Security repository in container ${container_name}"
                         fi
@@ -315,8 +315,8 @@ check_oldpub_lxc() {
         if is_installed lxc; then
             containers_list=$( lxc-ls -1 --active )
             for container_name in ${containers_list}; do
-                APT_CACHE_BIN=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
-                if [ -x "${APT_CACHE_BIN}" ]; then
+                apt_cache_bin=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
+                if [ -x "${apt_cache_bin}" ]; then
                     lxc-attach --name "${container_name}" apt-cache policy | grep --quiet pub.evolix.net
                     test $? -eq 1 || failed "${level}" "${tag}" "Old pub.evolix.net repository is still enabled in container ${container_name}"
                 fi
@@ -358,8 +358,8 @@ check_sury_lxc() {
         if is_installed lxc; then
             containers_list=$( lxc-ls -1 --active )
             for container_name in ${containers_list}; do
-                APT_CACHE_BIN=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
-                if [ -x "${APT_CACHE_BIN}" ]; then
+                apt_cache_bin=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
+                if [ -x "${apt_cache_bin}" ]; then
                     lxc-attach --name "${container_name}" apt-cache policy | grep --quiet packages.sury.org
                     if [ $? -eq 0 ]; then
                         lxc-attach --name "${container_name}" apt-cache policy | grep "\bl=Evolix\b" | grep --quiet php
@@ -435,9 +435,9 @@ check_tmpnoexec() {
     tag="IS_TMPNOEXEC"
 
     if is_level_in_range ${level}; then
-        FINDMNT_BIN=$(command -v findmnt)
-        if [ -x "${FINDMNT_BIN}" ]; then
-            options=$(${FINDMNT_BIN} --noheadings --first-only --output OPTIONS /tmp)
+        findmnt_bin=$(command -v findmnt)
+        if [ -x "${findmnt_bin}" ]; then
+            options=$(${findmnt_bin} --noheadings --first-only --output OPTIONS /tmp)
             echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || failed "${level}" "${tag}" "/tmp is not mounted with 'noexec'"
         else
             mount | grep "on /tmp" | grep --quiet --extended-regexp "\bnoexec\b" || failed "${level}" "${tag}" "/tmp is not mounted with 'noexec' (WARNING: findmnt(8) is not found)"
@@ -450,9 +450,9 @@ check_homenoexec() {
     tag="IS_HOMENOEXEC"
 
     if is_level_in_range ${level}; then
-        FINDMNT_BIN=$(command -v findmnt)
-        if [ -x "${FINDMNT_BIN}" ]; then
-            options=$(${FINDMNT_BIN} --noheadings --first-only --output OPTIONS /home)
+        findmnt_bin=$(command -v findmnt)
+        if [ -x "${findmnt_bin}" ]; then
+            options=$(${findmnt_bin} --noheadings --first-only --output OPTIONS /home)
             echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || \
             ( grep --quiet --extended-regexp "/home.*noexec" /etc/fstab && \
             failed "${level}" "${tag}" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec'" )
@@ -470,10 +470,10 @@ check_mountfstab() {
 
     if is_level_in_range ${level}; then
         # Test if lsblk available, if not skip this test...
-        LSBLK_BIN=$(command -v lsblk)
-        if test -x "${LSBLK_BIN}"; then
-            for mountPoint in $(${LSBLK_BIN} -o MOUNTPOINT -l -n | grep '/'); do
-                grep --quiet --extended-regexp "$mountPoint\W" /etc/fstab \
+        lsblk_bin=$(command -v lsblk)
+        if test -x "${lsblk_bin}"; then
+            for mountPoint in $(${lsblk_bin} -o MOUNTPOINT -l -n | grep '/'); do
+                grep --quiet --extended-regexp "${mountPoint}\W" /etc/fstab \
                     || failed "${level}" "${tag}" "partition(s) detected mounted but no presence in fstab"
             done
         fi
@@ -1312,7 +1312,7 @@ check_gitperms() {
     level=${LEVEL_STANDARD}
     tag="IS_GITPERMS"
     rc=0
-    DOC=$(cat <<EODOC
+    doc=$(cat <<EODOC
 # Git repositories must have "700" permissions.
 # 
 # Fix with:
@@ -1323,17 +1323,17 @@ EODOC
 )
 
     if is_level_in_range ${level}; then
-        for GIT_DIR in "/etc/.git" "/etc/bind.git" "/usr/share/scripts/.git"; do
-            if [ -d "${GIT_DIR}" ]; then
+        for git_dir in "/etc/.git" "/etc/bind.git" "/usr/share/scripts/.git"; do
+            if [ -d "${git_dir}" ]; then
                 expected="700"
-                actual=$(stat -c "%a" $GIT_DIR)
+                actual=$(stat -c "%a" $git_dir)
                 if [ "${expected}" != "${actual}" ]; then
                     rc=1
-                    failed "${level}" "${tag}" "${GIT_DIR} must be ${expected}"
+                    failed "${level}" "${tag}" "${git_dir} must be ${expected}"
                 fi
             fi
         done
-        test "${rc}" != 0 && show_doc "${DOC}"
+        test "${rc}" != 0 && show_doc "${doc}"
     fi
 }
 check_gitperms_lxc() {
@@ -1349,12 +1349,12 @@ check_gitperms_lxc() {
             for container_name in ${containers_list}; do
                 if lxc-info --name "${container_name}" > /dev/null; then
                     rootfs="${lxc_path}/${container_name}/rootfs"
-                    GIT_DIR="${rootfs}/etc/.git"
-                    if test -d "${GIT_DIR}"; then
+                    git_dir="${rootfs}/etc/.git"
+                    if test -d "${git_dir}"; then
                         expected="700"
-                        actual=$(stat -c "%a" "${GIT_DIR}")
+                        actual=$(stat -c "%a" "${git_dir}")
                         if [ "${expected}" != "${actual}" ]; then
-                            failed "${level}" "${tag}" "$GIT_DIR must be $expected (in container ${container_name})"
+                            failed "${level}" "${tag}" "$git_dir must be $expected (in container ${container_name})"
                         fi
                     fi
                 fi
@@ -1418,7 +1418,7 @@ check_tune2fs_m5() {
     if is_level_in_range ${level}; then
         min=5
         parts=$(grep --extended-regexp "ext(3|4)" /proc/mounts | cut -d ' ' -f1 | tr -s '\n' ' ')
-        FINDMNT_BIN=$(command -v findmnt)
+        findmnt_bin=$(command -v findmnt)
         for part in $parts; do
             blockCount=$(dumpe2fs -h "$part" 2>/dev/null | grep --regexp "Block count:" | grep --extended-regexp --only-matching "[0-9]+")
             # If buggy partition, skip it.
@@ -1431,8 +1431,8 @@ check_tune2fs_m5() {
             percentage=$(awk "BEGIN { pc=100*${reservedBlockCount}/${blockCount}; i=int(pc); print (pc-i<0.5)?i:i+1 }")
 
             if [ "$percentage" -lt "${min}" ]; then
-                if [ -x "${FINDMNT_BIN}" ]; then
-                    mount=$(${FINDMNT_BIN} --noheadings --first-only --output TARGET "${part}")
+                if [ -x "${findmnt_bin}" ]; then
+                    mount=$(${findmnt_bin} --noheadings --first-only --output TARGET "${part}")
                 else
                     mount="unknown mount point"
                 fi
@@ -1542,9 +1542,9 @@ check_broadcomfirmware() {
     tag="IS_BROADCOMFIRMWARE"
 
     if is_level_in_range ${level}; then
-        LSPCI_BIN=$(command -v lspci)
-        if [ -x "${LSPCI_BIN}" ]; then
-            if ${LSPCI_BIN} | grep --quiet 'NetXtreme II'; then
+        lspci_bin=$(command -v lspci)
+        if [ -x "${lspci_bin}" ]; then
+            if ${lspci_bin} | grep --quiet 'NetXtreme II'; then
                 { is_installed firmware-bnx2 \
                     && apt-cache policy | grep "\bl=Debian\b" | grep --quiet -v "\b,c=non-free\b"
                 } || failed "${level}" "${tag}" "missing non-free repository"
@@ -1560,16 +1560,16 @@ check_hardwareraidtool() {
     tag="IS_HARDWARERAIDTOOL"
 
     if is_level_in_range ${level}; then
-        LSPCI_BIN=$(command -v lspci)
-        if [ -x "${LSPCI_BIN}" ]; then
-            if ${LSPCI_BIN} | grep --quiet 'MegaRAID'; then
+        lspci_bin=$(command -v lspci)
+        if [ -x "${lspci_bin}" ]; then
+            if ${lspci_bin} | grep --quiet 'MegaRAID'; then
                 if ! { command -v perccli || command -v perccli2; } >/dev/null  ; then
                     # shellcheck disable=SC2015
                     is_installed megacli && { is_installed megaclisas-status || is_installed megaraidsas-status; } \
                         || failed "${level}" "${tag}" "Mega tools not found"
                 fi
             fi
-            if ${LSPCI_BIN} | grep --quiet 'Hewlett-Packard Company Smart Array'; then
+            if ${lspci_bin} | grep --quiet 'Hewlett-Packard Company Smart Array'; then
                 is_installed cciss-vol-status || failed "${level}" "${tag}" "cciss-vol-status not installed"
             fi
         else
@@ -1898,12 +1898,12 @@ check_duplicate_fs_label() {
 
     if is_level_in_range ${level}; then
         # Do it only if thereis blkid binary
-        BLKID_BIN=$(command -v blkid)
-        if [ -n "$BLKID_BIN" ]; then
+        blkid_bin=$(command -v blkid)
+        if [ -n "$blkid_bin" ]; then
             tmpFile=$(mktemp --tmpdir "evocheck.duplicate_fs_label.XXXXX")
             files_to_cleanup+=("${tmpFile}")
 
-            parts=$($BLKID_BIN -c /dev/null | grep --invert-match --regexp raid_member --regexp EFI_SYSPART --regexp zfs_member --regexp '/dev/zd*' | grep --extended-regexp --only-matching ' LABEL=".*"' | cut -d'"' -f2)
+            parts=$($blkid_bin -c /dev/null | grep --invert-match --regexp raid_member --regexp EFI_SYSPART --regexp zfs_member --regexp '/dev/zd*' | grep --extended-regexp --only-matching ' LABEL=".*"' | cut -d'"' -f2)
             for part in $parts; do
                 echo "$part" >> "$tmpFile"
             done
@@ -1963,8 +1963,8 @@ check_evoacme_livelinks() {
     tag="IS_EVOACME_LIVELINKS"
 
     if is_level_in_range ${level}; then
-        EVOACME_BIN=$(command -v evoacme)
-        if [ -x "$EVOACME_BIN" ]; then
+        evoacme_bin=$(command -v evoacme)
+        if [ -x "$evoacme_bin" ]; then
             # Sometimes evoacme is installed but no certificates has been generated
             numberOfLinks=$(find /etc/letsencrypt/ -type l | wc -l)
             if [ "$numberOfLinks" -gt 0 ]; then

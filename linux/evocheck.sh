@@ -82,9 +82,8 @@ log() {
 }
 
 failed() {
-    check_level=$1
-    check_name=$2
-    check_comments=$3
+
+    GLOBAL_RC=1
 
     case "${check_level}" in
         "${LEVEL_OPTIONAL}")  tag="OPTIONAL" ;;
@@ -2581,7 +2580,7 @@ check_postfix_ipv6_disabled() {
 
 main() {
     # Default return code : 0 = no error
-    RC=0
+    GLOBAL_RC=0
 
     main_output_file=$(mktemp --tmpdir "evocheck.main.XXXXX")
     files_to_cleanup+=("${main_output_file}")
@@ -2735,7 +2734,7 @@ main() {
         fi
     fi
 
-    exit ${RC}
+    exit ${GLOBAL_RC}
 }
 # shellcheck disable=SC2329
 cleanup() {

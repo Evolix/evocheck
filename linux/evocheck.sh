@@ -71,14 +71,11 @@ is_installed() {
 # logging
 
 log() {
+    local date msg
     date=$(/bin/date +"${DATLEVEL_FORMAT}")
-    if [ "${1}" != '' ]; then
-        printf "[%s] %s: %s\\n" "$date" "${PROGNAME}" "${1}" >> "${LOGFILE}"
-    else
-        while read line; do
-            printf "[%s] %s: %s\\n" "$date" "${PROGNAME}" "${line}" >> "${LOGFILE}"
-        done < /dev/stdin
-    fi
+    msg="${1:-$(cat /dev/stdin)}"
+    
+    printf "[%s] %s: %s\\n" "${date}" "${PROGNAME}" "${msg}" >> "${LOGFILE}"
 }
 
 failed() {
@@ -108,7 +105,13 @@ failed() {
     # Always log verbose
     printf "[%s] %s FAILED! %s" "${level}-${tag}" "${name}" "${comment}" | log
 }
-
+show_doc() {
+    local doc
+    doc=$1
+    if is_verbose && [ -n "${doc}" ]; then
+        printf "%s\n" "${doc}" >> "${main_output_file}"
+    fi
+}
 is_level_in_range() {
     test ${LEVEL_STANDARD} -ge ${MIN_LEVEL} && test ${LEVEL_STANDARD} -le ${MAX_LEVEL}
 }
@@ -1305,23 +1308,39 @@ check_etcgit_lxc() {
 }
 # Check if /etc/.git/ has read/write permissions for root only.
 check_gitperms() {
-    local LEVEL TAG
+    local LEVEL TAG RC
     LEVEL=${LEVEL_STANDARD}
     TAG="IS_GITPERMS"
+    RC=0
+    DOC=$(cat <<EODOC
+# Git repositories must have "700" permissions.
+# 
+# Fix with:
+# ~~~
+# chmod 700 /path/to/repository/.git
+# ~~~
+EODOC
+)
 
     if is_level_in_range ${LEVEL}; then
-        GIT_DIR="/etc/.git"
-        if [ -d "${GIT_DIR}" ]; then
-            expected="700"
-            actual=$(stat -c "%a" $GIT_DIR)
-            [ "${expected}" = "${actual}" ] || failed "${LEVEL}" "${TAG}" "${GIT_DIR} must be ${expected}"
-        fi
+        for GIT_DIR in "/etc/.git" "/etc/bind.git" "/usr/share/scripts/.git"; do
+            if [ -d "${GIT_DIR}" ]; then
+                expected="700"
+                actual=$(stat -c "%a" $GIT_DIR)
+                if [ "${expected}" != "${actual}" ]; then
+                    RC=1
+                    failed "${LEVEL}" "${TAG}" "${GIT_DIR} must be ${expected}"
+                fi
+            fi
+        done
+        test "${RC}" != 0 && show_doc "${DOC}"
     fi
 }
 check_gitperms_lxc() {
-    local LEVEL TAG
+    local LEVEL TAG RC
     LEVEL=${LEVEL_STANDARD}
     TAG="IS_GITPERMS_LXC"
+    RC=0
 
     if is_level_in_range ${LEVEL}; then
         if is_installed lxc; then
@@ -1340,6 +1359,14 @@ check_gitperms_lxc() {
                     fi
                 fi
             done
+            test ${RC} != 0 && is_verbose && cat <<EODOC
+Git repositories must have "700" permissions.
+
+Fix with:
+~~~
+chmod 700 /path/to/repository/.git
+~~~
+EODOC
         fi
     fi
 }

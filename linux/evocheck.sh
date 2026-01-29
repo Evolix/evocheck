@@ -44,7 +44,7 @@ Usage: evocheck
 Options
      --cron                  disable a few checks
      --future                enable checks that will be enabled later
- -v, --verbose               display full documentation for failed checks
+ -v, --verbose               display full documentation for fail checks
  -q, --quiet                 nothing is printed on stdout
      --min-level X           executes only checkwith level >= X
      --max-level Y           executes only checkwith level <= Y
@@ -74,6 +74,55 @@ is_installed() {
     done
 }
 
+format_tags() {
+    local tags all_options
+    all_options=$*
+    tags=""
+    # Parse options
+    # based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
+    while :; do
+        case $1 in
+            --cron)
+                    shift
+                    case $1 in
+                        0) ;;
+                        1) tags="${tags} #CRON" ;;
+                        *)
+                            printf 'ERROR: invalid value for --cron option: %s (%s)\n' "$1" "${all_options}" >&2
+                            exit 1
+                            ;;
+                    esac
+                ;;
+            --future)
+                    shift
+                    case $1 in
+                        0) ;;
+                        1) tags="${tags} #FUTURE" ;;
+                        *)
+                            printf 'ERROR: invalid value for --future option: %s (%s)\n' "$1" "${all_options}" >&2
+                            exit 1
+                            ;;
+                    esac
+                ;;
+            
+            -?*|[[:alnum:]]*)
+                # ignore unknown options
+                if ! is_quiet; then
+                    printf 'WARN: Unknown option (ignored): %s (%s)\n' "$1" "${all_options}" >&2
+                fi
+                ;;
+            *)
+                # Default case: If no more options then break out of the loop.
+                break
+                ;;
+        esac
+
+        shift
+    done
+
+    echo "${tags}"
+}
+
 # logging
 
 log() {
@@ -84,52 +133,178 @@ log() {
     printf "[%s] %s: %s\\n" "${date}" "${PROGNAME}" "${msg}" >> "${LOGFILE}"
 }
 
-failed() {
-    local level name comment tag
-    level=$1
-    name=$2
-    comment=$3
+fail() {
+    local level label comment tags all_options
+    all_options=$*
+    rc=1
+    while :; do
+        case $1 in
+            --level)
+                shift
+                case $1 in
+                    1) level="${1}-OPTIONAL" ;;
+                    2) level="${1}-STANDARD" ;;
+                    3) level="${1}-IMPORTANT" ;;
+                    4) level="${1}-MANDATORY" ;;
+                    *)
+                        printf 'ERROR: invalid value for level option: %s (%s)\n' "$1" "${all_options}"
+                        exit 1
+                        ;;
+                esac
+                ;;
+            --label)
+                shift
+                label=$1
+                ;;
+            --comment)
+                shift
+                comment=$1
+                ;;
+            --tags)
+                shift
+                tags=$1
+                ;;
+            -?*|[[:alnum:]]*)
+                # ignore unknown options
+                if ! is_quiet; then
+                    printf 'WARN: Unknown option (ignored): %s (%s)\n' "$1" "${all_options}" >&2
+                fi
+                ;;
+            *)
+                # Default case: If no more options then break out of the loop.
+                break
+                ;;
+        esac
+
+        shift
+    done
 
     GLOBAL_RC=1
 
-    case "${level}" in
-        1) tag="OPTIONAL" ;;
-        2) tag="STANDARD" ;;
-        3) tag="IMPORTANT" ;;
-        4) tag="MANDATORY" ;;
-    esac
-
     if ! is_quiet; then
-        if [ -n "${comment}" ]; then
-            printf "[%s] %s FAILED! %s\n" "${level}-${tag}" "${name}" "${comment}" >> "${main_output_file}"
+        printf "[%s] %s FAILED! %s%s\n" "${level}" "${label}" "${comment}" "${tags:-}" >> "${main_output_file}"
+    fi
+    printf "[%s] %s FAILED! %s%s" "${level}" "${label}" "${comment}" "${tags:-}" | log
+}
+check_can_run() {
+    local label level cron future tags all_options
+    all_options=$*
+    # Parse options
+    # based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
+    while :; do
+        case $1 in
+            --label)
+                    shift
+                    label=$1
+                ;;
+            --level)
+                    shift
+                    level=$1
+                ;;
+            --cron)
+                    shift
+                    case $1 in
+                        0|1) cron=$1 ;;
+                        *)
+                            printf 'ERROR: invalid value for --cron option: %s (%s)\n' "$1" "${all_options}" >&2
+                            exit 1
+                            ;;
+                    esac
+                ;;
+            --future)
+                    shift
+                    case $1 in
+                        0|1) future=$1 ;;
+                        *)
+                            printf 'ERROR: invalid value for --future option: %s (%s)\n' "$1" "${all_options}" >&2
+                            exit 1
+                            ;;
+                    esac
+                ;;
+            
+            -?*|[[:alnum:]]*)
+                # ignore unknown options
+                if ! is_quiet; then
+                    printf 'WARN: Unknown option for check_can_run (ignored): %s (%s)\n' "$1" "${all_options}" >&2
+                fi
+                ;;
+            *)
+                # Default case: If no more options then break out of the loop.
+                break
+                ;;
+        esac
 
-        else
-            printf "[%s] %s FAILED!\n" "${level}-${tag}" "${name}" >> "${main_output_file}"
-        fi
+        shift
+    done
+
+    if [ ${level} -ge ${MIN_LEVEL} ] && [ ${level} -le ${MAX_LEVEL} ] \
+        && [ ${future} -le ${FUTURE} ] \
+        && [ ${cron} -ge ${CRON} ]; then
+        # echo "RUN ${label}"
+        return 0
+    else
+        # echo "SKIP ${label}"
+        return 1
     fi
 
-    # Always log verbose
-    printf "[%s] %s FAILED! %s" "${level}-${tag}" "${name}" "${comment}" | log
 }
 show_doc() {
-    local doc
-    doc=$1
-    if is_verbose && [ -n "${doc}" ]; then
+    local doc=$1
+    if is_verbose && test "${rc}" != 0 && [ -n "${doc}" ]; then
         printf "%s\n" "${doc}" >> "${main_output_file}"
+
+        show_doc "${doc:-}"
     fi
 }
-is_level_in_range() {
-    test ${1} -ge ${MIN_LEVEL} && test ${1} -le ${MAX_LEVEL}
+
+#####################
+# CHECK FUNCTIONS
+#####################
+
+# If you want to create a new check funciton,
+# you can copy check_example(), change variables and customize the tests
+
+# shellcheck disable=SC2329
+check_example() {
+    local level cron future tags label doc rc
+    level=2     # level of the check, see --help for details
+    cron=0      # 1 = check must run when run with --cron, 0 = always run
+    future=0    # 1 = check must run when run with --future, 0 = never run
+    label="IS_LSBRELEASE"  # check label, used in the output. It should match the configuration variable
+    # If you want to provide an extended documentation, add as many lines as you want between EODOC markers
+    # It will be printed when run with --verbose
+    doc=$(cat <<EODOC
+EODOC
+)
+
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+
+        if /bin/true; then
+            fail --comment "this is the check short explanation, customize it" --level "${level}" --label "${label}" --tags "${tags}"
+        fi
+
+        show_doc "${doc:-}"
+    fi
 }
 
-# check functions
+
+
 
 check_lsbrelease() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LSBRELEASE"
+    cron=0
+    future=0
+    label="IS_LSBRELEASE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 13 lt; then
             lsb_release_bin=$(command -v lsb_release)
             if [ -x "${lsb_release_bin}" ]; then
@@ -137,135 +312,222 @@ check_lsbrelease() {
                 lhs=$(${lsb_release_bin} --release --short | cut -d "." -f 1)
                 rhs=$(cut -d "." -f 1 < /etc/debian_version)
                 if [ "$lhs" != "$rhs" ]; then
-                    failed "${level}" "${tag}" "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})"
+                    fail --comment "release is not consistent between lsb_release (${lhs}) and /etc/debian_version (${rhs})" --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             else
-                failed "${level}" "${tag}" "lsb_release is missing or not executable"
+                fail --comment "lsb_release is missing or not executable"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
-    # else
-    #     echo "${tag} not executed (${level} not in ${MIN_LEVEL}<${MAX_LEVEL})"
+        show_doc "${doc:-}"
     fi
 }
 check_dpkgwarning() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_DPKGWARNING"
+    cron=1
+    future=0
+    label="IS_DPKGWARNING"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         test -e /etc/apt/apt.conf.d/z-evolinux.conf \
-            || failed "${level}" "${tag}" "/etc/apt/apt.conf.d/z-evolinux.conf is missing"
+            || fail --comment "/etc/apt/apt.conf.d/z-evolinux.conf is missing"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if localhost, localhost.localdomain and localhost.$mydomain are set in Postfix mydestination option.
 check_postfix_mydestination() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_POSTFIX_MYDESTINATION"
+    cron=1
+    future=0
+    label="IS_POSTFIX_MYDESTINATION"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # shellcheck disable=SC2016
         if ! grep mydestination /etc/postfix/main.cf | grep --quiet --extended-regexp 'localhost([[:blank:]]|$)'; then
-            failed "${level}" "${tag}" "'localhost' is missing in Postfix mydestination option."
+            fail --comment "'localhost' is missing in Postfix mydestination option."  --level "${level}" --label "${label}" --tags "${tags}"
         fi
         if ! grep mydestination /etc/postfix/main.cf | grep --quiet --fixed-strings 'localhost.localdomain'; then
-            failed "${level}" "${tag}" "'localhost.localdomain' is missing in Postfix mydestination option."
+            fail --comment "'localhost.localdomain' is missing in Postfix mydestination option."  --level "${level}" --label "${label}" --tags "${tags}"
         fi
         if ! grep mydestination /etc/postfix/main.cf | grep --quiet --fixed-strings 'localhost.$mydomain'; then
-            failed "${level}" "${tag}" "'localhost.\$mydomain' is missing in Postfix mydestination option."
+            fail --comment "'localhost.\$mydomain' is missing in Postfix mydestination option."  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
     # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
 check_nrpepostfix() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NRPEPOSTFIX"
+    cron=1
+    future=0
+    label="IS_NRPEPOSTFIX"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed postfix; then
             { test -e /etc/nagios/nrpe.cfg \
                 && grep --quiet --recursive "^command.*check_mailq -M postfix" /etc/nagios/nrpe.*;
-            } || failed "${level}" "${tag}" "NRPE \"check_mailq\" for postfix is missing"
+            } || fail --comment "NRPE \"check_mailq\" for postfix is missing"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if mod-security config file is present
 check_customsudoers() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_CUSTOMSUDOERS"
+    cron=1
+    future=0
+    label="IS_CUSTOMSUDOERS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
-        grep --extended-regexp --quiet --recursive "umask=0077" /etc/sudoers* || failed "${level}" "${tag}" "missing umask=0077 in sudoers file"
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        grep --extended-regexp --quiet --recursive "umask=0077" /etc/sudoers* || fail --comment "missing umask=0077 in sudoers file"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_vartmpfs() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_VARTMPFS"
+    cron=1
+    future=0
+    label="IS_VARTMPFS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 13 lt; then
             findmnt_bin=$(command -v findmnt)
             if [ -x "${findmnt_bin}" ]; then
-                ${findmnt_bin} /var/tmp --type tmpfs --noheadings > /dev/null || failed "${level}" "${tag}" "/var/tmp is not a tmpfs"
+                ${findmnt_bin} /var/tmp --type tmpfs --noheadings > /dev/null || fail --comment "/var/tmp is not a tmpfs"  --level "${level}" --label "${label}" --tags "${tags}"
             else
-                df /var/tmp | grep --quiet tmpfs || failed "${level}" "${tag}" "/var/tmp is not a tmpfs"
+                df /var/tmp | grep --quiet tmpfs || fail --comment "/var/tmp is not a tmpfs"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_serveurbase() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SERVEURBASE"
+    cron=1
+    future=0
+    label="IS_SERVEURBASE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
-        is_installed serveur-base || failed "${level}" "${tag}" "serveur-base package is not installed"
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        is_installed serveur-base || fail --comment "serveur-base package is not installed"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_logrotateconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LOGROTATECONF"
+    cron=1
+    future=0
+    label="IS_LOGROTATECONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
-        test -e /etc/logrotate.d/zsyslog || failed "${level}" "${tag}" "missing zsyslog in logrotate.d"
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        test -e /etc/logrotate.d/zsyslog || fail --comment "missing zsyslog in logrotate.d"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_syslogconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SYSLOGCONF"
+    cron=1
+    future=0
+    label="IS_SYSLOGCONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # Test for modern servers
         if [ ! -f /etc/rsyslog.d/10-evolinux-default.conf ]; then
             # Fallback test for legacy servers
             if ! grep --quiet --ignore-case "Syslog for Pack Evolix" /etc/*syslog*/*.conf /etc/*syslog.conf; then
-                failed "${level}" "${tag}" "Evolix syslog config is missing"
+                fail --comment "Evolix syslog config is missing"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_debiansecurity() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_DEBIANSECURITY"
+    cron=1
+    future=0
+    label="IS_DEBIANSECURITY"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # Look for enabled "Debian-Security" sources from the "Debian" origin
         apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
-        test $? -eq 0 || failed "${level}" "${tag}" "missing Debian-Security repository"
+        test $? -eq 0 || fail --comment "missing Debian-Security repository"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_debiansecurity_lxc() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_DEBIANSECURITY_LXC"
+    cron=1
+    future=0
+    label="IS_DEBIANSECURITY_LXC"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active)
@@ -276,20 +538,29 @@ check_debiansecurity_lxc() {
                         debian_lxc_version=$(cut -d "." -f 1 < "${rootfs}/etc/debian_version")
                         if [ "${debian_lxc_version}" -ge 9 ]; then
                             lxc-attach --name "${container_name}" apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
-                            test $? -eq 0 || failed "${level}" "${tag}" "missing Debian-Security repository in container ${container_name}"
+                            test $? -eq 0 || fail --comment "missing Debian-Security repository in container ${container_name}"  --level "${level}" --label "${label}" --tags "${tags}"
                         fi
                     fi
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_backports_version() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_BACKPORTS_VERSION"
+    cron=1
+    future=0
+    label="IS_BACKPORTS_VERSION"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         local os_codename
         os_codename=$( evo::os-release::get_version_codename )
 
@@ -297,26 +568,44 @@ check_backports_version() {
         apt-cache policy | grep "\bl=Debian Backports\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
         test $? -eq 1 || ( \
             apt-cache policy | grep "\bl=Debian Backports\b" | grep --quiet "\bn=${os_codename}-backports\b" && \
-            test $? -eq 0 || failed "${level}" "${tag}" "Debian Backports enabled for another release than ${os_codename}" )
+            test $? -eq 0 || fail --comment "Debian Backports enabled for another release than ${os_codename}"  --level "${level}" --label "${label}" --tags "${tags}" )
+
+        show_doc "${doc:-}"
     fi
 }
 check_oldpub() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_OLDPUB"
+    cron=1
+    future=0
+    label="IS_OLDPUB"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Stretch)
         apt-cache policy | grep --quiet pub.evolix.net
-        test $? -eq 1 || failed "${level}" "${tag}" "Old pub.evolix.net repository is still enabled"
+        test $? -eq 1 || fail --comment "Old pub.evolix.net repository is still enabled"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_oldpub_lxc() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_OLDPUB_LXC"
+    cron=1
+    future=0
+    label="IS_OLDPUB_LXC"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Buster as Sury safeguard)
         if is_installed lxc; then
             containers_list=$( lxc-ls -1 --active )
@@ -324,43 +613,70 @@ check_oldpub_lxc() {
                 apt_cache_bin=$(lxc-attach --name "${container_name}" -- bash -c "command -v apt-cache")
                 if [ -x "${apt_cache_bin}" ]; then
                     lxc-attach --name "${container_name}" apt-cache policy | grep --quiet pub.evolix.net
-                    test $? -eq 1 || failed "${level}" "${tag}" "Old pub.evolix.net repository is still enabled in container ${container_name}"
+                    test $? -eq 1 || fail --comment "Old pub.evolix.net repository is still enabled in container ${container_name}"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_newpub() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NEWPUB"
+    cron=1
+    future=0
+    label="IS_NEWPUB"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # Look for enabled pub.evolix.org sources
         apt-cache policy | grep "\bl=Evolix\b" | grep --quiet --invert-match php
-        test $? -eq 0 || failed "${level}" "${tag}" "New pub.evolix.org repository is missing"
+        test $? -eq 0 || fail --comment "New pub.evolix.org repository is missing"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_sury() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SURY"
+    cron=1
+    future=0
+    label="IS_SURY"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # Look for enabled packages.sury.org sources
         apt-cache policy | grep --quiet packages.sury.org
         if [ $? -eq 0 ]; then
             apt-cache policy | grep "\bl=Evolix\b" | grep --quiet php
-            test $? -eq 0 || failed "${level}" "${tag}" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing"
+            test $? -eq 0 || fail --comment "packages.sury.org is present but our safeguard pub.evolix.org repository is missing"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_sury_lxc() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SURY_LXC"
+    cron=1
+    future=0
+    label="IS_SURY_LXC"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
             containers_list=$( lxc-ls -1 --active )
             for container_name in ${containers_list}; do
@@ -369,249 +685,402 @@ check_sury_lxc() {
                     lxc-attach --name "${container_name}" apt-cache policy | grep --quiet packages.sury.org
                     if [ $? -eq 0 ]; then
                         lxc-attach --name "${container_name}" apt-cache policy | grep "\bl=Evolix\b" | grep --quiet php
-                        test $? -eq 0 || failed "${level}" "${tag}" "packages.sury.org is present but our safeguard pub.evolix.org repository is missing in container ${container_name}"
+                        test $? -eq 0 || fail --comment "packages.sury.org is present but our safeguard pub.evolix.org repository is missing in container ${container_name}"  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_not_deb822() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NOT_DEB822"
+    cron=1
+    future=1
+    label="IS_NOT_DEB822"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
             for source in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
                 test -f "${source}" && grep --quiet '^deb' "${source}" && \
-                    failed "${level}" "${tag}" "${source} contains a one-line style sources.list entry, and should be converted to deb822 format"
+                    fail --comment "${source} contains a one-line style sources.list entry, and should be converted to deb822 format"  --level "${level}" --label "${label}" --tags "${tags}"
                 done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_no_signed_by() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NO_SIGNED_BY"
+    cron=1
+    future=1
+    label="IS_NO_SIGNED_BY"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
             for source in /etc/apt/sources.list.d/*.sources; do
                 if [ -f "${source}" ]; then
                     ( grep --quiet '^Signed-by' "${source}" && \
-                        failed "${level}" "${tag}" "${source} contains a Source-by entry that should be capitalized as Signed-By" ) || \
+                        fail --comment "${source} contains a Source-by entry that should be capitalized as Signed-By"  --level "${level}" --label "${label}" --tags "${tags}" ) || \
                     ( grep --quiet '^Signed-By' "${source}" || \
-                        failed "${level}" "${tag}" "${source} has no Signed-By entry" )
+                        fail --comment "${source} has no Signed-By entry"  --level "${level}" --label "${label}" --tags "${tags}" )
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_aptitude() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_APTITUDE"
+    cron=1
+    future=0
+    label="IS_APTITUDE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
-        test -e /usr/bin/aptitude && failed "${level}" "${tag}" "aptitude may not be installed on Debian >=8"
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        test -e /usr/bin/aptitude && fail --comment "aptitude may not be installed on Debian >=8"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_aptgetbak() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_APTGETBAK"
+    cron=1
+    future=0
+    label="IS_APTGETBAK"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
-        test -e /usr/bin/apt-get.bak && failed "${level}" "${tag}" "prohibit the installation of apt-get.bak with dpkg-divert(1)"
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        test -e /usr/bin/apt-get.bak && fail --comment "prohibit the installation of apt-get.bak with dpkg-divert(1)"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_usrro() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_USRRO"
+    cron=1
+    future=0
+    label="IS_USRRO"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
-        grep /usr /etc/fstab | grep --quiet --extended-regexp "\bro\b" || failed "${level}" "${tag}" "missing ro directive on fstab for /usr"
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        grep /usr /etc/fstab | grep --quiet --extended-regexp "\bro\b" || fail --comment "missing ro directive on fstab for /usr"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_tmpnoexec() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_TMPNOEXEC"
+    cron=1
+    future=0
+    label="IS_TMPNOEXEC"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         findmnt_bin=$(command -v findmnt)
         if [ -x "${findmnt_bin}" ]; then
             options=$(${findmnt_bin} --noheadings --first-only --output OPTIONS /tmp)
-            echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || failed "${level}" "${tag}" "/tmp is not mounted with 'noexec'"
+            echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || fail --comment "/tmp is not mounted with 'noexec'"  --level "${level}" --label "${label}" --tags "${tags}"
         else
-            mount | grep "on /tmp" | grep --quiet --extended-regexp "\bnoexec\b" || failed "${level}" "${tag}" "/tmp is not mounted with 'noexec' (WARNING: findmnt(8) is not found)"
+            mount | grep "on /tmp" | grep --quiet --extended-regexp "\bnoexec\b" || fail --comment "/tmp is not mounted with 'noexec' (WARNING: findmnt(8) is not found)"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_homenoexec() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_HOMENOEXEC"
+    cron=1
+    future=0
+    label="IS_HOMENOEXEC"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         findmnt_bin=$(command -v findmnt)
         if [ -x "${findmnt_bin}" ]; then
             options=$(${findmnt_bin} --noheadings --first-only --output OPTIONS /home)
             echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || \
             ( grep --quiet --extended-regexp "/home.*noexec" /etc/fstab && \
-            failed "${level}" "${tag}" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec'" )
+            fail --comment "/home is mounted with 'exec' but /etc/fstab document it as 'noexec'"  --level "${level}" --label "${label}" --tags "${tags}" )
         else
             mount | grep "on /home" | grep --quiet --extended-regexp "\bnoexec\b" || \
             ( grep --quiet --extended-regexp "/home.*noexec" /etc/fstab && \
-            failed "${level}" "${tag}" "/home is mounted with 'exec' but /etc/fstab document it as 'noexec' (WARNING: findmnt(8) is not found)" )
+            fail --comment "/home is mounted with 'exec' but /etc/fstab document it as 'noexec' (WARNING: findmnt(8) is not found)"  --level "${level}" --label "${label}" --tags "${tags}" )
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_mountfstab() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MOUNT_FSTAB"
+    cron=1
+    future=0
+    label="IS_MOUNT_FSTAB"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # Test if lsblk available, if not skip this test...
         lsblk_bin=$(command -v lsblk)
         if test -x "${lsblk_bin}"; then
             for mountPoint in $(${lsblk_bin} -o MOUNTPOINT -l -n | grep '/'); do
                 grep --quiet --extended-regexp "${mountPoint}\W" /etc/fstab \
-                    || failed "${level}" "${tag}" "partition(s) detected mounted but no presence in fstab"
+                    || fail --comment "partition(s) detected mounted but no presence in fstab"  --level "${level}" --label "${label}" --tags "${tags}"
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_listchangesconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LISTCHANGESCONF"
+    cron=1
+    future=0
+    label="IS_LISTCHANGESCONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apt-listchanges; then
-            failed "${level}" "${tag}" "apt-listchanges must not be installed on Debian >=9"
+            fail --comment "apt-listchanges must not be installed on Debian >=9"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_customcrontab() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_CUSTOMCRONTAB"
+    cron=1
+    future=0
+    label="IS_CUSTOMCRONTAB"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         found_lines=$(grep --count --extended-regexp "^(17 \*|25 6|47 6|52 6)" /etc/crontab)
-        test "$found_lines" = 4 && failed "${level}" "${tag}" "missing custom field in crontab"
+        test "$found_lines" = 4 && fail --comment "missing custom field in crontab"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_sshallowusers() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SSHALLOWUSERS"
+    cron=1
+    future=0
+    label="IS_SSHALLOWUSERS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
             if [ -d /etc/ssh/sshd_config.d/ ]; then
                 # AllowUsers or AllowGroups should be in /etc/ssh/sshd_config.d/
                 grep --extended-regexp --quiet --ignore-case --recursive "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config.d/ \
-                    || failed "${level}" "${tag}" "missing AllowUsers or AllowGroups directive in sshd_config.d/*"
+                    || fail --comment "missing AllowUsers or AllowGroups directive in sshd_config.d/*"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
             # AllowUsers or AllowGroups should not be in /etc/ssh/sshd_config
             grep --extended-regexp --quiet --ignore-case "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config \
-                && failed "${level}" "${tag}" "AllowUsers or AllowGroups directive present in sshd_config"
+                && fail --comment "AllowUsers or AllowGroups directive present in sshd_config"  --level "${level}" --label "${label}" --tags "${tags}"
         else
             # AllowUsers or AllowGroups should be in /etc/ssh/sshd_config or /etc/ssh/sshd_config.d/
             if [ -d /etc/ssh/sshd_config.d/ ]; then
                 grep --extended-regexp --quiet --ignore-case --recursive "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config /etc/ssh/sshd_config.d/ \
-                    || failed "${level}" "${tag}" "missing AllowUsers or AllowGroups directive in sshd_config"
+                    || fail --comment "missing AllowUsers or AllowGroups directive in sshd_config"  --level "${level}" --label "${label}" --tags "${tags}"
             else
                 grep --extended-regexp --quiet --ignore-case "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config \
-                    || failed "${level}" "${tag}" "missing AllowUsers or AllowGroups directive in sshd_config"
+                    || fail --comment "missing AllowUsers or AllowGroups directive in sshd_config"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_sshconfsplit() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SSHCONFSPLIT"
+    cron=1
+    future=0
+    label="IS_SSHCONFSPLIT"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
             ls /etc/ssh/sshd_config.d/* > /dev/null 2> /dev/null \
-                || failed "${level}" "${tag}" "No files under /etc/ssh/sshd_config.d"
+                || fail --comment "No files under /etc/ssh/sshd_config.d"  --level "${level}" --label "${label}" --tags "${tags}"
             diff /usr/share/openssh/sshd_config /etc/ssh/sshd_config > /dev/null 2> /dev/null \
-                || failed "${level}" "${tag}" "Files /etc/ssh/sshd_config and /usr/share/openssh/sshd_config differ"
+                || fail --comment "Files /etc/ssh/sshd_config and /usr/share/openssh/sshd_config differ"  --level "${level}" --label "${label}" --tags "${tags}"
             for f in /etc/ssh/sshd_config.d/z-evolinux-defaults.conf /etc/ssh/sshd_config.d/zzz-evolinux-custom.conf; do
-                test -f "${f}" || failed "${level}" "${tag}" "${f} is not a regular file"
+                test -f "${f}" || fail --comment "${f} is not a regular file"  --level "${level}" --label "${label}" --tags "${tags}"
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_sshlastmatch() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SSHLASTMATCH"
+    cron=1
+    future=1
+    label="IS_SSHLASTMATCH"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
             for file in /etc/ssh/sshd_config /etc/ssh/sshd_config.d/zzz-evolinux-custom.conf; do
                 if ! test -f "${file}"; then
                     continue
                 fi
                 if ! awk 'BEGIN { last = "all" } tolower($1) == "match" { last = tolower($2) } END { if (last != "all") exit 1 }' "${file}"; then
-                    failed "${level}" "${tag}" "last Match directive is not \"Match all\" in ${file}"
+                    fail --comment "last Match directive is not \"Match all\" in ${file}" --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_tmoutprofile() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_TMOUTPROFILE"
+    cron=1
+    future=0
+    label="IS_TMOUTPROFILE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
-        grep --no-messages --quiet "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || failed "${level}" "${tag}" "TMOUT is not set"
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        grep --no-messages --quiet "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || fail --comment "TMOUT is not set"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_alert5boot() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_ALERT5BOOT"
+    cron=1
+    future=0
+    label="IS_ALERT5BOOT"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
-        grep --quiet --no-messages "^date" /usr/share/scripts/alert5.sh || failed "${level}" "${tag}" "boot mail is not sent by alert5 init script"
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        grep --quiet --no-messages "^date" /usr/share/scripts/alert5.sh || fail --comment "boot mail is not sent by alert5 init script"  --level "${level}" --label "${label}" --tags "${tags}"
         if [ -f /etc/systemd/system/alert5.service ]; then
-            systemctl is-enabled alert5.service -q || failed "${level}" "${tag}" "alert5 unit is not enabled"
+            systemctl is-enabled alert5.service -q || fail --comment "alert5 unit is not enabled"  --level "${level}" --label "${label}" --tags "${tags}"
         else
-            failed "${level}" "${tag}"IS_ALERT5BOOT "alert5 unit file is missing"
+            fail --comment "alert5 unit file is missing" --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 is_minifirewall_native_systemd() {
     systemctl list-unit-files minifirewall.service | grep minifirewall.service | grep --quiet --invert-match generated
 }
 check_alert5minifw() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_ALERT5MINIFW"
+    cron=1
+    future=0
+    label="IS_ALERT5MINIFW"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if ! is_minifirewall_native_systemd; then
             grep --quiet --no-messages "^/etc/init.d/minifirewall" /usr/share/scripts/alert5.sh \
-                || failed "${level}" "${tag}" "Minifirewall is not started by alert5 script or script is missing"
+                || fail --comment "Minifirewall is not started by alert5 script or script is missing"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_minifw() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MINIFW"
+    cron=1
+    future=0
+    label="IS_MINIFW"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         {
             if is_minifirewall_native_systemd; then
                 systemctl is-active minifirewall.service >/dev/null 2>&1
@@ -622,185 +1091,293 @@ check_minifw() {
                     /sbin/iptables -L -n 2> /dev/null | grep --quiet --extended-regexp "^(DROP\s+(udp|17)|ACCEPT\s+(icmp|1))\s+--\s+0\.0\.0\.0\/0\s+0\.0\.0\.0\/0\s*$"
                 fi
             fi
-        } || failed "${level}" "${tag}" "minifirewall seems not started"
+        } || fail --comment "minifirewall seems not started"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_minifw_includes() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MINIFWINCLUDES"
+    cron=1
+    future=0
+    label="IS_MINIFWINCLUDES"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 11 ge; then
             if [ -f "/etc/default/minifirewall" ]; then
                 if grep --quiet --extended-regexp --regexp '^\s*/sbin/iptables' --regexp '^\s*/sbin/ip6tables' "/etc/default/minifirewall"; then
-                    failed "${level}" "${tag}" "minifirewall has direct iptables invocations in /etc/default/minifirewall that should go in /etc/minifirewall.d/"
+                    fail --comment "minifirewall has direct iptables invocations in /etc/default/minifirewall that should go in /etc/minifirewall.d/"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_minifw_related() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MINIFW_RELATED"
+    cron=1
+    future=1
+    label="IS_MINIFW_RELATED"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -f "/etc/default/minifirewall" ] || [ -d "/etc/minifirewall.d/" ]; then
             if grep --no-messages --quiet --fixed-strings "RELATED" "/etc/default/minifirewall" "/etc/minifirewall.d/"*; then
-                failed "${level}" "${tag}" "RELATED should not be used in minifirewall configuration"
+                fail --comment "RELATED should not be used in minifirewall configuration"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_nrpeperms() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NRPEPERMS"
+    cron=1
+    future=0
+    label="IS_NRPEPERMS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -d /etc/nagios ]; then
             nagiosDir="/etc/nagios"
             actual=$(stat --format "%a" $nagiosDir)
             expected="750"
-            test "$expected" = "$actual" || failed "${level}" "${tag}" "${nagiosDir} must be ${expected}"
+            test "$expected" = "$actual" || fail --comment "${nagiosDir} must be ${expected}"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_minifwperms() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MINIFWPERMS"
+    cron=1
+    future=0
+    label="IS_MINIFWPERMS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -f "/etc/default/minifirewall" ]; then
             actual=$(stat --format "%a" "/etc/default/minifirewall")
             expected="600"
-            test "$expected" = "$actual" || failed "${level}" "${tag}" "/etc/default/minifirewall must be ${expected}"
+            test "$expected" = "$actual" || fail --comment "/etc/default/minifirewall must be ${expected}"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_nrpepid() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NRPEPID"
+    cron=1
+    future=0
+    label="IS_NRPEPID"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 11 lt; then
             { test -e /etc/nagios/nrpe.cfg \
                 && grep --quiet "^pid_file=/var/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
-            } || failed "${level}" "${tag}" "missing or wrong pid_file directive in nrpe.cfg"
+            } || fail --comment "missing or wrong pid_file directive in nrpe.cfg"  --level "${level}" --label "${label}" --tags "${tags}"
         else
             { test -e /etc/nagios/nrpe.cfg \
                 && grep --quiet "^pid_file=/run/nagios/nrpe.pid" /etc/nagios/nrpe.cfg;
-            } || failed "${level}" "${tag}" "missing or wrong pid_file directive in nrpe.cfg"
+            } || fail --comment "missing or wrong pid_file directive in nrpe.cfg"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_grsecprocs() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_GRSECPROCS"
+    cron=1
+    future=0
+    label="IS_GRSECPROCS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if uname -a | grep --quiet grsec; then
             { grep --quiet "^command.check_total_procs..sudo" /etc/nagios/nrpe.cfg \
                 && grep --after-context=1 "^\[processes\]" /etc/munin/plugin-conf.d/munin-node | grep --quiet "^user root";
-            } || failed "${level}" "${tag}" "missing munin's plugin processes directive for grsec"
+            } || fail --comment "missing munin's plugin processes directive for grsec"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_apachemunin() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_APACHEMUNIN"
+    cron=1
+    future=0
+    label="IS_APACHEMUNIN"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if test -e /etc/apache2/apache2.conf; then
             { test -h /etc/apache2/mods-enabled/status.load \
                 && test -h /etc/munin/plugins/apache_accesses \
                 && test -h /etc/munin/plugins/apache_processes \
                 && test -h /etc/munin/plugins/apache_volume;
-            } || failed "${level}" "${tag}" "missing munin plugins for Apache"
+            } || fail --comment "missing munin plugins for Apache"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification mytop + Munin si MySQL
 check_mysqlutils() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MYSQLUTILS"
+    cron=1
+    future=0
+    label="IS_MYSQLUTILS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         MYSQL_ADMIN=${MYSQL_ADMIN:-mysqladmin}
         if is_installed mysql-server; then
             # With Debian 11 and later, root can connect to MariaDB with the socket
             if evo::os-release::is_debian 11 lt; then
                 # You can configure MYSQL_ADMIN in evocheck.cf
                 if ! grep --quiet --no-messages "^user *= *${MYSQL_ADMIN}" /root/.my.cnf; then
-                    failed "${level}" "${tag}" "${MYSQL_ADMIN} missing in /root/.my.cnf"
+                    fail --comment "${MYSQL_ADMIN} missing in /root/.my.cnf"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             fi
             if ! test -x /usr/bin/mytop; then
                 if ! test -x /usr/local/bin/mytop; then
-                    failed "${level}" "${tag}" "mytop binary missing"
+                    fail --comment "mytop binary missing"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             fi
             if ! grep --quiet --no-messages '^user *=' /root/.mytop; then
-                failed "${level}" "${tag}" "credentials missing in /root/.mytop"
+                fail --comment "credentials missing in /root/.mytop"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification de la configuration du raid soft (mdadm)
 check_raidsoft() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_RAIDSOFT"
+    cron=1
+    future=0
+    label="IS_RAIDSOFT"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if test -e /proc/mdstat && grep --quiet md /proc/mdstat; then
             { grep --quiet "^AUTOCHECK=true" /etc/default/mdadm \
                 && grep --quiet "^START_DAEMON=true" /etc/default/mdadm \
                 && grep --quiet --invert-match "^MAILADDR ___MAIL___" /etc/mdadm/mdadm.conf;
-            } || failed "${level}" "${tag}" "missing or wrong config for mdadm"
+            } || fail --comment "missing or wrong config for mdadm"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification du LogFormat de AWStats
 check_awstatslogformat() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_AWSTATSLOGFORMAT"
+    cron=1
+    future=0
+    label="IS_AWSTATSLOGFORMAT"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apache2 awstats; then
             awstatsFile="/etc/awstats/awstats.conf.local"
             grep --quiet --extended-regexp '^LogFormat=1' $awstatsFile \
-                || failed "${level}" "${tag}" "missing or wrong LogFormat directive in $awstatsFile"
+                || fail --comment "missing or wrong LogFormat directive in $awstatsFile"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification de la présence de la config logrotate pour Munin
 check_muninlogrotate() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MUNINLOGROTATE"
+    cron=1
+    future=0
+    label="IS_MUNINLOGROTATE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         { test -e /etc/logrotate.d/munin-node \
             && test -e /etc/logrotate.d/munin;
-        } || failed "${level}" "${tag}" "missing lorotate file for munin"
+        } || fail --comment "missing lorotate file for munin"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }    
 # Verification de l'activation de Squid dans le cas d'un pack mail
 check_squid() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SQUID"
+    cron=1
+    future=0
+    label="IS_SQUID"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         squidconffile="/etc/squid/evolinux-custom.conf"
         if is_pack_web && (is_installed squid || is_installed squid3); then
             host=$(hostname -i)
@@ -811,97 +1388,160 @@ check_squid() {
                 && grep --quiet --extended-regexp "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -d 127.0.0.(1|0/8) -j ACCEPT" "/etc/default/minifirewall" \
                 && grep --quiet --extended-regexp "^[^#]*iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to-port.* $http_port" "/etc/default/minifirewall";
             } || grep --quiet --extended-regexp "^PROXY='?on'?" "/etc/default/minifirewall" \
-            || failed "${level}" "${tag}" "missing squid rules in minifirewall"
+            || fail --comment "missing squid rules in minifirewall"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_evomaintenance_fw() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_EVOMAINTENANCE_FW"
+    cron=1
+    future=0
+    label="IS_EVOMAINTENANCE_FW"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -f "/etc/default/minifirewall" ]; then
             hook_db=$(grep --extended-regexp '^\s*HOOK_DB' /etc/evomaintenance.cf | tr -d ' ' | cut -d= -f2)
             rulesNumber=$(grep --count --extended-regexp "/sbin/iptables -A INPUT -p tcp --sport 5432 --dport 1024:65535 -s .* -m state --state ESTABLISHED(,RELATED)? -j ACCEPT" "/etc/default/minifirewall")
             if [ "$hook_db" = "1" ] && [ "$rulesNumber" -lt 2 ]; then
-                failed "${level}" "${tag}" "HOOK_DB is enabled but missing evomaintenance rules in minifirewall"
+                fail --comment "HOOK_DB is enabled but missing evomaintenance rules in minifirewall"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification de la conf et de l'activation de mod-deflate
 check_moddeflate() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MODDEFLATE"
+    cron=1
+    future=0
+    label="IS_MODDEFLATE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         f=/etc/apache2/mods-enabled/deflate.conf
         if is_installed apache2.2; then
             { test -e $f && grep --quiet "AddOutputFilterByType DEFLATE text/html text/plain text/xml" $f \
                 && grep --quiet "AddOutputFilterByType DEFLATE text/css" $f \
                 && grep --quiet "AddOutputFilterByType DEFLATE application/x-javascript application/javascript" $f;
-            } || failed "${level}" "${tag}" "missing AddOutputFilterByType directive for apache mod deflate"
+            } || fail --comment "missing AddOutputFilterByType directive for apache mod deflate"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification de la conf log2mail
 check_log2mailrunning() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LOG2MAILRUNNING"
+    cron=1
+    future=0
+    label="IS_LOG2MAILRUNNING"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_pack_web && is_installed log2mail; then
-            pgrep log2mail >/dev/null || failed "${level}" "${tag}" "log2mail is not running"
+            pgrep log2mail >/dev/null || fail --comment "log2mail is not running"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_log2mailapache() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LOG2MAILAPACHE"
+    cron=1
+    future=0
+    label="IS_LOG2MAILAPACHE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         conf=/etc/log2mail/config/apache
         if is_pack_web && is_installed log2mail; then
             grep --no-messages --quiet "^file = /var/log/apache2/error.log" $conf \
-                || failed "${level}" "${tag}" "missing log2mail directive for apache"
+                || fail --comment "missing log2mail directive for apache"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_log2mailmysql() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LOG2MAILMYSQL"
+    cron=1
+    future=0
+    label="IS_LOG2MAILMYSQL"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_pack_web && is_installed log2mail; then
             grep --no-messages --quiet "^file = /var/log/syslog" /etc/log2mail/config/{default,mysql,mysql.conf} \
-                || failed "${level}" "${tag}" "missing log2mail directive for mysql"
+                || fail --comment "missing log2mail directive for mysql"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_log2mailsquid() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LOG2MAILSQUID"
+    cron=1
+    future=0
+    label="IS_LOG2MAILSQUID"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_pack_web && is_installed log2mail; then
             grep --no-messages --quiet "^file = /var/log/squid.*/access.log" /etc/log2mail/config/* \
-                || failed "${level}" "${tag}" "missing log2mail directive for squid"
+                || fail --comment "missing log2mail directive for squid"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification si bind est chroote
 check_bindchroot() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_BINDCHROOT"
+    cron=1
+    future=0
+    label="IS_BINDCHROOT"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed bind9; then
             if netstat -utpln | grep "/named" | grep :53 | grep --quiet --invert-match --extended-regexp "(127.0.0.1|::1)"; then
                 default_conf=/etc/default/named
@@ -912,136 +1552,218 @@ check_bindchroot() {
                     md5_original=$(md5sum /usr/sbin/named | cut -f 1 -d ' ')
                     md5_chrooted=$(md5sum /var/chroot-bind/usr/sbin/named | cut -f 1 -d ' ')
                     if [ "$md5_original" != "$md5_chrooted" ]; then
-                        failed "${level}" "${tag}" "the chrooted bind binary is different than the original binary"
+                        fail --comment "the chrooted bind binary is different than the original binary"  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 else
-                    failed "${level}" "${tag}" "bind process is not chrooted"
+                    fail --comment "bind process is not chrooted"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # /etc/network/interfaces should be present, we don't manage systemd-network yet
 check_network_interfaces() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NETWORK_INTERFACES"
+    cron=1
+    future=0
+    label="IS_NETWORK_INTERFACES"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if ! test -f /etc/network/interfaces; then
-            failed "${level}" "${tag}" "systemd network configuration is not supported yet"
+            fail --comment "systemd network configuration is not supported yet"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verify if all if are in auto
 check_autoif() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_AUTOIF"
+    cron=1
+    future=0
+    label="IS_AUTOIF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if test -f /etc/network/interfaces; then
             interfaces=$(/sbin/ip address show up | grep "^[0-9]*:" | grep --extended-regexp --invert-match "(lo|vnet|docker|veth|tun|tap|macvtap|vrrp|lxcbr|wg)" | cut -d " " -f 2 | tr -d : | cut -d@ -f1 | tr "\n" " ")
             for interface in $interfaces; do
                 if grep --quiet --dereference-recursive "^iface $interface" /etc/network/interfaces* && ! grep --quiet --dereference-recursive "^auto $interface" /etc/network/interfaces*; then
-                    failed "${level}" "${tag}" "Network interface \`${interface}' is statically defined but not set to auto"
+                    fail --comment "Network interface \`${interface}' is statically defined but not set to auto"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Network conf verification
 check_interfacesgw() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_INTERFACESGW"
+    cron=1
+    future=0
+    label="IS_INTERFACESGW"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if test -f /etc/network/interfaces; then
             number=$(grep --extended-regexp --count "^[^#]*gateway [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}" /etc/network/interfaces)
-            test "$number" -gt 1 && failed "${level}" "${tag}" "there is more than 1 IPv4 gateway"
+            test "$number" -gt 1 && fail --comment "there is more than 1 IPv4 gateway"  --level "${level}" --label "${label}" --tags "${tags}"
             number=$(grep --extended-regexp --count "^[^#]*gateway [0-9a-fA-F]+:" /etc/network/interfaces)
-            test "$number" -gt 1 && failed "${level}" "${tag}" "there is more than 1 IPv6 gateway"
+            test "$number" -gt 1 && fail --comment "there is more than 1 IPv6 gateway"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_interfacesnetmask() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_INTERFACESNETMASK"
+    cron=1
+    future=0
+    label="IS_INTERFACESNETMASK"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if test -f /etc/network/interfaces; then
             addresses_number=$(grep "address" /etc/network/interfaces | grep -cv -e "hwaddress" -e "#")
             symbol_netmask_number=$(grep address /etc/network/interfaces | grep -v "#" | grep -c "/")
             text_netmask_number=$(grep "netmask" /etc/network/interfaces | grep -cv -e "#" -e "route add" -e "route del")
             if [ "$((symbol_netmask_number + text_netmask_number))" -ne "$addresses_number" ]; then
-                failed "${level}" "${tag}" "the number of addresses configured is not equal to the number of netmask configured : one netmask is missing or duplicated"
+                fail --comment "the number of addresses configured is not equal to the number of netmask configured : one netmask is missing or duplicated"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification de l’état du service networking
 check_networking_service() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NETWORKING_SERVICE"
+    cron=0
+    future=0
+    label="IS_NETWORKING_SERVICE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if systemctl is-enabled networking.service > /dev/null; then
             if ! systemctl is-active networking.service > /dev/null; then
-                failed "${level}" "${tag}" "networking.service is not active"
+                fail --comment "networking.service is not active"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification de la mise en place d'evobackup
 check_evobackup() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_EVOBACKUP"
+    cron=1
+    future=0
+    label="IS_EVOBACKUP"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        local evobackup_found
         evobackup_found=$(find /etc/cron* -name '*evobackup*' | wc -l)
-        test "$evobackup_found" -gt 0 || failed "${level}" "${tag}" "missing evobackup cron"
+        test "$evobackup_found" -gt 0 || fail --comment "missing evobackup cron"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 # Vérification de la mise en place d'un cron de purge de la base SQLite de Fail2ban
 check_fail2ban_purge() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_FAIL2BAN_PURGE"
+    cron=1
+    future=0
+    label="IS_FAIL2BAN_PURGE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # Nécessaire seulement en Debian 9 ou 10
         if evo::os-release::is_debian 11 lt; then
         if is_installed fail2ban; then
-            test -f /etc/cron.daily/fail2ban_dbpurge || failed "${level}" "${tag}" "missing script fail2ban_dbpurge cron"
+            test -f /etc/cron.daily/fail2ban_dbpurge || fail --comment "missing script fail2ban_dbpurge cron"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Vérification qu'il ne reste pas des jails nommées ssh non renommées en sshd
 check_ssh_fail2ban_jail_renamed() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SSH_FAIL2BAN_JAIL_RENAMED"
+    cron=1
+    future=0
+    label="IS_SSH_FAIL2BAN_JAIL_RENAMED"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed fail2ban && [ -f /etc/fail2ban/jail.local ]; then
             if grep --quiet --fixed-strings "[ssh]" /etc/fail2ban/jail.local; then
-                failed "${level}" "${tag}" "Jail ssh must be renamed sshd in fail2ban >= 0.9."
+                fail --comment "Jail ssh must be renamed sshd in fail2ban >= 0.9."  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Vérification de l'exclusion des montages (NFS) dans les sauvegardes
 check_evobackup_exclude_mount() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_EVOBACKUP_EXCLUDE_MOUNT"
+    cron=1
+    future=0
+    label="IS_EVOBACKUP_EXCLUDE_MOUNT"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         excludes_file=$(mktemp --tmpdir "evocheck.evobackup_exclude_mount.XXXXX")
         files_to_cleanup+=("${excludes_file}")
 
@@ -1052,6 +1774,7 @@ check_evobackup_exclude_mount() {
                 # If rsync is not limited by "one-file-system"
                 # then we verify that every mount is excluded
                 if ! grep --quiet -- "^\s*--one-file-system" "${evobackup_file}"; then
+                    local not_excluded
                     # old releases of evobackups don't have version
                     if grep --quiet  "^VERSION=" "${evobackup_file}" && dpkg --compare-versions "$(sed -E -n 's/VERSION="(.*)"/\1/p' "${evobackup_file}")" ge 22.12 ; then
                     sed -En '/RSYNC_EXCLUDES="/,/"/ {s/(RSYNC_EXCLUDES=|")//g;p}' "${evobackup_file}" > "${excludes_file}"
@@ -1060,208 +1783,323 @@ check_evobackup_exclude_mount() {
                     fi
                     not_excluded=$(findmnt --type nfs,nfs4,fuse.sshfs, -o target --noheadings | grep --invert-match --file="${excludes_file}")
                     for mount in ${not_excluded}; do
-                        failed "${level}" "${tag}" "${mount} is not excluded from ${evobackup_file} backup script"
+                        fail --comment "${mount} is not excluded from ${evobackup_file} backup script"  --level "${level}" --label "${label}" --tags "${tags}"
                     done
                 fi
             fi
         done
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification de la presence du userlogrotate
 check_userlogrotate() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_USERLOGROTATE"
+    cron=1
+    future=0
+    label="IS_USERLOGROTATE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_pack_web; then
-            test -x /etc/cron.weekly/userlogrotate || failed "${level}" "${tag}" "missing userlogrotate cron"
+            test -x /etc/cron.weekly/userlogrotate || fail --comment "missing userlogrotate cron"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification de la syntaxe de la conf d'Apache
 check_apachectl() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_APACHECTL"
+    cron=1
+    future=0
+    label="IS_APACHECTL"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apache2; then
             /usr/sbin/apache2ctl configtest 2>&1 | grep --quiet "^Syntax OK$" \
-                || failed "${level}" "${tag}" "apache errors detected, run a configtest"
+                || fail --comment "apache errors detected, run a configtest"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if there is regular files in Apache sites-enabled.
 check_apachesymlink() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_APACHESYMLINK"
+    cron=1
+    future=0
+    label="IS_APACHESYMLINK"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apache2; then
+            local apacheFind nbApacheFind 
             apacheFind=$(find /etc/apache2/sites-enabled ! -type l -type f -print)
-            nbApacheFind=$(wc -m <<< "$apacheFind")
-            if [[ $nbApacheFind -gt 1 ]]; then
+            nbApacheFind=$(wc -m <<< "${apacheFind}")
+            if [[ ${nbApacheFind} -gt 1 ]]; then
                 while read -r line; do
-                    failed "${level}" "${tag}" "Not a symlink: $line"
-                done <<< "$apacheFind"
+                    fail --comment "Not a symlink: ${line}"  --level "${level}" --label "${label}" --tags "${tags}"
+                done <<< "${apacheFind}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if there is real IP addresses in Allow/Deny directives (no trailing space, inline comments or so).
 check_apacheipinallow() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_APACHEIPINALLOW"
+    cron=1
+    future=0
+    label="IS_APACHEIPINALLOW"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # Note: Replace "exit 1" by "print" in Perl code to debug it.
         if is_installed apache2; then
             grep -I --recursive --extended-regexp "^[^#] *(Allow|Deny) from" /etc/apache2/ \
                 | grep --ignore-case --invert-match "from all" \
                 | grep --ignore-case --invert-match "env=" \
                 | perl -ne 'exit 1 unless (/from( [\da-f:.\/]+)+$/i)' \
-                || failed "${level}" "${tag}" "bad (Allow|Deny) directives in apache"
+                || fail --comment "bad (Allow|Deny) directives in apache"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if default Apache configuration file for munin is absent (or empty or commented).
 check_muninapacheconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MUNINAPACHECONF"
+    cron=1
+    future=0
+    label="IS_MUNINAPACHECONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        local muninconf
         muninconf="/etc/apache2/conf-available/munin.conf"
         if is_installed apache2; then
-            test -e $muninconf && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "$muninconf" \
-                && failed "${level}" "${tag}" "default munin configuration may be commented or disabled"
+            test -e ${muninconf} && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${muninconf}" \
+                && fail --comment "default munin configuration may be commented or disabled"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if default Apache configuration file for phpMyAdmin is absent (or empty or commented).
 check_phpmyadminapacheconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_PHPMYADMINAPACHECONF"
+    cron=1
+    future=0
+    label="IS_PHPMYADMINAPACHECONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        local phpmyadminconf0 phpmyadminconf1
         phpmyadminconf0="/etc/apache2/conf-available/phpmyadmin.conf"
         phpmyadminconf1="/etc/apache2/conf-enabled/phpmyadmin.conf"
         if is_installed apache2; then
             test -e "${phpmyadminconf0}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpmyadminconf0}" \
-                && failed "${level}" "${tag}" "default phpmyadmin configuration (${phpmyadminconf0}) should be commented or disabled"
+                && fail --comment "default phpmyadmin configuration (${phpmyadminconf0}) should be commented or disabled"  --level "${level}" --label "${label}" --tags "${tags}"
             test -e "${phpmyadminconf1}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpmyadminconf1}" \
-                && failed "${level}" "${tag}" "default phpmyadmin configuration (${phpmyadminconf1}) should be commented or disabled"
+                && fail --comment "default phpmyadmin configuration (${phpmyadminconf1}) should be commented or disabled"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if default Apache configuration file for phpPgAdmin is absent (or empty or commented).
 check_phppgadminapacheconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_PHPPGADMINAPACHECONF"
+    cron=1
+    future=0
+    label="IS_PHPPGADMINAPACHECONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        local phppgadminconf0 phppgadminconf1
         phppgadminconf0="/etc/apache2/conf-available/phppgadmin.conf"
         phppgadminconf1="/etc/apache2/conf-enabled/phppgadmin.conf"
         if is_installed apache2; then
             test -e "${phppgadminconf0}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phppgadminconf0}" \
-                && failed "${level}" "${tag}" "default phppgadmin configuration (${phppgadminconf0}) should be commented or disabled"
+                && fail --comment "default phppgadmin configuration (${phppgadminconf0}) should be commented or disabled"  --level "${level}" --label "${label}" --tags "${tags}"
             test -e "${phppgadminconf1}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phppgadminconf1}" \
-                && failed "${level}" "${tag}" "default phppgadmin configuration (${phppgadminconf1}) should be commented or disabled"
+                && fail --comment "default phppgadmin configuration (${phppgadminconf1}) should be commented or disabled"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if default Apache configuration file for phpMyAdmin is absent (or empty or commented).
 check_phpldapadminapacheconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_PHPLDAPADMINAPACHECONF"
+    cron=1
+    future=0
+    label="IS_PHPLDAPADMINAPACHECONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        local phpldapadminconf0 phpldapadminconf1
         phpldapadminconf0="/etc/apache2/conf-available/phpldapadmin.conf"
         phpldapadminconf1="/etc/apache2/conf-enabled/phpldapadmin.conf"
         if is_installed apache2; then
             test -e "${phpldapadminconf0}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpldapadminconf0}" \
-                && failed "${level}" "${tag}" "default phpldapadmin configuration (${phpldapadminconf0}) should be commented or disabled"
+                && fail --comment "default phpldapadmin configuration (${phpldapadminconf0}) should be commented or disabled"  --level "${level}" --label "${label}" --tags "${tags}"
             test -e "${phpldapadminconf1}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpldapadminconf1}" \
-                && failed "${level}" "${tag}" "default phpldapadmin configuration (${phpldapadminconf1}) should be commented or disabled"
+                && fail --comment "default phpldapadmin configuration (${phpldapadminconf1}) should be commented or disabled"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Verification si le système doit redémarrer suite màj kernel.
 check_kerneluptodate() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_KERNELUPTODATE"
+    cron=0
+    future=0
+    label="IS_KERNELUPTODATE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed linux-image*; then
+            local kernel_installed_at last_reboot_at
             # shellcheck disable=SC2012
             kernel_installed_at=$(date -d "$(ls --full-time -lcrt /boot/*lin* | tail -n1 | awk '{print $6}')" +%s)
             last_reboot_at=$(($(date +%s) - $(cut -f1 -d '.' /proc/uptime)))
-            if [ "$kernel_installed_at" -gt "$last_reboot_at" ]; then
-                failed "${level}" "${tag}" "machine is running an outdated kernel, reboot advised"
+            if [ "${kernel_installed_at}" -gt "${last_reboot_at}" ]; then
+                fail --comment "machine is running an outdated kernel, reboot advised"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if the server is running for more than a year.
 check_uptime() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_UPTIME"
+    cron=0
+    future=0
+    label="IS_UPTIME"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed linux-image*; then
+            local limit last_reboot_at
             limit=$(date -d "now - 2 year" +%s)
             last_reboot_at=$(($(date +%s) - $(cut -f1 -d '.' /proc/uptime)))
-            if [ "$limit" -gt "$last_reboot_at" ]; then
-                failed "${level}" "${tag}" "machine has an uptime of more than 2 years, reboot on new kernel advised"
+            if [ "${limit}" -gt "${last_reboot_at}" ]; then
+                fail --comment "machine has an uptime of more than 2 years, reboot on new kernel advised"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if munin-node running and RRD files are up to date.
 check_muninrunning() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MUNINRUNNING"
+    cron=1
+    future=0
+    label="IS_MUNINRUNNING"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if ! pgrep munin-node >/dev/null; then
-            failed "${level}" "${tag}" "Munin is not running"
+            fail --comment "Munin is not running"  --level "${level}" --label "${label}" --tags "${tags}"
         elif [ -d "/var/lib/munin/" ] && [ -d "/var/cache/munin/" ]; then
             limit=$(date +"%s" -d "now - 10 minutes")
 
             if [ -n "$(find /var/lib/munin/ -name '*load-g.rrd')" ]; then
                 updated_at=$(stat -c "%Y" /var/lib/munin/*/*load-g.rrd |sort |tail -1)
-                [ "$limit" -gt "$updated_at" ] && failed "${level}" "${tag}" "Munin load RRD has not been updated in the last 10 minutes"
+                [ "$limit" -gt "$updated_at" ] && fail --comment "Munin load RRD has not been updated in the last 10 minutes"  --level "${level}" --label "${label}" --tags "${tags}"
             else
-                failed "${level}" "${tag}" "Munin is not installed properly (load RRD not found)"
+                fail --comment "Munin is not installed properly (load RRD not found)"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
 
             if [ -n "$(find  /var/cache/munin/www/ -name 'load-day.png')" ]; then
                 updated_at=$(stat -c "%Y" /var/cache/munin/www/*/*/load-day.png |sort |tail -1)
-                grep --no-messages --quiet "^graph_strategy cron" /etc/munin/munin.conf && [ "$limit" -gt "$updated_at" ] && failed "${level}" "${tag}" "Munin load PNG has not been updated in the last 10 minutes"
+                grep --no-messages --quiet "^graph_strategy cron" /etc/munin/munin.conf && [ "$limit" -gt "$updated_at" ] && fail --comment "Munin load PNG has not been updated in the last 10 minutes"  --level "${level}" --label "${label}" --tags "${tags}"
             else
-                failed "${level}" "${tag}" "Munin is not installed properly (load PNG not found)"
+                fail --comment "Munin is not installed properly (load PNG not found)"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         else
-            failed "${level}" "${tag}" "Munin is not installed properly (main directories are missing)"
+            fail --comment "Munin is not installed properly (main directories are missing)"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if files in /home/backup/ are up-to-date
 check_backupuptodate() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_BACKUPUPTODATE"
+    cron=1
+    future=0
+    label="IS_BACKUPUPTODATE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         backup_dir="/home/backup"
         if [ -d "${backup_dir}" ]; then
             if [ -n "$(ls -A ${backup_dir})" ]; then
@@ -1270,34 +2108,52 @@ check_backupuptodate() {
                     updated_at=$(stat -c "%Y" "$file")
 
                     if [ "$limit" -gt "$updated_at" ]; then
-                        failed "${level}" "${tag}" "$file has not been backed up"
+                        fail --comment "$file has not been backed up"  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 done
             else
-                failed "${level}" "${tag}" "${backup_dir}/ is empty"
+                fail --comment "${backup_dir}/ is empty"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         else
-            failed "${level}" "${tag}" "${backup_dir}/ is missing"
+            fail --comment "${backup_dir}/ is missing"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_etcgit() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_ETCGIT"
+    cron=1
+    future=0
+    label="IS_ETCGIT"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         export GIT_DIR="/etc/.git" GIT_WORK_TREE="/etc"
         git rev-parse --is-inside-work-tree > /dev/null 2>&1 \
-            || failed "${level}" "${tag}" "/etc is not a git repository"
+            || fail --comment "/etc is not a git repository"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_etcgit_lxc() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_ETCGIT_LXC"
+    cron=1
+    future=0
+    label="IS_ETCGIT_LXC"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active)
@@ -1307,18 +2163,21 @@ check_etcgit_lxc() {
                     export GIT_DIR="${rootfs}/etc/.git"
                     export GIT_WORK_TREE="${rootfs}/etc"
                     git rev-parse --is-inside-work-tree > /dev/null 2>&1 \
-                        || failed "${level}" "${tag}" "/etc is not a git repository in container ${container_name}"
+                        || fail --comment "/etc is not a git repository in container ${container_name}"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if /etc/.git/ has read/write permissions for root only.
 check_gitperms() {
-    local level tag rc
-    rc=0
+    local level cron future tags label doc rc
     level=2
-    tag="IS_GITPERMS"
+    cron=1
+    future=0
+    label="IS_GITPERMS"
     doc=$(cat <<EODOC
     Git repositories must have "700" permissions.
     
@@ -1329,25 +2188,29 @@ check_gitperms() {
 EODOC
 )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         for git_dir in "/etc/.git" "/etc/bind.git" "/usr/share/scripts/.git"; do
             if [ -d "${git_dir}" ]; then
                 expected="700"
                 actual=$(stat -c "%a" $git_dir)
                 if [ "${expected}" != "${actual}" ]; then
                     rc=1
-                    failed "${level}" "${tag}" "${git_dir} must be ${expected}"
+                    fail --comment "${git_dir} must be ${expected}"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             fi
         done
-        test "${rc}" != 0 && show_doc "${doc}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_gitperms_lxc() {
-    local level tag rc
-    rc=0
+    local level cron future tags label doc rc
     level=2
-    tag="IS_GITPERMS_LXC"
+    cron=1
+    future=0
+    label="IS_GITPERMS_LXC"
     doc=$(cat <<EODOC
 # Git repositories must have "700" permissions.
 # 
@@ -1358,7 +2221,9 @@ check_gitperms_lxc() {
 EODOC
 )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active)
@@ -1370,21 +2235,30 @@ EODOC
                         expected="700"
                         actual=$(stat -c "%a" "${git_dir}")
                         if [ "${expected}" != "${actual}" ]; then
-                            failed "${level}" "${tag}" "$git_dir must be $expected (in container ${container_name})"
+                            fail --comment "$git_dir must be $expected (in container ${container_name})"  --level "${level}" --label "${label}" --tags "${tags}"
                         fi
                     fi
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if no package has been upgraded since $limit.
 check_notupgraded() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NOTUPGRADED"
+    cron=1
+    future=0
+    label="IS_NOTUPGRADED"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         last_upgrade=0
         upgraded=false
         for log in /var/log/dpkg.log*; do
@@ -1411,19 +2285,28 @@ check_notupgraded() {
         fi
         # Check install_date if the system never received an upgrade
         if [ "$last_upgrade" -eq 0 ]; then
-            [ "$install_date" -lt "$limit" ] && failed "${level}" "${tag}" "The system has never been updated"
+            [ "$install_date" -lt "$limit" ] && fail --comment "The system has never been updated"  --level "${level}" --label "${label}" --tags "${tags}"
         else
-            [ "$last_upgrade" -lt "$limit" ] && failed "${level}" "${tag}" "The system hasn't been updated for too long"
+            [ "$last_upgrade" -lt "$limit" ] && fail --comment "The system hasn't been updated for too long"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check if reserved blocks for root is at least 5% on every mounted partitions.
 check_tune2fs_m5() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_TUNE2FS_M5"
+    cron=1
+    future=0
+    label="IS_TUNE2FS_M5"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         min=5
         parts=$(grep --extended-regexp "ext(3|4)" /proc/mounts | cut -d ' ' -f1 | tr -s '\n' ' ')
         findmnt_bin=$(command -v findmnt)
@@ -1444,229 +2327,364 @@ check_tune2fs_m5() {
                 else
                     mount="unknown mount point"
                 fi
-                failed "${level}" "${tag}" "Partition ${part} (${mount}) has less than ${min}% reserved blocks (${percentage}%)"
+                fail --comment "Partition ${part} (${mount}) has less than ${min}% reserved blocks (${percentage}%)"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         done
+
+        show_doc "${doc:-}"
     fi
 }
 check_evolinuxsudogroup() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_EVOLINUXSUDOGROUP"
+    cron=1
+    future=0
+    label="IS_EVOLINUXSUDOGROUP"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if grep --quiet "^evolinux-sudo:" /etc/group; then
             if [ -f /etc/sudoers.d/evolinux ]; then
                 grep --quiet --extended-regexp '^%evolinux-sudo +ALL ?= ?\(ALL:ALL\) ALL' /etc/sudoers.d/evolinux \
-                    || failed "${level}" "${tag}" "missing evolinux-sudo directive in sudoers file"
+                    || fail --comment "missing evolinux-sudo directive in sudoers file"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_userinadmgroup() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_USERINADMGROUP"
+    cron=1
+    future=0
+    label="IS_USERINADMGROUP"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         users=$(grep "^evolinux-sudo:" /etc/group | awk -F: '{print $4}' | tr ',' ' ')
         for user in $users; do
             if ! groups "$user" | grep --quiet adm; then
-                failed "${level}" "${tag}" "User $user doesn't belong to \`adm' group"
+                fail --comment "User $user doesn't belong to \`adm' group"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         done
+
+        show_doc "${doc:-}"
     fi
 }
 check_apache2evolinuxconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_APACHE2EVOLINUXCONF"
+    cron=1
+    future=0
+    label="IS_APACHE2EVOLINUXCONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apache2; then
             { test -L /etc/apache2/conf-enabled/z-evolinux-defaults.conf \
                 && test -L /etc/apache2/conf-enabled/zzz-evolinux-custom.conf \
                 && test -f /etc/apache2/ipaddr_whitelist.conf;
-            } || failed "${level}" "${tag}" "missing custom evolinux apache config"
+            } || fail --comment "missing custom evolinux apache config"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_backportsconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_BACKPORTSCONF"
+    cron=1
+    future=0
+    label="IS_BACKPORTSCONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         grep --quiet --no-messages --extended-regexp "^[^#].*backports" /etc/apt/sources.list \
-            && failed "${level}" "${tag}" "backports can't be in main sources list"
+            && fail --comment "backports can't be in main sources list"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_bind9munin() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_BIND9MUNIN"
+    cron=1
+    future=0
+    label="IS_BIND9MUNIN"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed bind9; then
             { test -L /etc/munin/plugins/bind9 \
                 && test -e /etc/munin/plugin-conf.d/bind9;
-            } || failed "${level}" "${tag}" "missing bind plugin for munin"
+            } || fail --comment "missing bind plugin for munin"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_bind9logrotate() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_BIND9LOGROTATE"
+    cron=1
+    future=0
+    label="IS_BIND9LOGROTATE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed bind9; then
-            test -e /etc/logrotate.d/bind9 || failed "${level}" "${tag}" "missing bind logrotate file"
+            test -e /etc/logrotate.d/bind9 || fail --comment "missing bind logrotate file"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_drbd_two_primaries() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_DRBDTWOPRIMARIES"
+    cron=1
+    future=0
+    label="IS_DRBDTWOPRIMARIES"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed drbd-utils; then
             if command -v drbd-overview >/dev/null; then
                 if drbd-overview 2>&1 | grep --quiet "Primary/Primary"; then
-                    failed "${level}" "${tag}" "Some DRBD ressources have two primaries, you risk a split brain!"
+                    fail --comment "Some DRBD ressources have two primaries, you risk a split brain!"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             elif command -v drbdadm >/dev/null; then
                 if drbdadm role all 2>&1 | grep --quiet 'Primary/Primary'; then
-                    failed "${level}" "${tag}" "Some DRBD ressources have two primaries, you risk a split brain!"
+                    fail --comment "Some DRBD ressources have two primaries, you risk a split brain!"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_broadcomfirmware() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_BROADCOMFIRMWARE"
+    cron=1
+    future=0
+    label="IS_BROADCOMFIRMWARE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         lspci_bin=$(command -v lspci)
         if [ -x "${lspci_bin}" ]; then
             if ${lspci_bin} | grep --quiet 'NetXtreme II'; then
                 { is_installed firmware-bnx2 \
                     && apt-cache policy | grep "\bl=Debian\b" | grep --quiet -v "\b,c=non-free\b"
-                } || failed "${level}" "${tag}" "missing non-free repository"
+                } || fail --comment "missing non-free repository"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         else
-            failed "${level}" "${tag}" "lspci not found in ${PATH}"
+            fail --comment "lspci not found in ${PATH}"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_hardwareraidtool() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_HARDWARERAIDTOOL"
+    cron=1
+    future=0
+    label="IS_HARDWARERAIDTOOL"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         lspci_bin=$(command -v lspci)
         if [ -x "${lspci_bin}" ]; then
             if ${lspci_bin} | grep --quiet 'MegaRAID'; then
                 if ! { command -v perccli || command -v perccli2; } >/dev/null  ; then
                     # shellcheck disable=SC2015
                     is_installed megacli && { is_installed megaclisas-status || is_installed megaraidsas-status; } \
-                        || failed "${level}" "${tag}" "Mega tools not found"
+                        || fail --comment "Mega tools not found"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             fi
             if ${lspci_bin} | grep --quiet 'Hewlett-Packard Company Smart Array'; then
-                is_installed cciss-vol-status || failed "${level}" "${tag}" "cciss-vol-status not installed"
+                is_installed cciss-vol-status || fail --comment "cciss-vol-status not installed"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         else
-            failed "${level}" "${tag}" "lspci not found in ${PATH}"
+            fail --comment "lspci not found in ${PATH}"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_log2mailsystemdunit() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LOG2MAILSYSTEMDUNIT"
+    cron=1
+    future=0
+    label="IS_LOG2MAILSYSTEMDUNIT"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         systemctl -q is-active log2mail.service \
-            || failed "${level}" "${tag}" "log2mail unit not running"
+            || fail --comment "log2mail unit not running"  --level "${level}" --label "${label}" --tags "${tags}"
         test -f /etc/systemd/system/log2mail.service \
-            || failed "${level}" "${tag}" "missing log2mail unit file"
+            || fail --comment "missing log2mail unit file"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_systemduserunit() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SYSTEMDUSERUNIT"
+    cron=1
+    future=1
+    label="IS_SYSTEMDUSERUNIT"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         awk 'BEGIN { FS = ":" } { print $1, $6 }' /etc/passwd | while read -r user dir; do
             if ls "${dir}"/.config/systemd/user/*.service > /dev/null 2> /dev/null; then
-                failed "${level}" "${tag}" "systemd unit found for user ${user}"
+                fail --comment "systemd unit found for user ${user}"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         done
+
+        show_doc "${doc:-}"
     fi
 }
 check_listupgrade() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LISTUPGRADE"
+    cron=1
+    future=0
+    label="IS_LISTUPGRADE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         test -f /etc/cron.d/listupgrade \
-            || failed "${level}" "${tag}" "missing listupgrade cron"
+            || fail --comment "missing listupgrade cron"  --level "${level}" --label "${label}" --tags "${tags}"
         test -x /usr/local/sbin/listupgrade.sh || test -x /usr/share/scripts/listupgrade.sh \
-            || failed "${level}" "${tag}" "missing listupgrade script or not executable"
+            || fail --comment "missing listupgrade script or not executable"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_mariadbevolinuxconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MARIADBEVOLINUXCONF"
+    cron=1
+    future=1
+    label="IS_MARIADBEVOLINUXCONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed mariadb-server; then
             { test -f /etc/mysql/mariadb.conf.d/z-evolinux-defaults.cnf \
                 && test -f /etc/mysql/mariadb.conf.d/zzz-evolinux-custom.cnf;
-            } || failed "${level}" "${tag}" "missing mariadb custom config"
+            } || fail --comment "missing mariadb custom config"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_sql_backup() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SQL_BACKUP"
+    cron=1
+    future=0
+    label="IS_SQL_BACKUP"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if (is_installed "mysql-server" || is_installed "mariadb-server"); then
             backup_dir="/home/backup"
             if [ -d "${backup_dir}" ]; then
                 # You could change the default path in /etc/evocheck.cf
                 SQL_BACKUP_PATH="${SQL_BACKUP_PATH:-$(find -H "${backup_dir}" \( -iname "mysql.bak.gz" -o -iname "mysql.sql.gz" -o -iname "mysqldump.sql.gz" \))}"
                 if [ -z "${SQL_BACKUP_PATH}" ]; then
-                    failed "${level}" "${tag}" "No MySQL dump found"
+                    fail --comment "No MySQL dump found"  --level "${level}" --label "${label}" --tags "${tags}"
                     return 1
                 fi
                 for backup_path in ${SQL_BACKUP_PATH}; do
                     if [ ! -f "${backup_path}" ]; then
-                        failed "${level}" "${tag}" "MySQL dump is missing (${backup_path})"
+                        fail --comment "MySQL dump is missing (${backup_path})"  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 done
             else
-                failed "${level}" "${tag}" "${backup_dir}/ is missing"
+                fail --comment "${backup_dir}/ is missing"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_postgres_backup() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_POSTGRES_BACKUP"
+    cron=1
+    future=0
+    label="IS_POSTGRES_BACKUP"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed "postgresql-9*" || is_installed "postgresql-1*"; then
             backup_dir="/home/backup"
             if [ -d "${backup_dir}" ]; then
@@ -1675,21 +2693,30 @@ check_postgres_backup() {
                 POSTGRES_BACKUP_PATH="${POSTGRES_BACKUP_PATH:-$(find -H "${backup_dir}" -iname "pg.dump.bak*")}"
                 for backup_path in ${POSTGRES_BACKUP_PATH}; do
                     if [ ! -f "${backup_path}" ]; then
-                        failed "${level}" "${tag}" "PostgreSQL dump is missing (${backup_path})"
+                        fail --comment "PostgreSQL dump is missing (${backup_path})"  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 done
             else
-                failed "${level}" "${tag}" "${backup_dir}/ is missing"
+                fail --comment "${backup_dir}/ is missing"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_mongo_backup() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MONGO_BACKUP"
+    cron=1
+    future=0
+    label="IS_MONGO_BACKUP"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed "mongodb-org-server"; then
             backup_dir="/home/backup"
             if [ -d "${backup_dir}" ]; then
@@ -1702,26 +2729,35 @@ check_mongo_backup() {
                             limit=$(date +"%s" -d "now - 2 day")
                             updated_at=$(stat -c "%Y" "$file")
                             if [ -f "$file" ] && [ "$limit" -gt "$updated_at"  ]; then
-                                failed "${level}" "${tag}" "MongoDB hasn't been dumped for more than 2 days"
+                                fail --comment "MongoDB hasn't been dumped for more than 2 days"  --level "${level}" --label "${label}" --tags "${tags}"
                                 break
                             fi
                         fi
                     done
                 else
-                    failed "${level}" "${tag}" "MongoDB dump directory is missing (${MONGO_BACKUP_PATH})"
+                    fail --comment "MongoDB dump directory is missing (${MONGO_BACKUP_PATH})"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             else
-                failed "${level}" "${tag}" "${backup_dir}/ is missing"
+                fail --comment "${backup_dir}/ is missing"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_ldap_backup() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LDAP_BACKUP"
+    cron=1
+    future=0
+    label="IS_LDAP_BACKUP"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed slapd; then
             backup_dir="/home/backup"
             if [ -d "${backup_dir}" ]; then
@@ -1732,21 +2768,30 @@ check_ldap_backup() {
                     # Let's check for ldap/ldap-data.bak
                     LDAP_BACKUP_PATH="${backup_dir}/ldap/ldap-data.bak"
                     if ! test -f "$LDAP_BACKUP_PATH"; then
-                        failed "${level}" "${tag}" "LDAP dump is missing (${LDAP_BACKUP_PATH})"
+                        fail --comment "LDAP dump is missing (${LDAP_BACKUP_PATH})"  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 fi
             else
-                failed "${level}" "${tag}"  "${backup_dir}/ is missing"
+                fail "${level}" "${label}"  "${backup_dir}/ is missing"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_redis_backup() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_REDIS_BACKUP"
+    cron=1
+    future=0
+    label="IS_REDIS_BACKUP"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed redis-server; then
             backup_dir="/home/backup"
                 if [ -d "${backup_dir}" ]; then
@@ -1761,7 +2806,7 @@ check_redis_backup() {
                 n_instances=$(pgrep 'redis-server' | wc -l)
                 n_dumps=$(echo $REDIS_BACKUP_PATH | wc -w)
                 if [ ${n_dumps} -lt ${n_instances} ]; then
-                    failed "${level}" "${tag}" "Missing Redis dump : ${n_instances} instance(s) found versus ${n_dumps} dump(s) found."
+                    fail --comment "Missing Redis dump : ${n_instances} instance(s) found versus ${n_dumps} dump(s) found."  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
 
                 # Check last dump date
@@ -1769,51 +2814,78 @@ check_redis_backup() {
                 for dump in ${REDIS_BACKUP_PATH}; do
                     last_update=$(stat -c "%Z" $dump)
                     if [ "${last_update}" -lt "${age_threshold}" ]; then
-                        failed "${level}" "${tag}" "Redis dump ${dump} is older than 2 days."
+                        fail --comment "Redis dump ${dump} is older than 2 days."  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 done
             else
-                failed "${level}" "${tag}" "${backup_dir}/ is missing"
+                fail --comment "${backup_dir}/ is missing"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_elastic_backup() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_ELASTIC_BACKUP"
+    cron=1
+    future=0
+    label="IS_ELASTIC_BACKUP"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed elasticsearch; then
             # You could change the default path in /etc/evocheck.cf
             ELASTIC_BACKUP_PATH=${ELASTIC_BACKUP_PATH:-"/home/backup-elasticsearch"}
-            test -d "$ELASTIC_BACKUP_PATH" || failed "${level}" "${tag}" "Elastic snapshot is missing (${ELASTIC_BACKUP_PATH})"
+            test -d "$ELASTIC_BACKUP_PATH" || fail --comment "Elastic snapshot is missing (${ELASTIC_BACKUP_PATH})"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_mariadbsystemdunit() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MARIADBSYSTEMDUNIT"
+    cron=1
+    future=0
+    label="IS_MARIADBSYSTEMDUNIT"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # TODO: check if it is still needed for bullseye
         if evo::os-release::is_debian 11 lt; then
             if is_installed mariadb-server; then
                 if systemctl -q is-active mariadb.service; then
                     test -f /etc/systemd/system/mariadb.service.d/evolinux.conf \
-                        || failed "${level}" "${tag}" "missing systemd override for mariadb unit"
+                        || fail --comment "missing systemd override for mariadb unit"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_mysqlmunin() {
-    local level tag
+    local level cron future tags label doc rc
     level=3
-    tag="IS_MYSQLMUNIN"
+    cron=0
+    future=1
+    label="IS_MYSQLMUNIN"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed mariadb-server; then
             for file in mysql_bytes mysql_queries mysql_slowqueries \
                 mysql_threads mysql_connections mysql_files_tables \
@@ -1823,40 +2895,58 @@ check_mysqlmunin() {
                 mysql_sorts mysql_tmp_tables; do
 
                 if [[ ! -L /etc/munin/plugins/${file} ]]; then
-                    failed "${level}" "${tag}" "missing munin plugin '${file}'"
+                    fail --comment "missing munin plugin '${file}'"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             done
             munin-run mysql_commands 2> /dev/null > /dev/null
-            test $? -eq 0 || failed "${level}" "${tag}" "Munin plugin 'mysql_commands' returned an error"
+            test $? -eq 0 || fail --comment "Munin plugin 'mysql_commands' returned an error"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_mysqlnrpe() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MYSQLNRPE"
+    cron=1
+    future=0
+    label="IS_MYSQLNRPE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed mariadb-server; then
             nagios_file=~nagios/.my.cnf
             if ! test -f ${nagios_file}; then
-                failed "${level}" "${tag}" "${nagios_file} is missing"
+                fail --comment "${nagios_file} is missing"  --level "${level}" --label "${label}" --tags "${tags}"
             elif [ "$(stat -c %U ${nagios_file})" != "nagios" ] \
                 || [ "$(stat -c %a ${nagios_file})" != "600" ]; then
-                failed "${level}" "${tag}" "${nagios_file} has wrong permissions"
+                fail --comment "${nagios_file} has wrong permissions"  --level "${level}" --label "${label}" --tags "${tags}"
             else
                 grep --quiet --extended-regexp "command\[check_mysql\]=.*/usr/lib/nagios/plugins/check_mysql" /etc/nagios/nrpe.d/evolix.cfg \
-                || failed "${level}" "${tag}" "check_mysql is missing"
+                || fail --comment "check_mysql is missing"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_phpevolinuxconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_PHPEVOLINUXCONF"
+    cron=1
+    future=1
+    label="IS_PHPEVOLINUXCONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         evo::os-release::is_debian 10 && phpVersion="7.3"
         evo::os-release::is_debian 11 && phpVersion="7.4"
         evo::os-release::is_debian 12 && phpVersion="8.2"
@@ -1865,28 +2955,46 @@ check_phpevolinuxconf() {
         if is_installed php; then
             { test -f "/etc/php/${phpVersion}/cli/conf.d/z-evolinux-defaults.ini" \
                 && test -f "/etc/php/${phpVersion}/cli/conf.d/zzz-evolinux-custom.ini"
-            } || failed "${level}" "${tag}" "missing php evolinux config"
+            } || fail --comment "missing php evolinux config"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_squidlogrotate() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SQUIDLOGROTATE"
+    cron=1
+    future=0
+    label="IS_SQUIDLOGROTATE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed squid; then
             grep --quiet --regexp monthly --regexp daily /etc/logrotate.d/squid \
-                || failed "${level}" "${tag}" "missing squid logrotate file"
+                || fail --comment "missing squid logrotate file"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_squidevolinuxconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SQUIDEVOLINUXCONF"
+    cron=1
+    future=0
+    label="IS_SQUIDEVOLINUXCONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed squid; then
             { grep --quiet --no-messages "^CONFIG=/etc/squid/evolinux-defaults.conf$" /etc/default/squid \
                 && test -f /etc/squid/evolinux-defaults.conf \
@@ -1895,16 +3003,25 @@ check_squidevolinuxconf() {
                 && test -f /etc/squid/evolinux-acl.conf \
                 && test -f /etc/squid/evolinux-httpaccess.conf \
                 && test -f /etc/squid/evolinux-custom.conf;
-            } || failed "${level}" "${tag}" "missing squid evolinux config"
+            } || fail --comment "missing squid evolinux config"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_duplicate_fs_label() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_DUPLICATE_FS_LABEL"
+    cron=1
+    future=0
+    label="IS_DUPLICATE_FS_LABEL"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # Do it only if thereis blkid binary
         blkid_bin=$(command -v blkid)
         if [ -n "$blkid_bin" ]; then
@@ -1921,56 +3038,92 @@ check_duplicate_fs_label() {
             if [ -n "$tmpOutput" ]; then
                 # shellcheck disable=SC2086
                 labels=$(echo -n $tmpOutput | tr '\n' ' ')
-                failed "${level}" "${tag}" "Duplicate labels: $labels"
+                fail --comment "Duplicate labels: $labels"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         else
-            failed "${level}" "${tag}" "blkid not found in ${PATH}"
+            fail --comment "blkid not found in ${PATH}"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_evolix_user() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_EVOLIX_USER"
+    cron=1
+    future=0
+    label="IS_EVOLIX_USER"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         grep --quiet --extended-regexp "^evolix:" /etc/passwd \
-            && failed "${level}" "${tag}" "evolix user should be deleted, used only for install"
+            && fail --comment "evolix user should be deleted, used only for install"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_evolix_group() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_EVOLIX_GROUP"
+    cron=1
+    future=1
+    label="IS_EVOLIX_GROUP"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         users=$(grep ":20..:20..:" /etc/passwd | cut -d ":" -f 1)
         for user in ${users}; do
             grep -E "^evolix:" /etc/group | grep -q -E "\b${user}\b" \
-                || failed "${level}" "${tag}" "user \`${user}' should be in \`evolix' group"
+                || fail --comment "user \`${user}' should be in \`evolix' group"  --level "${level}" --label "${label}" --tags "${tags}"
         done
+
+        show_doc "${doc:-}"
     fi
 }
 check_evoacme_cron() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_EVOACME_CRON"
+    cron=1
+    future=0
+    label="IS_EVOACME_CRON"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -f "/usr/local/sbin/evoacme" ]; then
             # Old cron file, should be deleted
-            test -f /etc/cron.daily/certbot && failed "${level}" "${tag}" "certbot cron is incompatible with evoacme"
+            test -f /etc/cron.daily/certbot && fail --comment "certbot cron is incompatible with evoacme"  --level "${level}" --label "${label}" --tags "${tags}"
             # evoacme cron file should be present
-            test -f /etc/cron.daily/evoacme || failed "${level}" "${tag}" "evoacme cron is missing"
+            test -f /etc/cron.daily/evoacme || fail --comment "evoacme cron is missing"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_evoacme_livelinks() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_EVOACME_LIVELINKS"
+    cron=1
+    future=0
+    label="IS_EVOACME_LIVELINKS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         evoacme_bin=$(command -v evoacme)
         if [ -x "$evoacme_bin" ]; then
             # Sometimes evoacme is installed but no certificates has been generated
@@ -1987,71 +3140,107 @@ check_evoacme_livelinks() {
                     lastVersion=$(basename "$lastCertDir")
 
                     if [[ "$lastVersion" != "$actualVersion" ]]; then
-                        failed "${level}" "${tag}" "Certificate \`$certName' hasn't been updated"
+                        fail --comment "Certificate \`$certName' hasn't been updated"  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 done
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_apache_confenabled() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_APACHE_CONFENABLED"
+    cron=1
+    future=0
+    label="IS_APACHE_CONFENABLED"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # Starting from Jessie and Apache 2.4, /etc/apache2/conf.d/
         # must be replaced by conf-available/ and config files symlinked
         # to conf-enabled/
         if [ -f /etc/apache2/apache2.conf ]; then
             test -d /etc/apache2/conf.d/ \
-                && failed "${level}" "${tag}" "apache's conf.d directory must not exists"
+                && fail --comment "apache's conf.d directory must not exists"  --level "${level}" --label "${label}" --tags "${tags}"
             grep --quiet 'Include conf.d' /etc/apache2/apache2.conf \
-                && failed "${level}" "${tag}" "apache2.conf must not Include conf.d"
+                && fail --comment "apache2.conf must not Include conf.d"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_meltdown_spectre() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MELTDOWN_SPECTRE"
+    cron=0
+    future=0
+    label="IS_MELTDOWN_SPECTRE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # /sys/devices/system/cpu/vulnerabilities/
         for vuln in meltdown spectre_v1 spectre_v2; do
             test -f "/sys/devices/system/cpu/vulnerabilities/$vuln" \
-                || failed "${level}" "${tag}" "vulnerable to $vuln"
+                || fail --comment "vulnerable to $vuln"  --level "${level}" --label "${label}" --tags "${tags}"
         done
+
+        show_doc "${doc:-}"
     fi
 }
 check_old_home_dir() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_OLD_HOME_DIR"
+    cron=1
+    future=1
+    label="IS_OLD_HOME_DIR"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         homeDir=${homeDir:-/home}
         for dir in "$homeDir"/*; do
             statResult=$(stat -c "%n has owner %u resolved as %U" "$dir" \
                 | grep --invert-match --extended-regexp --regexp '.bak' --regexp '\.[0-9]{2}-[0-9]{2}-[0-9]{4}' \
                 | grep "UNKNOWN")
             # There is at least one dir matching
-            if [[ -n "$statResult" ]]; then
-                failed "${level}" "${tag}" "$statResult"
+            if [[ -n "${statResult}" ]]; then
+                fail --comment "${statResult}"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         done
+
+        show_doc "${doc:-}"
     fi
 }
 check_tmp_1777() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_TMP_1777"
+    cron=1
+    future=0
+    label="IS_TMP_1777"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         expected="1777"
 
         actual=$(stat --format "%a" /tmp)
-        test "${expected}" = "${actual}" || failed "${level}" "${tag}" "/tmp must be ${expected}"
+        test "${expected}" = "${actual}" || fail --comment "/tmp must be ${expected}"  --level "${level}" --label "${label}" --tags "${tags}"
 
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
@@ -2061,41 +3250,68 @@ check_tmp_1777() {
                     rootfs="${lxc_path}/${container_name}/rootfs"
                     if [ -d "${rootfs}/tmp" ]; then
                         actual=$(stat --format "%a" "${rootfs}/tmp")
-                        test "${expected}" = "${actual}" || failed "${level}" "${tag}" "${rootfs}/tmp must be ${expected}"
+                        test "${expected}" = "${actual}" || fail --comment "${rootfs}/tmp must be ${expected}"  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_root_0700() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_ROOT_0700"
+    cron=1
+    future=0
+    label="IS_ROOT_0700"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         actual=$(stat --format "%a" /root)
         expected="700"
-        test "$expected" = "$actual" || failed "${level}" "${tag}" "/root must be $expected"
+        test "$expected" = "$actual" || fail --comment "/root must be $expected"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_usrsharescripts() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_USRSHARESCRIPTS"
+    cron=1
+    future=0
+    label="IS_USRSHARESCRIPTS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         actual=$(stat --format "%a" /usr/share/scripts)
         expected="700"
-        test "$expected" = "$actual" || failed "${level}" "${tag}" "/usr/share/scripts must be $expected"
+        test "$expected" = "$actual" || fail --comment "/usr/share/scripts must be $expected"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_sshpermitrootno() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SSHPERMITROOTNO"
+    cron=1
+    future=0
+    label="IS_SSHPERMITROOTNO"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # You could change the SSH port in /etc/evocheck.cf
         sshd_args="-C addr=,user=,host=,laddr=,lport=${SSH_PORT:-22}"
         if evo::os-release::is_debian 10; then
@@ -2103,118 +3319,181 @@ check_sshpermitrootno() {
         fi
         # shellcheck disable=SC2086
         if ! (sshd -T ${sshd_args} 2> /dev/null | grep --quiet --ignore-case 'permitrootlogin no'); then
-            failed "${level}" "${tag}" "PermitRoot should be set to no"
+            fail --comment "PermitRoot should be set to no"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_evomaintenanceusers() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_EVOMAINTENANCEUSERS"
+    cron=1
+    future=0
+    label="IS_EVOMAINTENANCEUSERS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         users=$(getent group evolinux-sudo | cut -d':' -f4 | tr ',' ' ')
         for user in $users; do
             user_home=$(getent passwd "$user" | cut -d: -f6)
             if [ -n "$user_home" ] && [ -d "$user_home" ]; then
                 if ! grep --quiet --no-messages "^trap.*sudo.*evomaintenance.sh" "${user_home}"/.*profile; then
-                    failed "${level}" "${tag}" "${user} doesn't have an evomaintenance trap"
+                    fail --comment "${user} doesn't have an evomaintenance trap"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             fi
         done
+
+        show_doc "${doc:-}"
     fi
 }
 check_evomaintenanceconf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_EVOMAINTENANCECONF"
+    cron=1
+    future=0
+    label="IS_EVOMAINTENANCECONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         f=/etc/evomaintenance.cf
         if [ -e "$f" ]; then
             perms=$(stat -c "%a" $f)
-            test "$perms" = "600" || failed "${level}" "${tag}" "Wrong permissions on \`$f' ($perms instead of 600)"
+            test "$perms" = "600" || fail --comment "Wrong permissions on \`$f' ($perms instead of 600)"  --level "${level}" --label "${label}" --tags "${tags}"
 
             { grep "^FROM" $f | grep --quiet --invert-match "jdoe@example.com" \
                 && grep "^FULLFROM" $f | grep --quiet --invert-match "John Doe <jdoe@example.com>" \
                 && grep "^URGENCYFROM" $f | grep --quiet --invert-match "mama.doe@example.com" \
                 && grep "^URGENCYTEL" $f | grep --quiet --invert-match "06.00.00.00.00" \
                 && grep "^REALM" $f | grep --quiet --invert-match "example.com"
-            } || failed "${level}" "${tag}" "evomaintenance is not correctly configured"
+            } || fail --comment "evomaintenance is not correctly configured"  --level "${level}" --label "${label}" --tags "${tags}"
         else
-            failed "${level}" "${tag}" "Configuration file \`$f' is missing"
+            fail --comment "Configuration file \`$f' is missing"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_privatekeyworldreadable() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_PRIVKEYWOLRDREADABLE"
+    cron=1
+    future=0
+    label="IS_PRIVKEYWOLRDREADABLE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # a simple globbing fails if directory is empty
         if [ -n "$(ls -A /etc/ssl/private/)" ]; then
             for f in /etc/ssl/private/*; do
                 perms=$(stat -L -c "%a" "$f")
                 if [ "${perms: -1}" != 0 ]; then
-                    failed "${level}" "${tag}" "$f is world-readable"
+                    fail --comment "$f is world-readable"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_evobackup_incs() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_EVOBACKUP_INCS"
+    cron=1
+    future=0
+    label="IS_EVOBACKUP_INCS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed bkctld; then
             bkctld_cron_file=${bkctld_cron_file:-/etc/cron.d/bkctld}
             if [ -f "${bkctld_cron_file}" ]; then
                 root_crontab=$(grep -v "^#" "${bkctld_cron_file}")
-                echo "${root_crontab}" | grep --quiet "bkctld inc" || failed "${level}" "${tag}" "'bkctld inc' is missing in ${bkctld_cron_file}"
-                echo "${root_crontab}" | grep --quiet --extended-regexp "(check-incs.sh|bkctld check-incs)" || failed "${level}" "${tag}" "'check-incs.sh' is missing in ${bkctld_cron_file}"
+                echo "${root_crontab}" | grep --quiet "bkctld inc" || fail --comment "'bkctld inc' is missing in ${bkctld_cron_file}"  --level "${level}" --label "${label}" --tags "${tags}"
+                echo "${root_crontab}" | grep --quiet --extended-regexp "(check-incs.sh|bkctld check-incs)" || fail --comment "'check-incs.sh' is missing in ${bkctld_cron_file}"  --level "${level}" --label "${label}" --tags "${tags}"
             else
-                failed "${level}" "${tag}" "Crontab \`${bkctld_cron_file}' is missing"
+                fail --comment "Crontab \`${bkctld_cron_file}' is missing"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_osprober() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_OSPROBER"
+    cron=1
+    future=0
+    label="IS_OSPROBER"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed os-prober qemu-kvm; then
-            failed "${level}" "${tag}" \
+            fail "${level}" "${label}" \
                 "Removal of os-prober package is recommended as it can cause serious issue on KVM server"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_apt_valid_until() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_APT_VALID_UNTIL"
+    cron=1
+    future=0
+    label="IS_APT_VALID_UNTIL"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         aptvalidFile="/etc/apt/apt.conf.d/99no-check-valid-until"
         aptvalidText="Acquire::Check-Valid-Until no;"
         if grep --quiet --no-messages "archive.debian.org" /etc/apt/sources.list /etc/apt/sources.list.d/*; then
             if ! grep --quiet --no-messages "$aptvalidText" /etc/apt/apt.conf.d/*; then
-                failed "${level}" "${tag}" \
+                fail "${level}" "${label}" \
                     "As you use archive.mirror.org you need ${aptvalidFile}: ${aptvalidText}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_chrooted_binary_uptodate() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_CHROOTED_BINARY_UPTODATE"
+    cron=1
+    future=0
+    label="IS_CHROOTED_BINARY_UPTODATE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         # list of processes to check
         process_list="sshd"
         for process_name in ${process_list}; do
@@ -2229,64 +3508,100 @@ check_chrooted_binary_uptodate() {
                     original_md5=$(md5sum "${original_bin}" | cut -f 1 -d ' ')
                     # compare md5 checksums
                     if [ "$original_md5" != "$chrooted_md5" ]; then
-                        failed "${level}" "${tag}" "${process_bin} (${pid}) is different than ${original_bin}."
+                        fail --comment "${process_bin} (${pid}) is different than ${original_bin}."  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 fi
             done
         done
+
+        show_doc "${doc:-}"
     fi
 }
 check_nginx_letsencrypt_uptodate() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NGINX_LETSENCRYPT_UPTODATE"
+    cron=1
+    future=0
+    label="IS_NGINX_LETSENCRYPT_UPTODATE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -d /etc/nginx ]; then
             snippets=$(find /etc/nginx -type f -name "letsencrypt.conf")
             if [ -n "${snippets}" ]; then
                 while read -r snippet; do
                     if grep --quiet --extended-regexp "^\s*alias\s+/.+/\.well-known/acme-challenge" "${snippet}"; then
-                        failed "${level}" "${tag}" "Nginx snippet ${snippet} is not compatible with Nginx on Debian 9+."
+                        fail --comment "Nginx snippet ${snippet} is not compatible with Nginx on Debian 9+."  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 done <<< "${snippets}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_wkhtmltopdf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_WKHTMLTOPDF"
+    cron=1
+    future=0
+    label="IS_WKHTMLTOPDF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
-        is_installed wkhtmltopdf && failed "${level}" "${tag}" "wkhtmltopdf package should not be installed (cf. https://wiki.evolix.org/HowtoWkhtmltopdf)"
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        is_installed wkhtmltopdf && fail --comment "wkhtmltopdf package should not be installed (cf. https://wiki.evolix.org/HowtoWkhtmltopdf)"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
     fi
 }
 check_lxc_wkhtmltopdf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LXC_WKHTMLTOPDF"
+    cron=1
+    future=0
+    label="IS_LXC_WKHTMLTOPDF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active)
             for container_name in ${containers_list}; do
                 if lxc-info --name "${container_name}" > /dev/null; then
                     rootfs="${lxc_path}/${container_name}/rootfs"
-                    test -e "${rootfs}/usr/bin/wkhtmltopdf" && failed "${level}" "${tag}" "wkhtmltopdf should not be installed in container ${container_name}"
+                    test -e "${rootfs}/usr/bin/wkhtmltopdf" && fail --comment "wkhtmltopdf should not be installed in container ${container_name}"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_lxc_container_resolv_conf() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LXC_CONTAINER_RESOLV_CONF"
+    cron=1
+    future=0
+    label="IS_LXC_CONTAINER_RESOLV_CONF"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
             current_resolvers=$(grep ^nameserver /etc/resolv.conf | sed 's/nameserver//g' )
             lxc_path=$(lxc-config lxc.lxcpath)
@@ -2298,40 +3613,58 @@ check_lxc_container_resolv_conf() {
 
                         while read -r resolver; do
                             if ! grep --quiet --extended-regexp "^nameserver\s+${resolver}" "${rootfs}/etc/resolv.conf"; then
-                                failed "${level}" "${tag}" "resolv.conf miss-match beween host and container : missing nameserver ${resolver} in container ${container_name} resolv.conf"
+                                fail --comment "resolv.conf miss-match beween host and container : missing nameserver ${resolver} in container ${container_name} resolv.conf"  --level "${level}" --label "${label}" --tags "${tags}"
                             fi
                         done <<< "${current_resolvers}"
 
                     else
-                        failed "${level}" "${tag}" "resolv.conf missing in container ${container_name}"
+                        fail --comment "resolv.conf missing in container ${container_name}"  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check that there are containers if lxc is installed.
 check_no_lxc_container() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NO_LXC_CONTAINER"
+    cron=1
+    future=0
+    label="IS_NO_LXC_CONTAINER"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
             containers_count=$(lxc-ls -1 --active | wc -l)
             if [ "${containers_count}" -eq 0 ]; then
-                failed "${level}" "${tag}" "LXC is installed but have no active container. Consider removing it."
+                fail --comment "LXC is installed but have no active container. Consider removing it."  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check that in LXC containers, phpXX-fpm services have UMask set to 0007.
 check_lxc_php_fpm_service_umask_set() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LXC_PHP_FPM_SERVICE_UMASK_SET"
+    cron=1
+    future=0
+    label="IS_LXC_PHP_FPM_SERVICE_UMASK_SET"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
             containers_list=$(lxc-ls -1 --active --filter php)
             missing_umask=""
@@ -2348,18 +3681,27 @@ check_lxc_php_fpm_service_umask_set() {
                 fi
             done
             if [ -n "${missing_umask}" ]; then
-                failed "${level}" "${tag}" "UMask is not set to 0007 in PHP-FPM services of theses containers : ${missing_umask}."
+                fail --comment "UMask is not set to 0007 in PHP-FPM services of theses containers : ${missing_umask}."  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 # Check that LXC containers have the proper Debian version.
 check_lxc_php_bad_debian_version() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LXC_PHP_BAD_DEBIAN_VERSION"
+    cron=1
+    future=0
+    label="IS_LXC_PHP_BAD_DEBIAN_VERSION"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active --filter php)
@@ -2368,81 +3710,119 @@ check_lxc_php_bad_debian_version() {
                 if lxc-info --name "${container_name}" > /dev/null; then
                     rootfs="${lxc_path}/${container_name}/rootfs"
                     if [ "$container_name" = "php56" ]; then
-                        grep --quiet 'VERSION_ID="8"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Jessie"
+                        grep --quiet 'VERSION_ID="8"' "${rootfs}/etc/os-release" || fail --comment "Container ${container_name} should use Jessie"  --level "${level}" --label "${label}" --tags "${tags}"
                     elif [ "$container_name" = "php70" ]; then
-                        grep --quiet 'VERSION_ID="9"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Stretch"
+                        grep --quiet 'VERSION_ID="9"' "${rootfs}/etc/os-release" || fail --comment "Container ${container_name} should use Stretch"  --level "${level}" --label "${label}" --tags "${tags}"
                     elif [ "$container_name" = "php73" ]; then
-                        grep --quiet 'VERSION_ID="10"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Buster"
+                        grep --quiet 'VERSION_ID="10"' "${rootfs}/etc/os-release" || fail --comment "Container ${container_name} should use Buster"  --level "${level}" --label "${label}" --tags "${tags}"
                     elif [ "$container_name" = "php74" ]; then
-                        grep --quiet 'VERSION_ID="11"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Bullseye"
+                        grep --quiet 'VERSION_ID="11"' "${rootfs}/etc/os-release" || fail --comment "Container ${container_name} should use Bullseye"  --level "${level}" --label "${label}" --tags "${tags}"
                     elif [ "$container_name" = "php82" ]; then
-                        grep --quiet 'VERSION_ID="12"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Bookworm"
+                        grep --quiet 'VERSION_ID="12"' "${rootfs}/etc/os-release" || fail --comment "Container ${container_name} should use Bookworm"  --level "${level}" --label "${label}" --tags "${tags}"
                     elif [ "$container_name" = "php84" ]; then
-                        grep --quiet 'VERSION_ID="13"' "${rootfs}/etc/os-release" || failed "${level}" "${tag}" "Container ${container_name} should use Trixie"
+                        grep --quiet 'VERSION_ID="13"' "${rootfs}/etc/os-release" || fail --comment "Container ${container_name} should use Trixie"  --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_lxc_openssh() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LXC_OPENSSH"
+    cron=1
+    future=0
+    label="IS_LXC_OPENSSH"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active)
             for container_name in ${containers_list}; do
                 if lxc-info --name "${container_name}" > /dev/null; then
                     rootfs="${lxc_path}/${container_name}/rootfs"
-                    test -e "${rootfs}/usr/sbin/sshd" && failed "${level}" "${tag}" "openssh-server should not be installed in container ${container_name}"
+                    test -e "${rootfs}/usr/sbin/sshd" && fail --comment "openssh-server should not be installed in container ${container_name}"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_lxc_opensmtpd() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_LXC_OPENSMTPD"
+    cron=1
+    future=0
+    label="IS_LXC_OPENSMTPD"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
             lxc_path=$(lxc-config lxc.lxcpath)
             containers_list=$(lxc-ls -1 --active --filter php)
             for container_name in ${containers_list}; do
                 if lxc-info --name "${container_name}" > /dev/null; then
                     rootfs="${lxc_path}/${container_name}/rootfs"
-                    test -e "${rootfs}/usr/sbin/smtpd" || test -e "${rootfs}/usr/sbin/ssmtp" || failed "${level}" "${tag}" "opensmtpd should be installed in container ${container_name}"
+                    test -e "${rootfs}/usr/sbin/smtpd" || test -e "${rootfs}/usr/sbin/ssmtp" || fail --comment "opensmtpd should be installed in container ${container_name}"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             done
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_monitoringctl() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_MONITORINGCTL"
+    cron=1
+    future=0
+    label="IS_MONITORINGCTL"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if ! /usr/local/bin/monitoringctl list >/dev/null 2>&1; then
-            failed "${level}" "${tag}" "monitoringctl is not installed or has a problem (use 'monitoringctl list' to reproduce)."
+            fail --comment "monitoringctl is not installed or has a problem (use 'monitoringctl list' to reproduce)."  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_smartmontools() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_SMARTMONTOOLS"
+    cron=1
+    future=1
+    label="IS_SMARTMONTOOLS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if ( LC_ALL=C lscpu | grep "Hypervisor vendor:" | grep -q -e VMware -e KVM || lscpu | grep -q Oracle ); then
-            is_installed smartmontools && failed "${level}" "${tag}" "smartmontools should not be installed on a VM"
+            is_installed smartmontools && fail --comment "smartmontools should not be installed on a VM"  --level "${level}" --label "${label}" --tags "${tags}"
         else
-            is_installed smartmontools || failed "${level}" "${tag}" "smartmontools should be installed on barematal"
+            is_installed smartmontools || fail --comment "smartmontools should be installed on barematal"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 download_versions() {
@@ -2469,9 +3849,9 @@ download_versions() {
     elif command -v GET; then
         GET -t ${timeout}s "${versions_url}" > "${versions_file}"
     else
-        failed "${level}" "IS_CHECK_VERSIONS" "failed to find curl, wget or GET"
+        >&2 echo "fail to find curl, wget or GET"
+        return 1
     fi
-    test "$?" -eq 0 || failed "${level}" "IS_CHECK_VERSIONS" "failed to download ${versions_url} to ${versions_file}"
 }
 get_command() {
     local program
@@ -2528,33 +3908,7 @@ get_version() {
         *) ${command} --version 2> /dev/null | head -1 | cut -d ' ' -f 3 ;;
     esac
 }
-check_version() {
-    local level tag
-    level=2
-    tag="IS_CHECK_VERSIONS"
 
-    if is_level_in_range ${level}; then
-        local program expected_version
-        program=${1:-}
-        expected_version=${2:-}
-
-        command=$(get_command "${program}")
-        if [ -n "${command}" ]; then
-            # shellcheck disable=SC2086
-            actual_version=$(get_version "${program}" "${command}")
-            # printf "program:%s expected:%s actual:%s\n" "${program}" "${expected_version}" "${actual_version}"
-            if [ -z "${actual_version}" ]; then
-                failed "${level}" "${tag}" "failed to lookup actual version of ${program}"
-            elif dpkg --compare-versions "${actual_version}" lt "${expected_version}"; then
-                failed "${level}" "${tag}" "${program} version ${actual_version} is older than expected version ${expected_version}"
-            elif dpkg --compare-versions "${actual_version}" gt "${expected_version}"; then
-                failed "${level}" "${tag}" "${program} version ${actual_version} is newer than expected version ${expected_version}, you should update your index."
-            else
-                : # Version check OK
-            fi
-        fi
-    fi
-}
 add_to_path() {
     local new_path
     new_path=${1:-}
@@ -2562,63 +3916,110 @@ add_to_path() {
     echo "$PATH" | grep --quiet --fixed-strings "${new_path}" || export PATH="${PATH}:${new_path}"
 }
 check_versions() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_CHECK_VERSIONS"
+    cron=0
+    future=0
+    label="IS_CHECK_VERSIONS"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         versions_file=$(mktemp --tmpdir "evocheck.versions.XXXXX")
         files_to_cleanup+=("${versions_file}")
 
         download_versions "${versions_file}"
+        test "$?" -eq 0 || fail --comment "${program} version ${actual_version} is newer than expected version ${expected_version}, you should update your index."  --level "${level}" --label "${label}" --tags "${tags}"
+
         add_to_path "/usr/share/scripts"
 
         grep --invert-match '^ *#' < "${versions_file}" | while IFS= read -r line; do
             local program
             local version
             program=$(echo "${line}" | cut -d ' ' -f 1)
-            version=$(echo "${line}" | cut -d ' ' -f 2)
+            expected_version=$(echo "${line}" | cut -d ' ' -f 2)
 
             if [ -n "${program}" ]; then
                 if [ -n "${version}" ]; then
-                    check_version "${program}" "${version}"
+                    command=$(get_command "${program}")
+                    if [ -n "${command}" ]; then
+                        # shellcheck disable=SC2086
+                        actual_version=$(get_version "${program}" "${command}")
+                        # printf "program:%s expected:%s actual:%s\n" "${program}" "${expected_version}" "${actual_version}"
+                        if [ -z "${actual_version}" ]; then
+                            fail --comment "fail to lookup actual version of ${program}"  --level "${level}" --label "${label}" --tags "${tags}"
+                        elif dpkg --compare-versions "${actual_version}" lt "${expected_version}"; then
+                            fail --comment "${program} version ${actual_version} is older than expected version ${expected_version}"  --level "${level}" --label "${label}" --tags "${tags}"
+                        elif dpkg --compare-versions "${actual_version}" gt "${expected_version}"; then
+                            fail --comment "${program} version ${actual_version} is newer than expected version ${expected_version}, you should update your index."  --level "${level}" --label "${label}" --tags "${tags}"
+                        else
+                            : # Version check OK
+                        fi
+                    fi
                 else
-                    failed "${level}" "${tag}" "failed to lookup expected version for ${program}"
+                    fail --comment "fail to lookup expected version for ${program}"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             fi
         done
+
+        show_doc "${doc:-}"
     fi
 }
 check_nrpepressure() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_NRPEPRESSURE"
+    cron=1
+    future=1
+    label="IS_NRPEPRESSURE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
             /usr/local/bin/monitoringctl status pressure_cpu > /dev/null 2>&1
             rc="$?"
             if [ "${rc}" -ne 0 ]; then
-                failed "${level}" "${tag}" "pressure_cpu check not defined or monitoringctl not correctly installed"
+                fail --comment "pressure_cpu check not defined or monitoringctl not correctly installed"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 check_postfix_ipv6_disabled() {
-    local level tag
+    local level cron future tags label doc rc
     level=2
-    tag="IS_POSTFIX_IPV6_DISABLED"
+    cron=1
+    future=1
+    label="IS_POSTFIX_IPV6_DISABLED"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-    if is_level_in_range ${level}; then
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
         postconf -n 2>/dev/null | grep --no-messages --extended-regex '^inet_protocols\>' | grep --no-messages --invert-match --fixed-strings ipv6 | grep --no-messages --invert-match --fixed-strings all | grep --no-messages --silent --fixed-strings ipv4
         rc="$?"
         if [ "${rc}" -ne 0 ]; then
-            failed "${level}" "${tag}" "IPv6 must be disabled in Postfix main.cf (inet_protocols = ipv4)"
+            fail --comment "IPv6 must be disabled in Postfix main.cf (inet_protocols = ipv4)"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
+
+        show_doc "${doc:-}"
     fi
 }
 
 ### MAIN
+
+is_check_enabled() {
+    test "${1}" = 1
+}
 
 main() {
     # Default return code : 0 = no error
@@ -2627,146 +4028,146 @@ main() {
     main_output_file=$(mktemp --tmpdir "evocheck.main.XXXXX")
     files_to_cleanup+=("${main_output_file}")
 
-    test "${IS_TMP_1777:=1}" = 1 && check_tmp_1777
-    test "${IS_ROOT_0700:=1}" = 1 && check_root_0700
-    test "${IS_USRSHARESCRIPTS:=1}" = 1 && check_usrsharescripts
-    test "${IS_SSHPERMITROOTNO:=1}" = 1 && check_sshpermitrootno
-    test "${IS_EVOMAINTENANCEUSERS:=1}" = 1 && check_evomaintenanceusers
+    is_check_enabled "${IS_TMP_1777:=1}" && check_tmp_1777
+    is_check_enabled "${IS_ROOT_0700:=1}" && check_root_0700
+    is_check_enabled "${IS_USRSHARESCRIPTS:=1}" && check_usrsharescripts
+    is_check_enabled "${IS_SSHPERMITROOTNO:=1}" && check_sshpermitrootno
+    is_check_enabled "${IS_EVOMAINTENANCEUSERS:=1}" && check_evomaintenanceusers
     # Verification de la configuration d'evomaintenance
-    test "${IS_EVOMAINTENANCECONF:=1}" = 1 && check_evomaintenanceconf
-    test "${IS_PRIVKEYWOLRDREADABLE:=1}" = 1 && check_privatekeyworldreadable
+    is_check_enabled "${IS_EVOMAINTENANCECONF:=1}" && check_evomaintenanceconf
+    is_check_enabled "${IS_PRIVKEYWOLRDREADABLE:=1}" && check_privatekeyworldreadable
 
-    test "${IS_LSBRELEASE:=1}" = 1 && check_lsbrelease
-    test "${IS_DPKGWARNING:=1}" = 1 && check_dpkgwarning
-    test "${IS_POSTFIX_MYDESTINATION:=1}" = 1 && check_postfix_mydestination
-    test "${IS_NRPEPOSTFIX:=1}" = 1 && check_nrpepostfix
-    test "${IS_CUSTOMSUDOERS:=1}" = 1 && check_customsudoers
-    test "${IS_VARTMPFS:=1}" = 1 && check_vartmpfs
-    test "${IS_SERVEURBASE:=1}" = 1 && check_serveurbase
-    test "${IS_LOGROTATECONF:=1}" = 1 && check_logrotateconf
-    test "${IS_SYSLOGCONF:=1}" = 1 && check_syslogconf
-    test "${IS_DEBIANSECURITY:=1}" = 1 && check_debiansecurity
-    test "${IS_DEBIANSECURITY_LXC:=1}" = 1 && check_debiansecurity_lxc
-    test "${IS_BACKPORTS_VERSION:=1}" = 1 && check_backports_version
-    test "${IS_OLDPUB:=1}" = 1 && check_oldpub
-    test "${IS_OLDPUB_LXC:=1}" = 1 && check_oldpub_lxc
-    test "${IS_NEWPUB:=1}" = 1 && check_newpub
-    test "${IS_SURY:=1}" = 1 && check_sury
-    test "${IS_SURY_LXC:=1}" = 1 && check_sury_lxc
-    test "${IS_NOT_DEB822:=0}" = 1 && check_not_deb822
-    test "${IS_NO_SIGNED_BY:=0}" = 1 && check_no_signed_by
-    test "${IS_APTITUDE:=1}" = 1 && check_aptitude
-    test "${IS_APTGETBAK:=1}" = 1 && check_aptgetbak
-    test "${IS_USRRO:=1}" = 1 && check_usrro
-    test "${IS_TMPNOEXEC:=1}" = 1 && check_tmpnoexec
-    test "${IS_HOMENOEXEC:=1}" = 1 && check_homenoexec
-    test "${IS_MOUNT_FSTAB:=1}" = 1 && check_mountfstab
-    test "${IS_LISTCHANGESCONF:=1}" = 1 && check_listchangesconf
-    test "${IS_CUSTOMCRONTAB:=1}" = 1 && check_customcrontab
-    test "${IS_SSHALLOWUSERS:=1}" = 1 && check_sshallowusers
-    test "${IS_SSHCONFSPLIT:=1}" = 1 && check_sshconfsplit
-    test "${IS_SSHLASTMATCH:=0}" = 1 && check_sshlastmatch
-    test "${IS_TMOUTPROFILE:=1}" = 1 && check_tmoutprofile
-    test "${IS_ALERT5BOOT:=1}" = 1 && check_alert5boot
-    test "${IS_ALERT5MINIFW:=1}" = 1 && check_alert5minifw
-    test "${IS_ALERT5MINIFW:=1}" = 1 && test "${IS_MINIFW:=1}" = 1 && check_minifw
-    test "${IS_NRPEPERMS:=1}" = 1 && check_nrpeperms
-    test "${IS_MINIFWPERMS:=1}" = 1 && check_minifwperms
-    test "${IS_MINIFW_RELATED:=0}" = 1 && check_minifw_related
-    test "${IS_MINIFWINCLUDES:=1}" = 1 && check_minifw_includes
-    test "${IS_NRPEPID:=1}" = 1 && check_nrpepid
-    test "${IS_GRSECPROCS:=1}" = 1 && check_grsecprocs
-    test "${IS_APACHEMUNIN:=1}" = 1 && check_apachemunin
-    test "${IS_MYSQLUTILS:=1}" = 1 && check_mysqlutils
-    test "${IS_RAIDSOFT:=1}" = 1 && check_raidsoft
-    test "${IS_AWSTATSLOGFORMAT:=1}" = 1 && check_awstatslogformat
-    test "${IS_MUNINLOGROTATE:=1}" = 1 && check_muninlogrotate
-    test "${IS_SQUID:=1}" = 1 && check_squid
-    test "${IS_EVOMAINTENANCE_FW:=1}" = 1 && check_evomaintenance_fw
-    test "${IS_MODDEFLATE:=1}" = 1 && check_moddeflate
-    test "${IS_LOG2MAILRUNNING:=1}" = 1 && check_log2mailrunning
-    test "${IS_LOG2MAILAPACHE:=1}" = 1 && check_log2mailapache
-    test "${IS_LOG2MAILMYSQL:=1}" = 1 && check_log2mailmysql
-    test "${IS_LOG2MAILSQUID:=1}" = 1 && check_log2mailsquid
-    test "${IS_BINDCHROOT:=1}" = 1 && check_bindchroot
-    test "${IS_NETWORK_INTERFACES:=1}" = 1 && check_network_interfaces
-    test "${IS_AUTOIF:=1}" = 1 && check_autoif
-    test "${IS_INTERFACESGW:=1}" = 1 && check_interfacesgw
-    test "${IS_INTERFACESNETMASK:=1}" = 1 && check_interfacesnetmask
-    test "${IS_NETWORKING_SERVICE:=1}" = 1 && check_networking_service
-    test "${IS_EVOBACKUP:=1}" = 1 && check_evobackup
-    test "${IS_FAIL2BAN_PURGE:=1}" = 1 && check_fail2ban_purge
-    test "${IS_SSH_FAIL2BAN_JAIL_RENAMED:=1}" = 1 && check_ssh_fail2ban_jail_renamed
-    test "${IS_EVOBACKUP_EXCLUDE_MOUNT:=1}" = 1 && check_evobackup_exclude_mount
-    test "${IS_USERLOGROTATE:=1}" = 1 && check_userlogrotate
-    test "${IS_APACHECTL:=1}" = 1 && check_apachectl
-    test "${IS_APACHESYMLINK:=1}" = 1 && check_apachesymlink
-    test "${IS_APACHEIPINALLOW:=1}" = 1 && check_apacheipinallow
-    test "${IS_MUNINAPACHECONF:=1}" = 1 && check_muninapacheconf
-    test "${IS_PHPMYADMINAPACHECONF:=1}" = 1 && check_phpmyadminapacheconf
-    test "${IS_PHPPGADMINAPACHECONF:=1}" = 1 && check_phppgadminapacheconf
-    test "${IS_PHPLDAPADMINAPACHECONF:=1}" = 1 && check_phpldapadminapacheconf
-    test "${IS_KERNELUPTODATE:=1}" = 1 && check_kerneluptodate
-    test "${IS_UPTIME:=1}" = 1 && check_uptime
-    test "${IS_MUNINRUNNING:=1}" = 1 && check_muninrunning
-    test "${IS_BACKUPUPTODATE:=1}" = 1 && check_backupuptodate
-    test "${IS_ETCGIT:=1}" = 1 && check_etcgit
-    test "${IS_ETCGIT_LXC:=1}" = 1 && check_etcgit_lxc
-    test "${IS_GITPERMS:=1}" = 1 && check_gitperms
-    test "${IS_GITPERMS_LXC:=1}" = 1 && check_gitperms_lxc
-    test "${IS_NOTUPGRADED:=1}" = 1 && check_notupgraded
-    test "${IS_TUNE2FS_M5:=1}" = 1 && check_tune2fs_m5
-    test "${IS_EVOLINUXSUDOGROUP:=1}" = 1 && check_evolinuxsudogroup
-    test "${IS_USERINADMGROUP:=1}" = 1 && check_userinadmgroup
-    test "${IS_APACHE2EVOLINUXCONF:=1}" = 1 && check_apache2evolinuxconf
-    test "${IS_BACKPORTSCONF:=1}" = 1 && check_backportsconf
-    test "${IS_BIND9MUNIN:=1}" = 1 && check_bind9munin
-    test "${IS_BIND9LOGROTATE:=1}" = 1 && check_bind9logrotate
-    test "${IS_DRBDTWOPRIMARIES:=1}" = 1 && check_drbd_two_primaries
-    test "${IS_BROADCOMFIRMWARE:=1}" = 1 && check_broadcomfirmware
-    test "${IS_HARDWARERAIDTOOL:=1}" = 1 && check_hardwareraidtool
-    test "${IS_LOG2MAILSYSTEMDUNIT:=1}" = 1 && check_log2mailsystemdunit
-    test "${IS_SYSTEMDUSERUNIT:=0}" = 1 && check_systemduserunit
-    test "${IS_LISTUPGRADE:=1}" = 1 && check_listupgrade
-    test "${IS_MARIADBEVOLINUXCONF:=0}" = 1 && check_mariadbevolinuxconf
-    test "${IS_SQL_BACKUP:=1}" = 1 && check_sql_backup
-    test "${IS_POSTGRES_BACKUP:=1}" = 1 && check_postgres_backup
-    test "${IS_MONGO_BACKUP:=1}" = 1 && check_mongo_backup
-    test "${IS_LDAP_BACKUP:=1}" = 1 && check_ldap_backup
-    test "${IS_REDIS_BACKUP:=1}" = 1 && check_redis_backup
-    test "${IS_ELASTIC_BACKUP:=1}" = 1 && check_elastic_backup
-    test "${IS_MARIADBSYSTEMDUNIT:=1}" = 1 && check_mariadbsystemdunit
-    test "${IS_MYSQLMUNIN:=1}" = 1 && check_mysqlmunin
-    test "${IS_MYSQLNRPE:=1}" = 1 && check_mysqlnrpe
-    test "${IS_PHPEVOLINUXCONF:=0}" = 1 && check_phpevolinuxconf
-    test "${IS_SQUIDLOGROTATE:=1}" = 1 && check_squidlogrotate
-    test "${IS_SQUIDEVOLINUXCONF:=1}" = 1 && check_squidevolinuxconf
-    test "${IS_DUPLICATE_FS_LABEL:=1}" = 1 && check_duplicate_fs_label
-    test "${IS_EVOLIX_USER:=1}" = 1 && check_evolix_user
-    test "${IS_EVOLIX_GROUP:=0}" = 1 && check_evolix_group
-    test "${IS_EVOACME_CRON:=1}" = 1 && check_evoacme_cron
-    test "${IS_EVOACME_LIVELINKS:=1}" = 1 && check_evoacme_livelinks
-    test "${IS_APACHE_CONFENABLED:=1}" = 1 && check_apache_confenabled
-    test "${IS_MELTDOWN_SPECTRE:=1}" = 1 && check_meltdown_spectre
-    test "${IS_OLD_HOME_DIR:=0}" = 1 && check_old_home_dir
-    test "${IS_EVOBACKUP_INCS:=1}" = 1 && check_evobackup_incs
-    test "${IS_OSPROBER:=1}" = 1 && check_osprober
-    test "${IS_APT_VALID_UNTIL:=1}" = 1 && check_apt_valid_until
-    test "${IS_CHROOTED_BINARY_UPTODATE:=1}" = 1 && check_chrooted_binary_uptodate
-    test "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" = 1 && check_nginx_letsencrypt_uptodate
-    test "${IS_WKHTMLTOPDF:=1}" = 1 && check_wkhtmltopdf
-    test "${IS_LXC_WKHTMLTOPDF:=1}" = 1 && check_lxc_wkhtmltopdf
-    test "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" = 1 && check_lxc_container_resolv_conf
-    test "${IS_NO_LXC_CONTAINER:=1}" = 1 && check_no_lxc_container
-    test "${IS_LXC_PHP_FPM_SERVICE_UMASK_SET:=1}" = 1 && check_lxc_php_fpm_service_umask_set
-    test "${IS_LXC_PHP_BAD_DEBIAN_VERSION:=1}" = 1 && check_lxc_php_bad_debian_version
-    test "${IS_LXC_OPENSSH:=1}" = 1 && check_lxc_openssh
-    test "${IS_LXC_OPENSMTPD:=1}" = 1 && check_lxc_opensmtpd
-    test "${IS_CHECK_VERSIONS:=1}" = 1 && check_versions
-    test "${IS_MONITORINGCTL:=1}" = 1 && check_monitoringctl
-    test "${IS_NRPEPRESSURE:=0}" = 1 && check_nrpepressure
-    test "${IS_POSTFIX_IPV6_DISABLED:=0}" = 1 && check_postfix_ipv6_disabled
-    test "${IS_SMARTMONTOOLS:=0}" = 1 && check_smartmontools
+    is_check_enabled "${IS_LSBRELEASE:=1}" && check_lsbrelease
+    is_check_enabled "${IS_DPKGWARNING:=1}" && check_dpkgwarning
+    is_check_enabled "${IS_POSTFIX_MYDESTINATION:=1}" && check_postfix_mydestination
+    is_check_enabled "${IS_NRPEPOSTFIX:=1}" && check_nrpepostfix
+    is_check_enabled "${IS_CUSTOMSUDOERS:=1}" && check_customsudoers
+    is_check_enabled "${IS_VARTMPFS:=1}" && check_vartmpfs
+    is_check_enabled "${IS_SERVEURBASE:=1}" && check_serveurbase
+    is_check_enabled "${IS_LOGROTATECONF:=1}" && check_logrotateconf
+    is_check_enabled "${IS_SYSLOGCONF:=1}" && check_syslogconf
+    is_check_enabled "${IS_DEBIANSECURITY:=1}" && check_debiansecurity
+    is_check_enabled "${IS_DEBIANSECURITY_LXC:=1}" && check_debiansecurity_lxc
+    is_check_enabled "${IS_BACKPORTS_VERSION:=1}" && check_backports_version
+    is_check_enabled "${IS_OLDPUB:=1}" && check_oldpub
+    is_check_enabled "${IS_OLDPUB_LXC:=1}" && check_oldpub_lxc
+    is_check_enabled "${IS_NEWPUB:=1}" && check_newpub
+    is_check_enabled "${IS_SURY:=1}" && check_sury
+    is_check_enabled "${IS_SURY_LXC:=1}" && check_sury_lxc
+    is_check_enabled "${IS_NOT_DEB822:=0}" && check_not_deb822
+    is_check_enabled "${IS_NO_SIGNED_BY:=0}" && check_no_signed_by
+    is_check_enabled "${IS_APTITUDE:=1}" && check_aptitude
+    is_check_enabled "${IS_APTGETBAK:=1}" && check_aptgetbak
+    is_check_enabled "${IS_USRRO:=1}" && check_usrro
+    is_check_enabled "${IS_TMPNOEXEC:=1}" && check_tmpnoexec
+    is_check_enabled "${IS_HOMENOEXEC:=1}" && check_homenoexec
+    is_check_enabled "${IS_MOUNT_FSTAB:=1}" && check_mountfstab
+    is_check_enabled "${IS_LISTCHANGESCONF:=1}" && check_listchangesconf
+    is_check_enabled "${IS_CUSTOMCRONTAB:=1}" && check_customcrontab
+    is_check_enabled "${IS_SSHALLOWUSERS:=1}" && check_sshallowusers
+    is_check_enabled "${IS_SSHCONFSPLIT:=1}" && check_sshconfsplit
+    is_check_enabled "${IS_SSHLASTMATCH:=0}" && check_sshlastmatch
+    is_check_enabled "${IS_TMOUTPROFILE:=1}" && check_tmoutprofile
+    is_check_enabled "${IS_ALERT5BOOT:=1}" && check_alert5boot
+    is_check_enabled "${IS_ALERT5MINIFW:=1}" && check_alert5minifw
+    is_check_enabled "${IS_ALERT5MINIFW:=1}" && is_check_enabled "${IS_MINIFW:=1}" && check_minifw
+    is_check_enabled "${IS_NRPEPERMS:=1}" && check_nrpeperms
+    is_check_enabled "${IS_MINIFWPERMS:=1}" && check_minifwperms
+    is_check_enabled "${IS_MINIFW_RELATED:=0}" && check_minifw_related
+    is_check_enabled "${IS_MINIFWINCLUDES:=1}" && check_minifw_includes
+    is_check_enabled "${IS_NRPEPID:=1}" && check_nrpepid
+    is_check_enabled "${IS_GRSECPROCS:=1}" && check_grsecprocs
+    is_check_enabled "${IS_APACHEMUNIN:=1}" && check_apachemunin
+    is_check_enabled "${IS_MYSQLUTILS:=1}" && check_mysqlutils
+    is_check_enabled "${IS_RAIDSOFT:=1}" && check_raidsoft
+    is_check_enabled "${IS_AWSTATSLOGFORMAT:=1}" && check_awstatslogformat
+    is_check_enabled "${IS_MUNINLOGROTATE:=1}" && check_muninlogrotate
+    is_check_enabled "${IS_SQUID:=1}" && check_squid
+    is_check_enabled "${IS_EVOMAINTENANCE_FW:=1}" && check_evomaintenance_fw
+    is_check_enabled "${IS_MODDEFLATE:=1}" && check_moddeflate
+    is_check_enabled "${IS_LOG2MAILRUNNING:=1}" && check_log2mailrunning
+    is_check_enabled "${IS_LOG2MAILAPACHE:=1}" && check_log2mailapache
+    is_check_enabled "${IS_LOG2MAILMYSQL:=1}" && check_log2mailmysql
+    is_check_enabled "${IS_LOG2MAILSQUID:=1}" && check_log2mailsquid
+    is_check_enabled "${IS_BINDCHROOT:=1}" && check_bindchroot
+    is_check_enabled "${IS_NETWORK_INTERFACES:=1}" && check_network_interfaces
+    is_check_enabled "${IS_AUTOIF:=1}" && check_autoif
+    is_check_enabled "${IS_INTERFACESGW:=1}" && check_interfacesgw
+    is_check_enabled "${IS_INTERFACESNETMASK:=1}" && check_interfacesnetmask
+    is_check_enabled "${IS_NETWORKING_SERVICE:=1}" && check_networking_service
+    is_check_enabled "${IS_EVOBACKUP:=1}" && check_evobackup
+    is_check_enabled "${IS_FAIL2BAN_PURGE:=1}" && check_fail2ban_purge
+    is_check_enabled "${IS_SSH_FAIL2BAN_JAIL_RENAMED:=1}" && check_ssh_fail2ban_jail_renamed
+    is_check_enabled "${IS_EVOBACKUP_EXCLUDE_MOUNT:=1}" && check_evobackup_exclude_mount
+    is_check_enabled "${IS_USERLOGROTATE:=1}" && check_userlogrotate
+    is_check_enabled "${IS_APACHECTL:=1}" && check_apachectl
+    is_check_enabled "${IS_APACHESYMLINK:=1}" && check_apachesymlink
+    is_check_enabled "${IS_APACHEIPINALLOW:=1}" && check_apacheipinallow
+    is_check_enabled "${IS_MUNINAPACHECONF:=1}" && check_muninapacheconf
+    is_check_enabled "${IS_PHPMYADMINAPACHECONF:=1}" && check_phpmyadminapacheconf
+    is_check_enabled "${IS_PHPPGADMINAPACHECONF:=1}" && check_phppgadminapacheconf
+    is_check_enabled "${IS_PHPLDAPADMINAPACHECONF:=1}" && check_phpldapadminapacheconf
+    is_check_enabled "${IS_KERNELUPTODATE:=1}" && check_kerneluptodate
+    is_check_enabled "${IS_UPTIME:=1}" && check_uptime
+    is_check_enabled "${IS_MUNINRUNNING:=1}" && check_muninrunning
+    is_check_enabled "${IS_BACKUPUPTODATE:=1}" && check_backupuptodate
+    is_check_enabled "${IS_ETCGIT:=1}" && check_etcgit
+    is_check_enabled "${IS_ETCGIT_LXC:=1}" && check_etcgit_lxc
+    is_check_enabled "${IS_GITPERMS:=1}" && check_gitperms
+    is_check_enabled "${IS_GITPERMS_LXC:=1}" && check_gitperms_lxc
+    is_check_enabled "${IS_NOTUPGRADED:=1}" && check_notupgraded
+    is_check_enabled "${IS_TUNE2FS_M5:=1}" && check_tune2fs_m5
+    is_check_enabled "${IS_EVOLINUXSUDOGROUP:=1}" && check_evolinuxsudogroup
+    is_check_enabled "${IS_USERINADMGROUP:=1}" && check_userinadmgroup
+    is_check_enabled "${IS_APACHE2EVOLINUXCONF:=1}" && check_apache2evolinuxconf
+    is_check_enabled "${IS_BACKPORTSCONF:=1}" && check_backportsconf
+    is_check_enabled "${IS_BIND9MUNIN:=1}" && check_bind9munin
+    is_check_enabled "${IS_BIND9LOGROTATE:=1}" && check_bind9logrotate
+    is_check_enabled "${IS_DRBDTWOPRIMARIES:=1}" && check_drbd_two_primaries
+    is_check_enabled "${IS_BROADCOMFIRMWARE:=1}" && check_broadcomfirmware
+    is_check_enabled "${IS_HARDWARERAIDTOOL:=1}" && check_hardwareraidtool
+    is_check_enabled "${IS_LOG2MAILSYSTEMDUNIT:=1}" && check_log2mailsystemdunit
+    is_check_enabled "${IS_SYSTEMDUSERUNIT:=0}" && check_systemduserunit
+    is_check_enabled "${IS_LISTUPGRADE:=1}" && check_listupgrade
+    is_check_enabled "${IS_MARIADBEVOLINUXCONF:=0}" && check_mariadbevolinuxconf
+    is_check_enabled "${IS_SQL_BACKUP:=1}" && check_sql_backup
+    is_check_enabled "${IS_POSTGRES_BACKUP:=1}" && check_postgres_backup
+    is_check_enabled "${IS_MONGO_BACKUP:=1}" && check_mongo_backup
+    is_check_enabled "${IS_LDAP_BACKUP:=1}" && check_ldap_backup
+    is_check_enabled "${IS_REDIS_BACKUP:=1}" && check_redis_backup
+    is_check_enabled "${IS_ELASTIC_BACKUP:=1}" && check_elastic_backup
+    is_check_enabled "${IS_MARIADBSYSTEMDUNIT:=1}" && check_mariadbsystemdunit
+    is_check_enabled "${IS_MYSQLMUNIN:=1}" && check_mysqlmunin
+    is_check_enabled "${IS_MYSQLNRPE:=1}" && check_mysqlnrpe
+    is_check_enabled "${IS_PHPEVOLINUXCONF:=0}" && check_phpevolinuxconf
+    is_check_enabled "${IS_SQUIDLOGROTATE:=1}" && check_squidlogrotate
+    is_check_enabled "${IS_SQUIDEVOLINUXCONF:=1}" && check_squidevolinuxconf
+    is_check_enabled "${IS_DUPLICATE_FS_LABEL:=1}" && check_duplicate_fs_label
+    is_check_enabled "${IS_EVOLIX_USER:=1}" && check_evolix_user
+    is_check_enabled "${IS_EVOLIX_GROUP:=0}" && check_evolix_group
+    is_check_enabled "${IS_EVOACME_CRON:=1}" && check_evoacme_cron
+    is_check_enabled "${IS_EVOACME_LIVELINKS:=1}" && check_evoacme_livelinks
+    is_check_enabled "${IS_APACHE_CONFENABLED:=1}" && check_apache_confenabled
+    is_check_enabled "${IS_MELTDOWN_SPECTRE:=1}" && check_meltdown_spectre
+    is_check_enabled "${IS_OLD_HOME_DIR:=0}" && check_old_home_dir
+    is_check_enabled "${IS_EVOBACKUP_INCS:=1}" && check_evobackup_incs
+    is_check_enabled "${IS_OSPROBER:=1}" && check_osprober
+    is_check_enabled "${IS_APT_VALID_UNTIL:=1}" && check_apt_valid_until
+    is_check_enabled "${IS_CHROOTED_BINARY_UPTODATE:=1}" && check_chrooted_binary_uptodate
+    is_check_enabled "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" && check_nginx_letsencrypt_uptodate
+    is_check_enabled "${IS_WKHTMLTOPDF:=1}" && check_wkhtmltopdf
+    is_check_enabled "${IS_LXC_WKHTMLTOPDF:=1}" && check_lxc_wkhtmltopdf
+    is_check_enabled "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" && check_lxc_container_resolv_conf
+    is_check_enabled "${IS_NO_LXC_CONTAINER:=1}" && check_no_lxc_container
+    is_check_enabled "${IS_LXC_PHP_FPM_SERVICE_UMASK_SET:=1}" && check_lxc_php_fpm_service_umask_set
+    is_check_enabled "${IS_LXC_PHP_BAD_DEBIAN_VERSION:=1}" && check_lxc_php_bad_debian_version
+    is_check_enabled "${IS_LXC_OPENSSH:=1}" && check_lxc_openssh
+    is_check_enabled "${IS_LXC_OPENSMTPD:=1}" && check_lxc_opensmtpd
+    is_check_enabled "${IS_CHECK_VERSIONS:=1}" && check_versions
+    is_check_enabled "${IS_MONITORINGCTL:=1}" && check_monitoringctl
+    is_check_enabled "${IS_NRPEPRESSURE:=0}" && check_nrpepressure
+    is_check_enabled "${IS_POSTFIX_IPV6_DISABLED:=0}" && check_postfix_ipv6_disabled
+    is_check_enabled "${IS_SMARTMONTOOLS:=0}" && check_smartmontools
 
     if [ -f "${main_output_file}" ]; then
         lines_found=$(wc -l < "${main_output_file}")
@@ -2809,6 +4210,8 @@ readonly DATEFORMAT
 export LANG=C
 export LANGUAGE=C
 
+CRON=0
+FUTURE=0
 MIN_LEVEL=0
 MAX_LEVEL=9
 
@@ -2830,25 +4233,10 @@ while :; do
             exit 0
             ;;
         --cron)
-            IS_KERNELUPTODATE=0
-            IS_UPTIME=0
-            IS_MELTDOWN_SPECTRE=0
-            IS_CHECK_VERSIONS=0
-            IS_NETWORKING_SERVICE=0
+            CRON=1
             ;;
         --future)
-            IS_MINIFW_RELATED=1
-            IS_NO_SIGNED_BY=1
-            IS_NOT_DEB822=1
-            IS_POSTFIX_IPV6_DISABLED=1
-            IS_NRPEPRESSURE=1
-            IS_SMARTMONTOOLS=1
-            IS_EVOLIX_GROUP=1
-            IS_SYSTEMDUSERUNIT=1
-            IS_SSHLASTMATCH=1
-            IS_MARIADBEVOLINUXCONF=1
-            IS_PHPEVOLINUXCONF=1
-            IS_OLD_HOME_DIR=1
+            FUTURE=1
             ;;
         -v|--verbose)
             VERBOSE=1
@@ -2900,6 +4288,7 @@ while :; do
 
     shift
 done
+readonly MIN_LEVEL MAX_LEVEL CRON FUTURE VERBOSE QUIET
 
 : "${EVOLIBS_SHELL_LIB:=/usr/local/lib/evolibs-shell}"
 . "${EVOLIBS_SHELL_LIB}/os-release.sh" || {

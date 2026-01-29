@@ -6,7 +6,7 @@
 
 #set -x
 
-VERSION="25.10.3"
+VERSION="26.1-pre1"
 readonly VERSION
 
 # base functions
@@ -59,200 +59,189 @@ Check levels :
 END
 }
 
-is_quiet() {
-    test "${QUIET}" = 1
+exec_checks() {
+    is_check_enabled "${IS_TMP_1777:=1}" && check_tmp_1777
+    is_check_enabled "${IS_ROOT_0700:=1}" && check_root_0700
+    is_check_enabled "${IS_USRSHARESCRIPTS:=1}" && check_usrsharescripts
+    is_check_enabled "${IS_SSHPERMITROOTNO:=1}" && check_sshpermitrootno
+    is_check_enabled "${IS_EVOMAINTENANCEUSERS:=1}" && check_evomaintenanceusers
+    # Verification de la configuration d'evomaintenance
+    is_check_enabled "${IS_EVOMAINTENANCECONF:=1}" && check_evomaintenanceconf
+    is_check_enabled "${IS_PRIVKEYWOLRDREADABLE:=1}" && check_privatekeyworldreadable
+
+    is_check_enabled "${IS_LSBRELEASE:=1}" && check_lsbrelease
+    is_check_enabled "${IS_DPKGWARNING:=1}" && check_dpkgwarning
+    is_check_enabled "${IS_POSTFIX_MYDESTINATION:=1}" && check_postfix_mydestination
+    is_check_enabled "${IS_NRPEPOSTFIX:=1}" && check_nrpepostfix
+    is_check_enabled "${IS_CUSTOMSUDOERS:=1}" && check_customsudoers
+    is_check_enabled "${IS_VARTMPFS:=1}" && check_vartmpfs
+    is_check_enabled "${IS_SERVEURBASE:=1}" && check_serveurbase
+    is_check_enabled "${IS_LOGROTATECONF:=1}" && check_logrotateconf
+    is_check_enabled "${IS_SYSLOGCONF:=1}" && check_syslogconf
+    is_check_enabled "${IS_DEBIANSECURITY:=1}" && check_debiansecurity
+    is_check_enabled "${IS_DEBIANSECURITY_LXC:=1}" && check_debiansecurity_lxc
+    is_check_enabled "${IS_BACKPORTS_VERSION:=1}" && check_backports_version
+    is_check_enabled "${IS_OLDPUB:=1}" && check_oldpub
+    is_check_enabled "${IS_OLDPUB_LXC:=1}" && check_oldpub_lxc
+    is_check_enabled "${IS_NEWPUB:=1}" && check_newpub
+    is_check_enabled "${IS_SURY:=1}" && check_sury
+    is_check_enabled "${IS_SURY_LXC:=1}" && check_sury_lxc
+    is_check_enabled "${IS_NOT_DEB822:=0}" && check_not_deb822
+    is_check_enabled "${IS_NO_SIGNED_BY:=0}" && check_no_signed_by
+    is_check_enabled "${IS_APTITUDE:=1}" && check_aptitude
+    is_check_enabled "${IS_APTGETBAK:=1}" && check_aptgetbak
+    is_check_enabled "${IS_USRRO:=1}" && check_usrro
+    is_check_enabled "${IS_TMPNOEXEC:=1}" && check_tmpnoexec
+    is_check_enabled "${IS_HOMENOEXEC:=1}" && check_homenoexec
+    is_check_enabled "${IS_MOUNT_FSTAB:=1}" && check_mountfstab
+    is_check_enabled "${IS_LISTCHANGESCONF:=1}" && check_listchangesconf
+    is_check_enabled "${IS_CUSTOMCRONTAB:=1}" && check_customcrontab
+    is_check_enabled "${IS_SSHALLOWUSERS:=1}" && check_sshallowusers
+    is_check_enabled "${IS_SSHCONFSPLIT:=1}" && check_sshconfsplit
+    is_check_enabled "${IS_SSHLASTMATCH:=0}" && check_sshlastmatch
+    is_check_enabled "${IS_TMOUTPROFILE:=1}" && check_tmoutprofile
+    is_check_enabled "${IS_ALERT5BOOT:=1}" && check_alert5boot
+    is_check_enabled "${IS_ALERT5MINIFW:=1}" && check_alert5minifw
+    is_check_enabled "${IS_ALERT5MINIFW:=1}" && is_check_enabled "${IS_MINIFW:=1}" && check_minifw
+    is_check_enabled "${IS_NRPEPERMS:=1}" && check_nrpeperms
+    is_check_enabled "${IS_MINIFWPERMS:=1}" && check_minifwperms
+    is_check_enabled "${IS_MINIFW_RELATED:=0}" && check_minifw_related
+    is_check_enabled "${IS_MINIFWINCLUDES:=1}" && check_minifw_includes
+    is_check_enabled "${IS_NRPEPID:=1}" && check_nrpepid
+    is_check_enabled "${IS_GRSECPROCS:=1}" && check_grsecprocs
+    is_check_enabled "${IS_APACHEMUNIN:=1}" && check_apachemunin
+    is_check_enabled "${IS_MYSQLUTILS:=1}" && check_mysqlutils
+    is_check_enabled "${IS_RAIDSOFT:=1}" && check_raidsoft
+    is_check_enabled "${IS_AWSTATSLOGFORMAT:=1}" && check_awstatslogformat
+    is_check_enabled "${IS_MUNINLOGROTATE:=1}" && check_muninlogrotate
+    is_check_enabled "${IS_SQUID:=1}" && check_squid
+    is_check_enabled "${IS_EVOMAINTENANCE_FW:=1}" && check_evomaintenance_fw
+    is_check_enabled "${IS_MODDEFLATE:=1}" && check_moddeflate
+    is_check_enabled "${IS_LOG2MAILRUNNING:=1}" && check_log2mailrunning
+    is_check_enabled "${IS_LOG2MAILAPACHE:=1}" && check_log2mailapache
+    is_check_enabled "${IS_LOG2MAILMYSQL:=1}" && check_log2mailmysql
+    is_check_enabled "${IS_LOG2MAILSQUID:=1}" && check_log2mailsquid
+    is_check_enabled "${IS_BINDCHROOT:=1}" && check_bindchroot
+    is_check_enabled "${IS_NETWORK_INTERFACES:=1}" && check_network_interfaces
+    is_check_enabled "${IS_AUTOIF:=1}" && check_autoif
+    is_check_enabled "${IS_INTERFACESGW:=1}" && check_interfacesgw
+    is_check_enabled "${IS_INTERFACESNETMASK:=1}" && check_interfacesnetmask
+    is_check_enabled "${IS_NETWORKING_SERVICE:=1}" && check_networking_service
+    is_check_enabled "${IS_EVOBACKUP:=1}" && check_evobackup
+    is_check_enabled "${IS_FAIL2BAN_PURGE:=1}" && check_fail2ban_purge
+    is_check_enabled "${IS_SSH_FAIL2BAN_JAIL_RENAMED:=1}" && check_ssh_fail2ban_jail_renamed
+    is_check_enabled "${IS_EVOBACKUP_EXCLUDE_MOUNT:=1}" && check_evobackup_exclude_mount
+    is_check_enabled "${IS_USERLOGROTATE:=1}" && check_userlogrotate
+    is_check_enabled "${IS_APACHECTL:=1}" && check_apachectl
+    is_check_enabled "${IS_APACHESYMLINK:=1}" && check_apachesymlink
+    is_check_enabled "${IS_APACHEIPINALLOW:=1}" && check_apacheipinallow
+    is_check_enabled "${IS_MUNINAPACHECONF:=1}" && check_muninapacheconf
+    is_check_enabled "${IS_PHPMYADMINAPACHECONF:=1}" && check_phpmyadminapacheconf
+    is_check_enabled "${IS_PHPPGADMINAPACHECONF:=1}" && check_phppgadminapacheconf
+    is_check_enabled "${IS_PHPLDAPADMINAPACHECONF:=1}" && check_phpldapadminapacheconf
+    is_check_enabled "${IS_KERNELUPTODATE:=1}" && check_kerneluptodate
+    is_check_enabled "${IS_UPTIME:=1}" && check_uptime
+    is_check_enabled "${IS_MUNINRUNNING:=1}" && check_muninrunning
+    is_check_enabled "${IS_BACKUPUPTODATE:=1}" && check_backupuptodate
+    is_check_enabled "${IS_ETCGIT:=1}" && check_etcgit
+    is_check_enabled "${IS_ETCGIT_LXC:=1}" && check_etcgit_lxc
+    is_check_enabled "${IS_GITPERMS:=1}" && check_gitperms
+    is_check_enabled "${IS_GITPERMS_LXC:=1}" && check_gitperms_lxc
+    is_check_enabled "${IS_NOTUPGRADED:=1}" && check_notupgraded
+    is_check_enabled "${IS_TUNE2FS_M5:=1}" && check_tune2fs_m5
+    is_check_enabled "${IS_EVOLINUXSUDOGROUP:=1}" && check_evolinuxsudogroup
+    is_check_enabled "${IS_USERINADMGROUP:=1}" && check_userinadmgroup
+    is_check_enabled "${IS_APACHE2EVOLINUXCONF:=1}" && check_apache2evolinuxconf
+    is_check_enabled "${IS_BACKPORTSCONF:=1}" && check_backportsconf
+    is_check_enabled "${IS_BIND9MUNIN:=1}" && check_bind9munin
+    is_check_enabled "${IS_BIND9LOGROTATE:=1}" && check_bind9logrotate
+    is_check_enabled "${IS_DRBDTWOPRIMARIES:=1}" && check_drbd_two_primaries
+    is_check_enabled "${IS_BROADCOMFIRMWARE:=1}" && check_broadcomfirmware
+    is_check_enabled "${IS_HARDWARERAIDTOOL:=1}" && check_hardwareraidtool
+    is_check_enabled "${IS_LOG2MAILSYSTEMDUNIT:=1}" && check_log2mailsystemdunit
+    is_check_enabled "${IS_SYSTEMDUSERUNIT:=0}" && check_systemduserunit
+    is_check_enabled "${IS_LISTUPGRADE:=1}" && check_listupgrade
+    is_check_enabled "${IS_MARIADBEVOLINUXCONF:=0}" && check_mariadbevolinuxconf
+    is_check_enabled "${IS_SQL_BACKUP:=1}" && check_sql_backup
+    is_check_enabled "${IS_POSTGRES_BACKUP:=1}" && check_postgres_backup
+    is_check_enabled "${IS_MONGO_BACKUP:=1}" && check_mongo_backup
+    is_check_enabled "${IS_LDAP_BACKUP:=1}" && check_ldap_backup
+    is_check_enabled "${IS_REDIS_BACKUP:=1}" && check_redis_backup
+    is_check_enabled "${IS_ELASTIC_BACKUP:=1}" && check_elastic_backup
+    is_check_enabled "${IS_MARIADBSYSTEMDUNIT:=1}" && check_mariadbsystemdunit
+    is_check_enabled "${IS_MYSQLMUNIN:=1}" && check_mysqlmunin
+    is_check_enabled "${IS_MYSQLNRPE:=1}" && check_mysqlnrpe
+    is_check_enabled "${IS_PHPEVOLINUXCONF:=0}" && check_phpevolinuxconf
+    is_check_enabled "${IS_SQUIDLOGROTATE:=1}" && check_squidlogrotate
+    is_check_enabled "${IS_SQUIDEVOLINUXCONF:=1}" && check_squidevolinuxconf
+    is_check_enabled "${IS_DUPLICATE_FS_LABEL:=1}" && check_duplicate_fs_label
+    is_check_enabled "${IS_EVOLIX_USER:=1}" && check_evolix_user
+    is_check_enabled "${IS_EVOLIX_GROUP:=0}" && check_evolix_group
+    is_check_enabled "${IS_EVOACME_CRON:=1}" && check_evoacme_cron
+    is_check_enabled "${IS_EVOACME_LIVELINKS:=1}" && check_evoacme_livelinks
+    is_check_enabled "${IS_APACHE_CONFENABLED:=1}" && check_apache_confenabled
+    is_check_enabled "${IS_MELTDOWN_SPECTRE:=1}" && check_meltdown_spectre
+    is_check_enabled "${IS_OLD_HOME_DIR:=0}" && check_old_home_dir
+    is_check_enabled "${IS_EVOBACKUP_INCS:=1}" && check_evobackup_incs
+    is_check_enabled "${IS_OSPROBER:=1}" && check_osprober
+    is_check_enabled "${IS_APT_VALID_UNTIL:=1}" && check_apt_valid_until
+    is_check_enabled "${IS_CHROOTED_BINARY_UPTODATE:=1}" && check_chrooted_binary_uptodate
+    is_check_enabled "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" && check_nginx_letsencrypt_uptodate
+    is_check_enabled "${IS_WKHTMLTOPDF:=1}" && check_wkhtmltopdf
+    is_check_enabled "${IS_LXC_WKHTMLTOPDF:=1}" && check_lxc_wkhtmltopdf
+    is_check_enabled "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" && check_lxc_container_resolv_conf
+    is_check_enabled "${IS_NO_LXC_CONTAINER:=1}" && check_no_lxc_container
+    is_check_enabled "${IS_LXC_PHP_FPM_SERVICE_UMASK_SET:=1}" && check_lxc_php_fpm_service_umask_set
+    is_check_enabled "${IS_LXC_PHP_BAD_DEBIAN_VERSION:=1}" && check_lxc_php_bad_debian_version
+    is_check_enabled "${IS_LXC_OPENSSH:=1}" && check_lxc_openssh
+    is_check_enabled "${IS_LXC_OPENSMTPD:=1}" && check_lxc_opensmtpd
+    is_check_enabled "${IS_CHECK_VERSIONS:=1}" && check_versions
+    is_check_enabled "${IS_MONITORINGCTL:=1}" && check_monitoringctl
+    is_check_enabled "${IS_NRPEPRESSURE:=0}" && check_nrpepressure
+    is_check_enabled "${IS_POSTFIX_IPV6_DISABLED:=0}" && check_postfix_ipv6_disabled
+    is_check_enabled "${IS_SMARTMONTOOLS:=0}" && check_smartmontools
 }
-is_verbose() {
-    test "${VERBOSE}" = 1
-}
-is_pack_web() {
-    test -e /usr/share/scripts/web-add.sh || test -e /usr/share/scripts/evoadmin/web-add.sh
-}
-is_installed() {
-    for pkg in "$@"; do
-        dpkg -l "$pkg" 2> /dev/null | grep --quiet --extended-regexp '^(i|h)i' || return 1
-    done
-}
 
-format_tags() {
-    local tags all_options
-    all_options=$*
-    tags=""
-    # Parse options
-    # based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
-    while :; do
-        case $1 in
-            --cron)
-                    shift
-                    case $1 in
-                        0) ;;
-                        1) tags="${tags} #CRON" ;;
-                        *)
-                            printf 'ERROR: invalid value for --cron option: %s (%s)\n' "$1" "${all_options}" >&2
-                            exit 1
-                            ;;
-                    esac
-                ;;
-            --future)
-                    shift
-                    case $1 in
-                        0) ;;
-                        1) tags="${tags} #FUTURE" ;;
-                        *)
-                            printf 'ERROR: invalid value for --future option: %s (%s)\n' "$1" "${all_options}" >&2
-                            exit 1
-                            ;;
-                    esac
-                ;;
-            
-            -?*|[[:alnum:]]*)
-                # ignore unknown options
-                if ! is_quiet; then
-                    printf 'WARN: Unknown option (ignored): %s (%s)\n' "$1" "${all_options}" >&2
-                fi
-                ;;
-            *)
-                # Default case: If no more options then break out of the loop.
-                break
-                ;;
-        esac
+#####################
+# EXAMPLE
+#####################
 
-        shift
-    done
+# If you want to create a new check funciton,
+# you can copy check_example(), change variables and customize the tests
+#
+# Remember to add the new function to the list in "exec_checks()"
 
-    echo "${tags}"
-}
+# shellcheck disable=SC2329
+check_example() {
+    local level cron future tags label doc rc
+# level of the check, see --help for details
+    level=2     
+# cron: 1 = check must run when run with --cron, 0 = always run
+    cron=0      
+# fiture: 1 = check must run when run with --future, 0 = never run
+    future=0    
+# check label, used in the output. It should match the configuration variable
+    label="IS_EXAMPLE"  
+# If you want to provide an extended documentation, add as many lines as you want between EODOC markers
+# It will be printed when run with --verbose
+    doc=$(cat <<EODOC
+EODOC
+)
 
-# logging
+    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+# Keep these 2 variables unchanged
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
 
-log() {
-    local date msg
-    date=$(/bin/date +"${DATE_FORMAT}")
-    msg="${1:-$(cat /dev/stdin)}"
-    
-    printf "[%s] %s: %s\\n" "${date}" "${PROGNAME}" "${msg}" >> "${LOGFILE}"
-}
+# You can have one or multiple conditions and failures (each with a different comment)
+        if /bin/false; then
+            fail --comment "this is the check short explanation, customize it" --level "${level}" --label "${label}" --tags "${tags}"
+        fi
 
-fail() {
-    local level label comment tags all_options
-    all_options=$*
-    rc=1
-    while :; do
-        case $1 in
-            --level)
-                shift
-                case $1 in
-                    1) level="${1}-OPTIONAL" ;;
-                    2) level="${1}-STANDARD" ;;
-                    3) level="${1}-IMPORTANT" ;;
-                    4) level="${1}-MANDATORY" ;;
-                    *)
-                        printf 'ERROR: invalid value for level option: %s (%s)\n' "$1" "${all_options}"
-                        exit 1
-                        ;;
-                esac
-                ;;
-            --label)
-                shift
-                label=$1
-                ;;
-            --comment)
-                shift
-                comment=$1
-                ;;
-            --tags)
-                shift
-                tags=$1
-                ;;
-            -?*|[[:alnum:]]*)
-                # ignore unknown options
-                if ! is_quiet; then
-                    printf 'WARN: Unknown option (ignored): %s (%s)\n' "$1" "${all_options}" >&2
-                fi
-                ;;
-            *)
-                # Default case: If no more options then break out of the loop.
-                break
-                ;;
-        esac
-
-        shift
-    done
-
-    GLOBAL_RC=1
-
-    if ! is_quiet; then
-        printf "[%s] %s FAILED! %s%s\n" "${level}" "${label}" "${comment}" "${tags:-}" >> "${main_output_file}"
-    fi
-    printf "[%s] %s FAILED! %s%s" "${level}" "${label}" "${comment}" "${tags:-}" | log
-}
-check_can_run() {
-    local label level cron future tags all_options
-    all_options=$*
-    # Parse options
-    # based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
-    while :; do
-        case $1 in
-            --label)
-                    shift
-                    label=$1
-                ;;
-            --level)
-                    shift
-                    level=$1
-                ;;
-            --cron)
-                    shift
-                    case $1 in
-                        0|1) cron=$1 ;;
-                        *)
-                            printf 'ERROR: invalid value for --cron option: %s (%s)\n' "$1" "${all_options}" >&2
-                            exit 1
-                            ;;
-                    esac
-                ;;
-            --future)
-                    shift
-                    case $1 in
-                        0|1) future=$1 ;;
-                        *)
-                            printf 'ERROR: invalid value for --future option: %s (%s)\n' "$1" "${all_options}" >&2
-                            exit 1
-                            ;;
-                    esac
-                ;;
-            
-            -?*|[[:alnum:]]*)
-                # ignore unknown options
-                if ! is_quiet; then
-                    printf 'WARN: Unknown option for check_can_run (ignored): %s (%s)\n' "$1" "${all_options}" >&2
-                fi
-                ;;
-            *)
-                # Default case: If no more options then break out of the loop.
-                break
-                ;;
-        esac
-
-        shift
-    done
-
-    if [ ${level} -ge ${MIN_LEVEL} ] && [ ${level} -le ${MAX_LEVEL} ] \
-        && [ ${future} -le ${FUTURE} ] \
-        && [ ${cron} -ge ${CRON} ]; then
-        # echo "RUN ${label}"
-        return 0
-    else
-        # echo "SKIP ${label}"
-        return 1
-    fi
-
-}
-show_doc() {
-    local doc=$1
-    if is_verbose && test "${rc}" != 0 && [ -n "${doc}" ]; then
-        printf "%s\n" "${doc}" >> "${main_output_file}"
-
+# Doc is shown if applicable :
+# * the check has failed
+# * there is something to display
+# * evocheck is run in verbose mode)
         show_doc "${doc:-}"
     fi
 }
@@ -260,37 +249,6 @@ show_doc() {
 #####################
 # CHECK FUNCTIONS
 #####################
-
-# If you want to create a new check funciton,
-# you can copy check_example(), change variables and customize the tests
-
-# shellcheck disable=SC2329
-check_example() {
-    local level cron future tags label doc rc
-    level=2     # level of the check, see --help for details
-    cron=0      # 1 = check must run when run with --cron, 0 = always run
-    future=0    # 1 = check must run when run with --future, 0 = never run
-    label="IS_LSBRELEASE"  # check label, used in the output. It should match the configuration variable
-    # If you want to provide an extended documentation, add as many lines as you want between EODOC markers
-    # It will be printed when run with --verbose
-    doc=$(cat <<EODOC
-EODOC
-)
-
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
-        rc=0
-        tags=$(format_tags --cron "${cron}" --future "${future}")
-
-        if /bin/true; then
-            fail --comment "this is the check short explanation, customize it" --level "${level}" --label "${label}" --tags "${tags}"
-        fi
-
-        show_doc "${doc:-}"
-    fi
-}
-
-
-
 
 check_lsbrelease() {
     local level cron future tags label doc rc
@@ -3917,7 +3875,7 @@ add_to_path() {
 }
 check_versions() {
     local level cron future tags label doc rc
-    level=2
+    level=1
     cron=0
     future=0
     label="IS_CHECK_VERSIONS"
@@ -3938,12 +3896,12 @@ check_versions() {
 
         grep --invert-match '^ *#' < "${versions_file}" | while IFS= read -r line; do
             local program
-            local version
+            local expected_version
             program=$(echo "${line}" | cut -d ' ' -f 1)
             expected_version=$(echo "${line}" | cut -d ' ' -f 2)
 
             if [ -n "${program}" ]; then
-                if [ -n "${version}" ]; then
+                if [ -n "${expected_version}" ]; then
                     command=$(get_command "${program}")
                     if [ -n "${command}" ]; then
                         # shellcheck disable=SC2086
@@ -4017,168 +3975,210 @@ check_postfix_ipv6_disabled() {
 
 ### MAIN
 
+is_quiet() {
+    test "${QUIET}" = 1
+}
+is_verbose() {
+    test "${VERBOSE}" = 1
+}
+is_pack_web() {
+    test -e /usr/share/scripts/web-add.sh || test -e /usr/share/scripts/evoadmin/web-add.sh
+}
+is_installed() {
+    for pkg in "$@"; do
+        dpkg -l "$pkg" 2> /dev/null | grep --quiet --extended-regexp '^(i|h)i' || return 1
+    done
+}
+
+format_tags() {
+    local tags all_options
+    all_options=$*
+    tags=""
+    # Parse options
+    # based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
+    while :; do
+        case $1 in
+            --cron)
+                    shift
+                    case $1 in
+                        0) ;;
+                        1) tags="${tags} #CRON" ;;
+                        *)
+                            printf 'ERROR: invalid value for --cron option: %s (%s)\n' "$1" "${all_options}" >&2
+                            exit 1
+                            ;;
+                    esac
+                ;;
+            --future)
+                    shift
+                    case $1 in
+                        0) ;;
+                        1) tags="${tags} #FUTURE" ;;
+                        *)
+                            printf 'ERROR: invalid value for --future option: %s (%s)\n' "$1" "${all_options}" >&2
+                            exit 1
+                            ;;
+                    esac
+                ;;
+            
+            -?*|[[:alnum:]]*)
+                # ignore unknown options
+                if ! is_quiet; then
+                    printf 'WARN: Unknown option (ignored): %s (%s)\n' "$1" "${all_options}" >&2
+                fi
+                ;;
+            *)
+                # Default case: If no more options then break out of the loop.
+                break
+                ;;
+        esac
+
+        shift
+    done
+
+    echo "${tags}"
+}
+
+# logging
+
+log() {
+    local date msg
+    date=$(/bin/date +"${DATE_FORMAT}")
+    msg="${1:-$(cat /dev/stdin)}"
+    
+    printf "[%s] %s: %s\\n" "${date}" "${PROGNAME}" "${msg}" >> "${LOGFILE}"
+}
+
+fail() {
+    local level label comment tags all_options
+    all_options=$*
+    rc=1
+    while :; do
+        case $1 in
+            --level)
+                shift
+                case $1 in
+                    1) level="${1}-OPTIONAL" ;;
+                    2) level="${1}-STANDARD" ;;
+                    3) level="${1}-IMPORTANT" ;;
+                    4) level="${1}-MANDATORY" ;;
+                    *)
+                        printf 'ERROR: invalid value for level option: %s (%s)\n' "$1" "${all_options}"
+                        exit 1
+                        ;;
+                esac
+                ;;
+            --label)
+                shift
+                label=$1
+                ;;
+            --comment)
+                shift
+                comment=$1
+                ;;
+            --tags)
+                shift
+                tags=$1
+                ;;
+            -?*|[[:alnum:]]*)
+                # ignore unknown options
+                if ! is_quiet; then
+                    printf 'WARN: Unknown option (ignored): %s (%s)\n' "$1" "${all_options}" >&2
+                fi
+                ;;
+            *)
+                # Default case: If no more options then break out of the loop.
+                break
+                ;;
+        esac
+
+        shift
+    done
+
+    GLOBAL_RC=1
+
+    if ! is_quiet; then
+        printf "[%s] %s FAILED! %s%s\n" "${level}" "${label}" "${comment}" "${tags:-}" >> "${main_output_file}"
+    fi
+    printf "[%s] %s FAILED! %s%s" "${level}" "${label}" "${comment}" "${tags:-}" | log
+}
+check_can_run() {
+    local label level cron future tags all_options
+    all_options=$*
+    # Parse options
+    # based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
+    while :; do
+        case $1 in
+            --label)
+                    shift
+                    label=$1
+                ;;
+            --level)
+                    shift
+                    level=$1
+                ;;
+            --cron)
+                    shift
+                    case $1 in
+                        0|1) cron=$1 ;;
+                        *)
+                            printf 'ERROR: invalid value for --cron option: %s (%s)\n' "$1" "${all_options}" >&2
+                            exit 1
+                            ;;
+                    esac
+                ;;
+            --future)
+                    shift
+                    case $1 in
+                        0|1) future=$1 ;;
+                        *)
+                            printf 'ERROR: invalid value for --future option: %s (%s)\n' "$1" "${all_options}" >&2
+                            exit 1
+                            ;;
+                    esac
+                ;;
+            
+            -?*|[[:alnum:]]*)
+                # ignore unknown options
+                if ! is_quiet; then
+                    printf 'WARN: Unknown option for check_can_run (ignored): %s (%s)\n' "$1" "${all_options}" >&2
+                fi
+                ;;
+            *)
+                # Default case: If no more options then break out of the loop.
+                break
+                ;;
+        esac
+
+        shift
+    done
+
+    if [ ${level} -ge ${MIN_LEVEL} ] && [ ${level} -le ${MAX_LEVEL} ] \
+        && [ ${future} -le ${FUTURE} ] \
+        && [ ${cron} -ge ${CRON} ]; then
+        # echo "RUN ${label}"
+        return 0
+    else
+        # echo "SKIP ${label}"
+        return 1
+    fi
+
+}
+show_doc() {
+    local doc=$1
+    # WARN: rc is read from the parent function's context
+    # where it is defined as local, so it should not leak outside of it.
+    # This is not perfect, but passing it as argument seems more cumbersome
+    if is_verbose && test "${rc}" != 0 && [ -n "${doc}" ]; then
+        printf "%s\n" "${doc}" >> "${main_output_file}"
+
+        show_doc "${doc:-}"
+    fi
+}
 is_check_enabled() {
     test "${1}" = 1
 }
 
-main() {
-    # Default return code : 0 = no error
-    GLOBAL_RC=0
-
-    main_output_file=$(mktemp --tmpdir "evocheck.main.XXXXX")
-    files_to_cleanup+=("${main_output_file}")
-
-    is_check_enabled "${IS_TMP_1777:=1}" && check_tmp_1777
-    is_check_enabled "${IS_ROOT_0700:=1}" && check_root_0700
-    is_check_enabled "${IS_USRSHARESCRIPTS:=1}" && check_usrsharescripts
-    is_check_enabled "${IS_SSHPERMITROOTNO:=1}" && check_sshpermitrootno
-    is_check_enabled "${IS_EVOMAINTENANCEUSERS:=1}" && check_evomaintenanceusers
-    # Verification de la configuration d'evomaintenance
-    is_check_enabled "${IS_EVOMAINTENANCECONF:=1}" && check_evomaintenanceconf
-    is_check_enabled "${IS_PRIVKEYWOLRDREADABLE:=1}" && check_privatekeyworldreadable
-
-    is_check_enabled "${IS_LSBRELEASE:=1}" && check_lsbrelease
-    is_check_enabled "${IS_DPKGWARNING:=1}" && check_dpkgwarning
-    is_check_enabled "${IS_POSTFIX_MYDESTINATION:=1}" && check_postfix_mydestination
-    is_check_enabled "${IS_NRPEPOSTFIX:=1}" && check_nrpepostfix
-    is_check_enabled "${IS_CUSTOMSUDOERS:=1}" && check_customsudoers
-    is_check_enabled "${IS_VARTMPFS:=1}" && check_vartmpfs
-    is_check_enabled "${IS_SERVEURBASE:=1}" && check_serveurbase
-    is_check_enabled "${IS_LOGROTATECONF:=1}" && check_logrotateconf
-    is_check_enabled "${IS_SYSLOGCONF:=1}" && check_syslogconf
-    is_check_enabled "${IS_DEBIANSECURITY:=1}" && check_debiansecurity
-    is_check_enabled "${IS_DEBIANSECURITY_LXC:=1}" && check_debiansecurity_lxc
-    is_check_enabled "${IS_BACKPORTS_VERSION:=1}" && check_backports_version
-    is_check_enabled "${IS_OLDPUB:=1}" && check_oldpub
-    is_check_enabled "${IS_OLDPUB_LXC:=1}" && check_oldpub_lxc
-    is_check_enabled "${IS_NEWPUB:=1}" && check_newpub
-    is_check_enabled "${IS_SURY:=1}" && check_sury
-    is_check_enabled "${IS_SURY_LXC:=1}" && check_sury_lxc
-    is_check_enabled "${IS_NOT_DEB822:=0}" && check_not_deb822
-    is_check_enabled "${IS_NO_SIGNED_BY:=0}" && check_no_signed_by
-    is_check_enabled "${IS_APTITUDE:=1}" && check_aptitude
-    is_check_enabled "${IS_APTGETBAK:=1}" && check_aptgetbak
-    is_check_enabled "${IS_USRRO:=1}" && check_usrro
-    is_check_enabled "${IS_TMPNOEXEC:=1}" && check_tmpnoexec
-    is_check_enabled "${IS_HOMENOEXEC:=1}" && check_homenoexec
-    is_check_enabled "${IS_MOUNT_FSTAB:=1}" && check_mountfstab
-    is_check_enabled "${IS_LISTCHANGESCONF:=1}" && check_listchangesconf
-    is_check_enabled "${IS_CUSTOMCRONTAB:=1}" && check_customcrontab
-    is_check_enabled "${IS_SSHALLOWUSERS:=1}" && check_sshallowusers
-    is_check_enabled "${IS_SSHCONFSPLIT:=1}" && check_sshconfsplit
-    is_check_enabled "${IS_SSHLASTMATCH:=0}" && check_sshlastmatch
-    is_check_enabled "${IS_TMOUTPROFILE:=1}" && check_tmoutprofile
-    is_check_enabled "${IS_ALERT5BOOT:=1}" && check_alert5boot
-    is_check_enabled "${IS_ALERT5MINIFW:=1}" && check_alert5minifw
-    is_check_enabled "${IS_ALERT5MINIFW:=1}" && is_check_enabled "${IS_MINIFW:=1}" && check_minifw
-    is_check_enabled "${IS_NRPEPERMS:=1}" && check_nrpeperms
-    is_check_enabled "${IS_MINIFWPERMS:=1}" && check_minifwperms
-    is_check_enabled "${IS_MINIFW_RELATED:=0}" && check_minifw_related
-    is_check_enabled "${IS_MINIFWINCLUDES:=1}" && check_minifw_includes
-    is_check_enabled "${IS_NRPEPID:=1}" && check_nrpepid
-    is_check_enabled "${IS_GRSECPROCS:=1}" && check_grsecprocs
-    is_check_enabled "${IS_APACHEMUNIN:=1}" && check_apachemunin
-    is_check_enabled "${IS_MYSQLUTILS:=1}" && check_mysqlutils
-    is_check_enabled "${IS_RAIDSOFT:=1}" && check_raidsoft
-    is_check_enabled "${IS_AWSTATSLOGFORMAT:=1}" && check_awstatslogformat
-    is_check_enabled "${IS_MUNINLOGROTATE:=1}" && check_muninlogrotate
-    is_check_enabled "${IS_SQUID:=1}" && check_squid
-    is_check_enabled "${IS_EVOMAINTENANCE_FW:=1}" && check_evomaintenance_fw
-    is_check_enabled "${IS_MODDEFLATE:=1}" && check_moddeflate
-    is_check_enabled "${IS_LOG2MAILRUNNING:=1}" && check_log2mailrunning
-    is_check_enabled "${IS_LOG2MAILAPACHE:=1}" && check_log2mailapache
-    is_check_enabled "${IS_LOG2MAILMYSQL:=1}" && check_log2mailmysql
-    is_check_enabled "${IS_LOG2MAILSQUID:=1}" && check_log2mailsquid
-    is_check_enabled "${IS_BINDCHROOT:=1}" && check_bindchroot
-    is_check_enabled "${IS_NETWORK_INTERFACES:=1}" && check_network_interfaces
-    is_check_enabled "${IS_AUTOIF:=1}" && check_autoif
-    is_check_enabled "${IS_INTERFACESGW:=1}" && check_interfacesgw
-    is_check_enabled "${IS_INTERFACESNETMASK:=1}" && check_interfacesnetmask
-    is_check_enabled "${IS_NETWORKING_SERVICE:=1}" && check_networking_service
-    is_check_enabled "${IS_EVOBACKUP:=1}" && check_evobackup
-    is_check_enabled "${IS_FAIL2BAN_PURGE:=1}" && check_fail2ban_purge
-    is_check_enabled "${IS_SSH_FAIL2BAN_JAIL_RENAMED:=1}" && check_ssh_fail2ban_jail_renamed
-    is_check_enabled "${IS_EVOBACKUP_EXCLUDE_MOUNT:=1}" && check_evobackup_exclude_mount
-    is_check_enabled "${IS_USERLOGROTATE:=1}" && check_userlogrotate
-    is_check_enabled "${IS_APACHECTL:=1}" && check_apachectl
-    is_check_enabled "${IS_APACHESYMLINK:=1}" && check_apachesymlink
-    is_check_enabled "${IS_APACHEIPINALLOW:=1}" && check_apacheipinallow
-    is_check_enabled "${IS_MUNINAPACHECONF:=1}" && check_muninapacheconf
-    is_check_enabled "${IS_PHPMYADMINAPACHECONF:=1}" && check_phpmyadminapacheconf
-    is_check_enabled "${IS_PHPPGADMINAPACHECONF:=1}" && check_phppgadminapacheconf
-    is_check_enabled "${IS_PHPLDAPADMINAPACHECONF:=1}" && check_phpldapadminapacheconf
-    is_check_enabled "${IS_KERNELUPTODATE:=1}" && check_kerneluptodate
-    is_check_enabled "${IS_UPTIME:=1}" && check_uptime
-    is_check_enabled "${IS_MUNINRUNNING:=1}" && check_muninrunning
-    is_check_enabled "${IS_BACKUPUPTODATE:=1}" && check_backupuptodate
-    is_check_enabled "${IS_ETCGIT:=1}" && check_etcgit
-    is_check_enabled "${IS_ETCGIT_LXC:=1}" && check_etcgit_lxc
-    is_check_enabled "${IS_GITPERMS:=1}" && check_gitperms
-    is_check_enabled "${IS_GITPERMS_LXC:=1}" && check_gitperms_lxc
-    is_check_enabled "${IS_NOTUPGRADED:=1}" && check_notupgraded
-    is_check_enabled "${IS_TUNE2FS_M5:=1}" && check_tune2fs_m5
-    is_check_enabled "${IS_EVOLINUXSUDOGROUP:=1}" && check_evolinuxsudogroup
-    is_check_enabled "${IS_USERINADMGROUP:=1}" && check_userinadmgroup
-    is_check_enabled "${IS_APACHE2EVOLINUXCONF:=1}" && check_apache2evolinuxconf
-    is_check_enabled "${IS_BACKPORTSCONF:=1}" && check_backportsconf
-    is_check_enabled "${IS_BIND9MUNIN:=1}" && check_bind9munin
-    is_check_enabled "${IS_BIND9LOGROTATE:=1}" && check_bind9logrotate
-    is_check_enabled "${IS_DRBDTWOPRIMARIES:=1}" && check_drbd_two_primaries
-    is_check_enabled "${IS_BROADCOMFIRMWARE:=1}" && check_broadcomfirmware
-    is_check_enabled "${IS_HARDWARERAIDTOOL:=1}" && check_hardwareraidtool
-    is_check_enabled "${IS_LOG2MAILSYSTEMDUNIT:=1}" && check_log2mailsystemdunit
-    is_check_enabled "${IS_SYSTEMDUSERUNIT:=0}" && check_systemduserunit
-    is_check_enabled "${IS_LISTUPGRADE:=1}" && check_listupgrade
-    is_check_enabled "${IS_MARIADBEVOLINUXCONF:=0}" && check_mariadbevolinuxconf
-    is_check_enabled "${IS_SQL_BACKUP:=1}" && check_sql_backup
-    is_check_enabled "${IS_POSTGRES_BACKUP:=1}" && check_postgres_backup
-    is_check_enabled "${IS_MONGO_BACKUP:=1}" && check_mongo_backup
-    is_check_enabled "${IS_LDAP_BACKUP:=1}" && check_ldap_backup
-    is_check_enabled "${IS_REDIS_BACKUP:=1}" && check_redis_backup
-    is_check_enabled "${IS_ELASTIC_BACKUP:=1}" && check_elastic_backup
-    is_check_enabled "${IS_MARIADBSYSTEMDUNIT:=1}" && check_mariadbsystemdunit
-    is_check_enabled "${IS_MYSQLMUNIN:=1}" && check_mysqlmunin
-    is_check_enabled "${IS_MYSQLNRPE:=1}" && check_mysqlnrpe
-    is_check_enabled "${IS_PHPEVOLINUXCONF:=0}" && check_phpevolinuxconf
-    is_check_enabled "${IS_SQUIDLOGROTATE:=1}" && check_squidlogrotate
-    is_check_enabled "${IS_SQUIDEVOLINUXCONF:=1}" && check_squidevolinuxconf
-    is_check_enabled "${IS_DUPLICATE_FS_LABEL:=1}" && check_duplicate_fs_label
-    is_check_enabled "${IS_EVOLIX_USER:=1}" && check_evolix_user
-    is_check_enabled "${IS_EVOLIX_GROUP:=0}" && check_evolix_group
-    is_check_enabled "${IS_EVOACME_CRON:=1}" && check_evoacme_cron
-    is_check_enabled "${IS_EVOACME_LIVELINKS:=1}" && check_evoacme_livelinks
-    is_check_enabled "${IS_APACHE_CONFENABLED:=1}" && check_apache_confenabled
-    is_check_enabled "${IS_MELTDOWN_SPECTRE:=1}" && check_meltdown_spectre
-    is_check_enabled "${IS_OLD_HOME_DIR:=0}" && check_old_home_dir
-    is_check_enabled "${IS_EVOBACKUP_INCS:=1}" && check_evobackup_incs
-    is_check_enabled "${IS_OSPROBER:=1}" && check_osprober
-    is_check_enabled "${IS_APT_VALID_UNTIL:=1}" && check_apt_valid_until
-    is_check_enabled "${IS_CHROOTED_BINARY_UPTODATE:=1}" && check_chrooted_binary_uptodate
-    is_check_enabled "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" && check_nginx_letsencrypt_uptodate
-    is_check_enabled "${IS_WKHTMLTOPDF:=1}" && check_wkhtmltopdf
-    is_check_enabled "${IS_LXC_WKHTMLTOPDF:=1}" && check_lxc_wkhtmltopdf
-    is_check_enabled "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" && check_lxc_container_resolv_conf
-    is_check_enabled "${IS_NO_LXC_CONTAINER:=1}" && check_no_lxc_container
-    is_check_enabled "${IS_LXC_PHP_FPM_SERVICE_UMASK_SET:=1}" && check_lxc_php_fpm_service_umask_set
-    is_check_enabled "${IS_LXC_PHP_BAD_DEBIAN_VERSION:=1}" && check_lxc_php_bad_debian_version
-    is_check_enabled "${IS_LXC_OPENSSH:=1}" && check_lxc_openssh
-    is_check_enabled "${IS_LXC_OPENSMTPD:=1}" && check_lxc_opensmtpd
-    is_check_enabled "${IS_CHECK_VERSIONS:=1}" && check_versions
-    is_check_enabled "${IS_MONITORINGCTL:=1}" && check_monitoringctl
-    is_check_enabled "${IS_NRPEPRESSURE:=0}" && check_nrpepressure
-    is_check_enabled "${IS_POSTFIX_IPV6_DISABLED:=0}" && check_postfix_ipv6_disabled
-    is_check_enabled "${IS_SMARTMONTOOLS:=0}" && check_smartmontools
-
-    if [ -f "${main_output_file}" ]; then
-        lines_found=$(wc -l < "${main_output_file}")
-        # shellcheck disable=SC2086
-        if [ ${lines_found} -gt 0 ]; then
-            cat "${main_output_file}" 2>&1
-        fi
-    fi
-
-    exit ${GLOBAL_RC}
-}
 # shellcheck disable=SC2329
 cleanup() {
     # Cleanup tmp files
@@ -4214,7 +4214,6 @@ CRON=0
 FUTURE=0
 MIN_LEVEL=0
 MAX_LEVEL=9
-
 
 # Source configuration file
 # shellcheck disable=SC1091
@@ -4306,8 +4305,6 @@ trap cleanup EXIT INT TERM
 log '-----------------------------------------------'
 log "Running ${PROGNAME} ${VERSION} (levels: ${MIN_LEVEL}-${MAX_LEVEL})"
 
-
-
 # Log config file content
 if [ -f "${CONFIGFILE}" ]; then
     log "Runtime configuration (${CONFIGFILE}):"
@@ -4319,5 +4316,20 @@ if evo::os-release::is_debian 10 lt; then
     exit 1
 fi
 
-# shellcheck disable=SC2086
-main ${ARGS}
+# Default return code : 0 = no error
+GLOBAL_RC=0
+
+main_output_file=$(mktemp --tmpdir "evocheck.main.XXXXX")
+files_to_cleanup+=("${main_output_file}")
+
+exec_checks
+
+if [ -f "${main_output_file}" ]; then
+    lines_found=$(wc -l < "${main_output_file}")
+    # shellcheck disable=SC2086
+    if [ ${lines_found} -gt 0 ]; then
+        cat "${main_output_file}" 2>&1
+    fi
+fi
+
+exit ${GLOBAL_RC}

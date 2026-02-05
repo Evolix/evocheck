@@ -4171,8 +4171,6 @@ show_doc() {
     # This is not perfect, but passing it as argument seems more cumbersome
     if is_verbose && test "${rc}" != 0 && [ -n "${doc}" ]; then
         printf "%s\n" "${doc}" >> "${main_output_file}"
-
-        show_doc "${doc:-}"
     fi
 }
 is_check_enabled() {

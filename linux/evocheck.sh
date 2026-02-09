@@ -60,146 +60,144 @@ END
 }
 
 exec_checks() {
-    is_check_enabled "${IS_TMP_1777:=1}" && check_tmp_1777
-    is_check_enabled "${IS_ROOT_0700:=1}" && check_root_0700
-    is_check_enabled "${IS_USRSHARESCRIPTS:=1}" && check_usrsharescripts
-    is_check_enabled "${IS_SSHPERMITROOTNO:=1}" && check_sshpermitrootno
-    is_check_enabled "${IS_EVOMAINTENANCEUSERS:=1}" && check_evomaintenanceusers
-    # Verification de la configuration d'evomaintenance
-    is_check_enabled "${IS_EVOMAINTENANCECONF:=1}" && check_evomaintenanceconf
-    is_check_enabled "${IS_PRIVKEYWOLRDREADABLE:=1}" && check_privatekeyworldreadable
-
-    is_check_enabled "${IS_LSBRELEASE:=1}" && check_lsbrelease
-    is_check_enabled "${IS_DPKGWARNING:=1}" && check_dpkgwarning
-    is_check_enabled "${IS_POSTFIX_MYDESTINATION:=1}" && check_postfix_mydestination
-    is_check_enabled "${IS_NRPEPOSTFIX:=1}" && check_nrpepostfix
-    is_check_enabled "${IS_CUSTOMSUDOERS:=1}" && check_customsudoers
-    is_check_enabled "${IS_VARTMPFS:=1}" && check_vartmpfs
-    is_check_enabled "${IS_SERVEURBASE:=1}" && check_serveurbase
-    is_check_enabled "${IS_LOGROTATECONF:=1}" && check_logrotateconf
-    is_check_enabled "${IS_SYSLOGCONF:=1}" && check_syslogconf
-    is_check_enabled "${IS_DEBIANSECURITY:=1}" && check_debiansecurity
-    is_check_enabled "${IS_DEBIANSECURITY_LXC:=1}" && check_debiansecurity_lxc
-    is_check_enabled "${IS_BACKPORTS_VERSION:=1}" && check_backports_version
-    is_check_enabled "${IS_OLDPUB:=1}" && check_oldpub
-    is_check_enabled "${IS_OLDPUB_LXC:=1}" && check_oldpub_lxc
-    is_check_enabled "${IS_NEWPUB:=1}" && check_newpub
-    is_check_enabled "${IS_SURY:=1}" && check_sury
-    is_check_enabled "${IS_SURY_LXC:=1}" && check_sury_lxc
-    is_check_enabled "${IS_NOT_DEB822:=0}" && check_not_deb822
-    is_check_enabled "${IS_NO_SIGNED_BY:=0}" && check_no_signed_by
-    is_check_enabled "${IS_APTITUDE:=1}" && check_aptitude
-    is_check_enabled "${IS_APTGETBAK:=1}" && check_aptgetbak
-    is_check_enabled "${IS_USRRO:=1}" && check_usrro
-    is_check_enabled "${IS_TMPNOEXEC:=1}" && check_tmpnoexec
-    is_check_enabled "${IS_HOMENOEXEC:=1}" && check_homenoexec
-    is_check_enabled "${IS_MOUNT_FSTAB:=1}" && check_mountfstab
-    is_check_enabled "${IS_LISTCHANGESCONF:=1}" && check_listchangesconf
-    is_check_enabled "${IS_CUSTOMCRONTAB:=1}" && check_customcrontab
-    is_check_enabled "${IS_SSHALLOWUSERS:=1}" && check_sshallowusers
-    is_check_enabled "${IS_SSHCONFSPLIT:=1}" && check_sshconfsplit
-    is_check_enabled "${IS_SSHLASTMATCH:=0}" && check_sshlastmatch
-    is_check_enabled "${IS_TMOUTPROFILE:=1}" && check_tmoutprofile
-    is_check_enabled "${IS_ALERT5BOOT:=1}" && check_alert5boot
-    is_check_enabled "${IS_ALERT5MINIFW:=1}" && check_alert5minifw
-    is_check_enabled "${IS_ALERT5MINIFW:=1}" && is_check_enabled "${IS_MINIFW:=1}" && check_minifw
-    is_check_enabled "${IS_NRPEPERMS:=1}" && check_nrpeperms
-    is_check_enabled "${IS_MINIFWPERMS:=1}" && check_minifwperms
-    is_check_enabled "${IS_MINIFW_RELATED:=0}" && check_minifw_related
-    is_check_enabled "${IS_MINIFWINCLUDES:=1}" && check_minifw_includes
-    is_check_enabled "${IS_NRPEPID:=1}" && check_nrpepid
-    is_check_enabled "${IS_GRSECPROCS:=1}" && check_grsecprocs
-    is_check_enabled "${IS_APACHEMUNIN:=1}" && check_apachemunin
-    is_check_enabled "${IS_MYSQLUTILS:=1}" && check_mysqlutils
-    is_check_enabled "${IS_RAIDSOFT:=1}" && check_raidsoft
-    is_check_enabled "${IS_AWSTATSLOGFORMAT:=1}" && check_awstatslogformat
-    is_check_enabled "${IS_MUNINLOGROTATE:=1}" && check_muninlogrotate
-    is_check_enabled "${IS_SQUID:=1}" && check_squid
-    is_check_enabled "${IS_EVOMAINTENANCE_FW:=1}" && check_evomaintenance_fw
-    is_check_enabled "${IS_MODDEFLATE:=1}" && check_moddeflate
-    is_check_enabled "${IS_LOG2MAILRUNNING:=1}" && check_log2mailrunning
-    is_check_enabled "${IS_LOG2MAILAPACHE:=1}" && check_log2mailapache
-    is_check_enabled "${IS_LOG2MAILMYSQL:=1}" && check_log2mailmysql
-    is_check_enabled "${IS_LOG2MAILSQUID:=1}" && check_log2mailsquid
-    is_check_enabled "${IS_BINDCHROOT:=1}" && check_bindchroot
-    is_check_enabled "${IS_NETWORK_INTERFACES:=1}" && check_network_interfaces
-    is_check_enabled "${IS_AUTOIF:=1}" && check_autoif
-    is_check_enabled "${IS_INTERFACESGW:=1}" && check_interfacesgw
-    is_check_enabled "${IS_INTERFACESNETMASK:=1}" && check_interfacesnetmask
-    is_check_enabled "${IS_NETWORKING_SERVICE:=1}" && check_networking_service
-    is_check_enabled "${IS_EVOBACKUP:=1}" && check_evobackup
-    is_check_enabled "${IS_FAIL2BAN_PURGE:=1}" && check_fail2ban_purge
-    is_check_enabled "${IS_SSH_FAIL2BAN_JAIL_RENAMED:=1}" && check_ssh_fail2ban_jail_renamed
-    is_check_enabled "${IS_EVOBACKUP_EXCLUDE_MOUNT:=1}" && check_evobackup_exclude_mount
-    is_check_enabled "${IS_USERLOGROTATE:=1}" && check_userlogrotate
-    is_check_enabled "${IS_APACHECTL:=1}" && check_apachectl
-    is_check_enabled "${IS_APACHESYMLINK:=1}" && check_apachesymlink
-    is_check_enabled "${IS_APACHEIPINALLOW:=1}" && check_apacheipinallow
-    is_check_enabled "${IS_MUNINAPACHECONF:=1}" && check_muninapacheconf
-    is_check_enabled "${IS_PHPMYADMINAPACHECONF:=1}" && check_phpmyadminapacheconf
-    is_check_enabled "${IS_PHPPGADMINAPACHECONF:=1}" && check_phppgadminapacheconf
-    is_check_enabled "${IS_PHPLDAPADMINAPACHECONF:=1}" && check_phpldapadminapacheconf
-    is_check_enabled "${IS_KERNELUPTODATE:=1}" && check_kerneluptodate
-    is_check_enabled "${IS_UPTIME:=1}" && check_uptime
-    is_check_enabled "${IS_MUNINRUNNING:=1}" && check_muninrunning
-    is_check_enabled "${IS_BACKUPUPTODATE:=1}" && check_backupuptodate
-    is_check_enabled "${IS_ETCGIT:=1}" && check_etcgit
-    is_check_enabled "${IS_ETCGIT_LXC:=1}" && check_etcgit_lxc
-    is_check_enabled "${IS_GITPERMS:=1}" && check_gitperms
-    is_check_enabled "${IS_GITPERMS_LXC:=1}" && check_gitperms_lxc
-    is_check_enabled "${IS_NOTUPGRADED:=1}" && check_notupgraded
-    is_check_enabled "${IS_TUNE2FS_M5:=1}" && check_tune2fs_m5
-    is_check_enabled "${IS_EVOLINUXSUDOGROUP:=1}" && check_evolinuxsudogroup
-    is_check_enabled "${IS_USERINADMGROUP:=1}" && check_userinadmgroup
-    is_check_enabled "${IS_APACHE2EVOLINUXCONF:=1}" && check_apache2evolinuxconf
-    is_check_enabled "${IS_BACKPORTSCONF:=1}" && check_backportsconf
-    is_check_enabled "${IS_BIND9MUNIN:=1}" && check_bind9munin
-    is_check_enabled "${IS_BIND9LOGROTATE:=1}" && check_bind9logrotate
-    is_check_enabled "${IS_DRBDTWOPRIMARIES:=1}" && check_drbd_two_primaries
-    is_check_enabled "${IS_BROADCOMFIRMWARE:=1}" && check_broadcomfirmware
-    is_check_enabled "${IS_HARDWARERAIDTOOL:=1}" && check_hardwareraidtool
-    is_check_enabled "${IS_LOG2MAILSYSTEMDUNIT:=1}" && check_log2mailsystemdunit
-    is_check_enabled "${IS_SYSTEMDUSERUNIT:=0}" && check_systemduserunit
-    is_check_enabled "${IS_LISTUPGRADE:=1}" && check_listupgrade
-    is_check_enabled "${IS_MARIADBEVOLINUXCONF:=0}" && check_mariadbevolinuxconf
-    is_check_enabled "${IS_SQL_BACKUP:=1}" && check_sql_backup
-    is_check_enabled "${IS_POSTGRES_BACKUP:=1}" && check_postgres_backup
-    is_check_enabled "${IS_MONGO_BACKUP:=1}" && check_mongo_backup
-    is_check_enabled "${IS_LDAP_BACKUP:=1}" && check_ldap_backup
-    is_check_enabled "${IS_REDIS_BACKUP:=1}" && check_redis_backup
-    is_check_enabled "${IS_ELASTIC_BACKUP:=1}" && check_elastic_backup
-    is_check_enabled "${IS_MARIADBSYSTEMDUNIT:=1}" && check_mariadbsystemdunit
-    is_check_enabled "${IS_MYSQLMUNIN:=1}" && check_mysqlmunin
-    is_check_enabled "${IS_MYSQLNRPE:=1}" && check_mysqlnrpe
-    is_check_enabled "${IS_PHPEVOLINUXCONF:=0}" && check_phpevolinuxconf
-    is_check_enabled "${IS_SQUIDLOGROTATE:=1}" && check_squidlogrotate
-    is_check_enabled "${IS_SQUIDEVOLINUXCONF:=1}" && check_squidevolinuxconf
-    is_check_enabled "${IS_DUPLICATE_FS_LABEL:=1}" && check_duplicate_fs_label
-    is_check_enabled "${IS_EVOLIX_USER:=1}" && check_evolix_user
-    is_check_enabled "${IS_EVOLIX_GROUP:=0}" && check_evolix_group
-    is_check_enabled "${IS_EVOACME_CRON:=1}" && check_evoacme_cron
-    is_check_enabled "${IS_EVOACME_LIVELINKS:=1}" && check_evoacme_livelinks
-    is_check_enabled "${IS_APACHE_CONFENABLED:=1}" && check_apache_confenabled
-    is_check_enabled "${IS_MELTDOWN_SPECTRE:=1}" && check_meltdown_spectre
-    is_check_enabled "${IS_OLD_HOME_DIR:=0}" && check_old_home_dir
-    is_check_enabled "${IS_EVOBACKUP_INCS:=1}" && check_evobackup_incs
-    is_check_enabled "${IS_OSPROBER:=1}" && check_osprober
-    is_check_enabled "${IS_APT_VALID_UNTIL:=1}" && check_apt_valid_until
-    is_check_enabled "${IS_CHROOTED_BINARY_UPTODATE:=1}" && check_chrooted_binary_uptodate
-    is_check_enabled "${IS_NGINX_LETSENCRYPT_UPTODATE:=1}" && check_nginx_letsencrypt_uptodate
-    is_check_enabled "${IS_WKHTMLTOPDF:=1}" && check_wkhtmltopdf
-    is_check_enabled "${IS_LXC_WKHTMLTOPDF:=1}" && check_lxc_wkhtmltopdf
-    is_check_enabled "${IS_LXC_CONTAINER_RESOLV_CONF:=1}" && check_lxc_container_resolv_conf
-    is_check_enabled "${IS_NO_LXC_CONTAINER:=1}" && check_no_lxc_container
-    is_check_enabled "${IS_LXC_PHP_FPM_SERVICE_UMASK_SET:=1}" && check_lxc_php_fpm_service_umask_set
-    is_check_enabled "${IS_LXC_PHP_BAD_DEBIAN_VERSION:=1}" && check_lxc_php_bad_debian_version
-    is_check_enabled "${IS_LXC_OPENSSH:=1}" && check_lxc_openssh
-    is_check_enabled "${IS_LXC_OPENSMTPD:=1}" && check_lxc_opensmtpd
-    is_check_enabled "${IS_CHECK_VERSIONS:=1}" && check_versions
-    is_check_enabled "${IS_MONITORINGCTL:=1}" && check_monitoringctl
-    is_check_enabled "${IS_NRPEPRESSURE:=0}" && check_nrpepressure
-    is_check_enabled "${IS_POSTFIX_IPV6_DISABLED:=0}" && check_postfix_ipv6_disabled
-    is_check_enabled "${IS_SMARTMONTOOLS:=0}" && check_smartmontools
+    check_tmp_1777
+    check_root_0700
+    check_usrsharescripts
+    check_sshpermitrootno
+    check_evomaintenanceusers
+    check_evomaintenanceconf
+    check_privatekeyworldreadable
+    check_lsbrelease
+    check_dpkgwarning
+    check_postfix_mydestination
+    check_nrpepostfix
+    check_customsudoers
+    check_vartmpfs
+    check_serveurbase
+    check_logrotateconf
+    check_syslogconf
+    check_debiansecurity
+    check_debiansecurity_lxc
+    check_backports_version
+    check_oldpub
+    check_oldpub_lxc
+    check_newpub
+    check_sury
+    check_sury_lxc
+    check_not_deb822
+    check_no_signed_by
+    check_aptitude
+    check_aptgetbak
+    check_usrro
+    check_tmpnoexec
+    check_homenoexec
+    check_mountfstab
+    check_listchangesconf
+    check_customcrontab
+    check_sshallowusers
+    check_sshconfsplit
+    check_sshlastmatch
+    check_tmoutprofile
+    check_alert5boot
+    check_alert5minifw
+    check_minifw
+    check_nrpeperms
+    check_minifwperms
+    check_minifw_related
+    check_minifw_includes
+    check_nrpepid
+    check_grsecprocs
+    check_apachemunin
+    check_mysqlutils
+    check_raidsoft
+    check_awstatslogformat
+    check_muninlogrotate
+    check_squid
+    check_evomaintenance_fw
+    check_moddeflate
+    check_log2mailrunning
+    check_log2mailapache
+    check_log2mailmysql
+    check_log2mailsquid
+    check_bindchroot
+    check_network_interfaces
+    check_autoif
+    check_interfacesgw
+    check_interfacesnetmask
+    check_networking_service
+    check_evobackup
+    check_fail2ban_purge
+    check_ssh_fail2ban_jail_renamed
+    check_evobackup_exclude_mount
+    check_userlogrotate
+    check_apachectl
+    check_apachesymlink
+    check_apacheipinallow
+    check_muninapacheconf
+    check_phpmyadminapacheconf
+    check_phppgadminapacheconf
+    check_phpldapadminapacheconf
+    check_kerneluptodate
+    check_uptime
+    check_muninrunning
+    check_backupuptodate
+    check_etcgit
+    check_etcgit_lxc
+    check_gitperms
+    check_gitperms_lxc
+    check_notupgraded
+    check_tune2fs_m5
+    check_evolinuxsudogroup
+    check_userinadmgroup
+    check_apache2evolinuxconf
+    check_backportsconf
+    check_bind9munin
+    check_bind9logrotate
+    check_drbd_two_primaries
+    check_broadcomfirmware
+    check_hardwareraidtool
+    check_log2mailsystemdunit
+    check_systemduserunit
+    check_listupgrade
+    check_mariadbevolinuxconf
+    check_sql_backup
+    check_postgres_backup
+    check_mongo_backup
+    check_ldap_backup
+    check_redis_backup
+    check_elastic_backup
+    check_mariadbsystemdunit
+    check_mysqlmunin
+    check_mysqlnrpe
+    check_phpevolinuxconf
+    check_squidlogrotate
+    check_squidevolinuxconf
+    check_duplicate_fs_label
+    check_evolix_user
+    check_evolix_group
+    check_evoacme_cron
+    check_evoacme_livelinks
+    check_apache_confenabled
+    check_meltdown_spectre
+    check_old_home_dir
+    check_evobackup_incs
+    check_osprober
+    check_apt_valid_until
+    check_chrooted_binary_uptodate
+    check_nginx_letsencrypt_uptodate
+    check_wkhtmltopdf
+    check_lxc_wkhtmltopdf
+    check_lxc_container_resolv_conf
+    check_no_lxc_container
+    check_lxc_php_fpm_service_umask_set
+    check_lxc_php_bad_debian_version
+    check_lxc_openssh
+    check_lxc_opensmtpd
+    check_versions
+    check_monitoringctl
+    check_nrpepressure
+    check_postfix_ipv6_disabled
+    check_smartmontools
 }
 
 #####################
@@ -213,12 +211,20 @@ exec_checks() {
 
 # shellcheck disable=SC2329
 check_example() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
 # level of the check, see --help for details
-    level=2     
-# cron: 1 = check must run when run with --cron, 0 = always run
+    level=2  
+# default_exec:
+#   1 = runs unless disabled in configuration file
+#   0 = runs only if enabled in configuration file
+    default_exec=1     
+# cron:
+#   1 = runs only with --cron
+#   0 = always runs
     cron=0      
-# fiture: 1 = check must run when run with --future, 0 = never run
+# future:
+#   1 = runs only with --future
+#   0 = never runs
     future=0    
 # check label, used in the output. It should match the configuration variable
     label="IS_EXAMPLE"  
@@ -228,7 +234,7 @@ check_example() {
 EODOC
 )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
 # Keep these 2 variables unchanged
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
@@ -251,8 +257,9 @@ EODOC
 #####################
 
 check_lsbrelease() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=0
     future=0
     label="IS_LSBRELEASE"
@@ -260,7 +267,7 @@ check_lsbrelease() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 13 lt; then
@@ -280,8 +287,9 @@ check_lsbrelease() {
     fi
 }
 check_dpkgwarning() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_DPKGWARNING"
@@ -289,7 +297,7 @@ check_dpkgwarning() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         test -e /etc/apt/apt.conf.d/z-evolinux.conf \
@@ -300,8 +308,9 @@ check_dpkgwarning() {
 }
 # Check if localhost, localhost.localdomain and localhost.$mydomain are set in Postfix mydestination option.
 check_postfix_mydestination() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_POSTFIX_MYDESTINATION"
@@ -309,7 +318,7 @@ check_postfix_mydestination() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # shellcheck disable=SC2016
@@ -328,8 +337,9 @@ check_postfix_mydestination() {
 }
     # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
 check_nrpepostfix() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_NRPEPOSTFIX"
@@ -337,7 +347,7 @@ check_nrpepostfix() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed postfix; then
@@ -351,8 +361,9 @@ check_nrpepostfix() {
 }
 # Check if mod-security config file is present
 check_customsudoers() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_CUSTOMSUDOERS"
@@ -360,7 +371,7 @@ check_customsudoers() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         grep --extended-regexp --quiet --recursive "umask=0077" /etc/sudoers* || fail --comment "missing umask=0077 in sudoers file"  --level "${level}" --label "${label}" --tags "${tags}"
@@ -369,8 +380,9 @@ check_customsudoers() {
     fi
 }
 check_vartmpfs() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_VARTMPFS"
@@ -378,7 +390,7 @@ check_vartmpfs() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 13 lt; then
@@ -394,8 +406,9 @@ check_vartmpfs() {
     fi
 }
 check_serveurbase() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SERVEURBASE"
@@ -403,7 +416,7 @@ check_serveurbase() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         is_installed serveur-base || fail --comment "serveur-base package is not installed"  --level "${level}" --label "${label}" --tags "${tags}"
@@ -412,8 +425,9 @@ check_serveurbase() {
     fi
 }
 check_logrotateconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LOGROTATECONF"
@@ -421,7 +435,7 @@ check_logrotateconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         test -e /etc/logrotate.d/zsyslog || fail --comment "missing zsyslog in logrotate.d"  --level "${level}" --label "${label}" --tags "${tags}"
@@ -430,8 +444,9 @@ check_logrotateconf() {
     fi
 }
 check_syslogconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SYSLOGCONF"
@@ -439,7 +454,7 @@ check_syslogconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Test for modern servers
@@ -454,8 +469,9 @@ check_syslogconf() {
     fi
 }
 check_debiansecurity() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_DEBIANSECURITY"
@@ -463,7 +479,7 @@ check_debiansecurity() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Look for enabled "Debian-Security" sources from the "Debian" origin
@@ -474,8 +490,9 @@ check_debiansecurity() {
     fi
 }
 check_debiansecurity_lxc() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_DEBIANSECURITY_LXC"
@@ -483,7 +500,7 @@ check_debiansecurity_lxc() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
@@ -507,8 +524,9 @@ check_debiansecurity_lxc() {
     fi
 }
 check_backports_version() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_BACKPORTS_VERSION"
@@ -516,7 +534,7 @@ check_backports_version() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         local os_codename
@@ -532,8 +550,9 @@ check_backports_version() {
     fi
 }
 check_oldpub() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_OLDPUB"
@@ -541,7 +560,7 @@ check_oldpub() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Stretch)
@@ -552,8 +571,9 @@ check_oldpub() {
     fi
 }
 check_oldpub_lxc() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_OLDPUB_LXC"
@@ -561,7 +581,7 @@ check_oldpub_lxc() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Look for enabled pub.evolix.net sources (supersed by pub.evolix.org since Buster as Sury safeguard)
@@ -580,8 +600,9 @@ check_oldpub_lxc() {
     fi
 }
 check_newpub() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_NEWPUB"
@@ -589,7 +610,7 @@ check_newpub() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Look for enabled pub.evolix.org sources
@@ -600,8 +621,9 @@ check_newpub() {
     fi
 }
 check_sury() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SURY"
@@ -609,7 +631,7 @@ check_sury() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Look for enabled packages.sury.org sources
@@ -623,8 +645,9 @@ check_sury() {
     fi
 }
 check_sury_lxc() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SURY_LXC"
@@ -632,7 +655,7 @@ check_sury_lxc() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
@@ -653,8 +676,9 @@ check_sury_lxc() {
     fi
 }
 check_not_deb822() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=1
     label="IS_NOT_DEB822"
@@ -662,7 +686,7 @@ check_not_deb822() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
@@ -676,8 +700,9 @@ check_not_deb822() {
     fi
 }
 check_no_signed_by() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=1
     label="IS_NO_SIGNED_BY"
@@ -685,7 +710,7 @@ check_no_signed_by() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
@@ -703,8 +728,9 @@ check_no_signed_by() {
     fi
 }
 check_aptitude() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_APTITUDE"
@@ -712,7 +738,7 @@ check_aptitude() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         test -e /usr/bin/aptitude && fail --comment "aptitude may not be installed on Debian >=8"  --level "${level}" --label "${label}" --tags "${tags}"
@@ -721,8 +747,9 @@ check_aptitude() {
     fi
 }
 check_aptgetbak() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_APTGETBAK"
@@ -730,7 +757,7 @@ check_aptgetbak() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         test -e /usr/bin/apt-get.bak && fail --comment "prohibit the installation of apt-get.bak with dpkg-divert(1)"  --level "${level}" --label "${label}" --tags "${tags}"
@@ -739,8 +766,9 @@ check_aptgetbak() {
     fi
 }
 check_usrro() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_USRRO"
@@ -748,7 +776,7 @@ check_usrro() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         grep /usr /etc/fstab | grep --quiet --extended-regexp "\bro\b" || fail --comment "missing ro directive on fstab for /usr"  --level "${level}" --label "${label}" --tags "${tags}"
@@ -757,8 +785,9 @@ check_usrro() {
     fi
 }
 check_tmpnoexec() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_TMPNOEXEC"
@@ -766,7 +795,7 @@ check_tmpnoexec() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         findmnt_bin=$(command -v findmnt)
@@ -781,8 +810,9 @@ check_tmpnoexec() {
     fi
 }
 check_homenoexec() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_HOMENOEXEC"
@@ -790,7 +820,7 @@ check_homenoexec() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         findmnt_bin=$(command -v findmnt)
@@ -809,8 +839,9 @@ check_homenoexec() {
     fi
 }
 check_mountfstab() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MOUNT_FSTAB"
@@ -818,7 +849,7 @@ check_mountfstab() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Test if lsblk available, if not skip this test...
@@ -834,8 +865,9 @@ check_mountfstab() {
     fi
 }
 check_listchangesconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LISTCHANGESCONF"
@@ -843,7 +875,7 @@ check_listchangesconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apt-listchanges; then
@@ -854,8 +886,9 @@ check_listchangesconf() {
     fi
 }
 check_customcrontab() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_CUSTOMCRONTAB"
@@ -863,7 +896,7 @@ check_customcrontab() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         found_lines=$(grep --count --extended-regexp "^(17 \*|25 6|47 6|52 6)" /etc/crontab)
@@ -873,8 +906,9 @@ check_customcrontab() {
     fi
 }
 check_sshallowusers() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SSHALLOWUSERS"
@@ -882,7 +916,7 @@ check_sshallowusers() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
@@ -909,8 +943,9 @@ check_sshallowusers() {
     fi
 }
 check_sshconfsplit() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SSHCONFSPLIT"
@@ -918,7 +953,7 @@ check_sshconfsplit() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
@@ -935,8 +970,9 @@ check_sshconfsplit() {
     fi
 }
 check_sshlastmatch() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=0
     cron=1
     future=1
     label="IS_SSHLASTMATCH"
@@ -944,7 +980,7 @@ check_sshlastmatch() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
@@ -962,8 +998,9 @@ check_sshlastmatch() {
     fi
 }
 check_tmoutprofile() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_TMOUTPROFILE"
@@ -971,7 +1008,7 @@ check_tmoutprofile() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         grep --no-messages --quiet "TMOUT=" /etc/profile /etc/profile.d/evolinux.sh || fail --comment "TMOUT is not set"  --level "${level}" --label "${label}" --tags "${tags}"
@@ -980,8 +1017,9 @@ check_tmoutprofile() {
     fi
 }
 check_alert5boot() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_ALERT5BOOT"
@@ -989,7 +1027,7 @@ check_alert5boot() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         grep --quiet --no-messages "^date" /usr/share/scripts/alert5.sh || fail --comment "boot mail is not sent by alert5 init script"  --level "${level}" --label "${label}" --tags "${tags}"
@@ -1006,8 +1044,9 @@ is_minifirewall_native_systemd() {
     systemctl list-unit-files minifirewall.service | grep minifirewall.service | grep --quiet --invert-match generated
 }
 check_alert5minifw() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_ALERT5MINIFW"
@@ -1015,7 +1054,7 @@ check_alert5minifw() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if ! is_minifirewall_native_systemd; then
@@ -1027,8 +1066,9 @@ check_alert5minifw() {
     fi
 }
 check_minifw() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MINIFW"
@@ -1036,7 +1076,7 @@ check_minifw() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         {
@@ -1055,8 +1095,9 @@ check_minifw() {
     fi
 }
 check_minifw_includes() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MINIFWINCLUDES"
@@ -1064,7 +1105,7 @@ check_minifw_includes() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 11 ge; then
@@ -1079,8 +1120,9 @@ check_minifw_includes() {
     fi
 }
 check_minifw_related() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=1
     label="IS_MINIFW_RELATED"
@@ -1089,7 +1131,7 @@ check_minifw_related() {
 # )
 
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -f "/etc/default/minifirewall" ] || [ -d "/etc/minifirewall.d/" ]; then
@@ -1102,8 +1144,9 @@ check_minifw_related() {
     fi
 }
 check_nrpeperms() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_NRPEPERMS"
@@ -1111,7 +1154,7 @@ check_nrpeperms() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -d /etc/nagios ]; then
@@ -1125,8 +1168,9 @@ check_nrpeperms() {
     fi
 }
 check_minifwperms() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MINIFWPERMS"
@@ -1134,7 +1178,7 @@ check_minifwperms() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -f "/etc/default/minifirewall" ]; then
@@ -1147,8 +1191,9 @@ check_minifwperms() {
     fi
 }
 check_nrpepid() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_NRPEPID"
@@ -1156,7 +1201,7 @@ check_nrpepid() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 11 lt; then
@@ -1173,8 +1218,9 @@ check_nrpepid() {
     fi
 }
 check_grsecprocs() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_GRSECPROCS"
@@ -1182,7 +1228,7 @@ check_grsecprocs() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if uname -a | grep --quiet grsec; then
@@ -1195,8 +1241,9 @@ check_grsecprocs() {
     fi
 }
 check_apachemunin() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_APACHEMUNIN"
@@ -1204,7 +1251,7 @@ check_apachemunin() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if test -e /etc/apache2/apache2.conf; then
@@ -1220,8 +1267,9 @@ check_apachemunin() {
 }
 # Verification mytop + Munin si MySQL
 check_mysqlutils() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MYSQLUTILS"
@@ -1229,7 +1277,7 @@ check_mysqlutils() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         MYSQL_ADMIN=${MYSQL_ADMIN:-mysqladmin}
@@ -1256,8 +1304,9 @@ check_mysqlutils() {
 }
 # Verification de la configuration du raid soft (mdadm)
 check_raidsoft() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_RAIDSOFT"
@@ -1265,7 +1314,7 @@ check_raidsoft() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if test -e /proc/mdstat && grep --quiet md /proc/mdstat; then
@@ -1280,8 +1329,9 @@ check_raidsoft() {
 }
 # Verification du LogFormat de AWStats
 check_awstatslogformat() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_AWSTATSLOGFORMAT"
@@ -1289,7 +1339,7 @@ check_awstatslogformat() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apache2 awstats; then
@@ -1303,8 +1353,9 @@ check_awstatslogformat() {
 }
 # Verification de la présence de la config logrotate pour Munin
 check_muninlogrotate() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MUNINLOGROTATE"
@@ -1312,7 +1363,7 @@ check_muninlogrotate() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         { test -e /etc/logrotate.d/munin-node \
@@ -1324,8 +1375,9 @@ check_muninlogrotate() {
 }    
 # Verification de l'activation de Squid dans le cas d'un pack mail
 check_squid() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SQUID"
@@ -1333,7 +1385,7 @@ check_squid() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         squidconffile="/etc/squid/evolinux-custom.conf"
@@ -1353,8 +1405,9 @@ check_squid() {
     fi
 }
 check_evomaintenance_fw() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_EVOMAINTENANCE_FW"
@@ -1362,7 +1415,7 @@ check_evomaintenance_fw() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -f "/etc/default/minifirewall" ]; then
@@ -1378,8 +1431,9 @@ check_evomaintenance_fw() {
 }
 # Verification de la conf et de l'activation de mod-deflate
 check_moddeflate() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MODDEFLATE"
@@ -1387,7 +1441,7 @@ check_moddeflate() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         f=/etc/apache2/mods-enabled/deflate.conf
@@ -1403,8 +1457,9 @@ check_moddeflate() {
 }
 # Verification de la conf log2mail
 check_log2mailrunning() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LOG2MAILRUNNING"
@@ -1412,7 +1467,7 @@ check_log2mailrunning() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_pack_web && is_installed log2mail; then
@@ -1423,8 +1478,9 @@ check_log2mailrunning() {
     fi
 }
 check_log2mailapache() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LOG2MAILAPACHE"
@@ -1432,7 +1488,7 @@ check_log2mailapache() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         conf=/etc/log2mail/config/apache
@@ -1445,8 +1501,9 @@ check_log2mailapache() {
     fi
 }
 check_log2mailmysql() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LOG2MAILMYSQL"
@@ -1454,7 +1511,7 @@ check_log2mailmysql() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_pack_web && is_installed log2mail; then
@@ -1466,8 +1523,9 @@ check_log2mailmysql() {
     fi
 }
 check_log2mailsquid() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LOG2MAILSQUID"
@@ -1475,7 +1533,7 @@ check_log2mailsquid() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_pack_web && is_installed log2mail; then
@@ -1488,8 +1546,9 @@ check_log2mailsquid() {
 }
 # Verification si bind est chroote
 check_bindchroot() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_BINDCHROOT"
@@ -1497,7 +1556,7 @@ check_bindchroot() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed bind9; then
@@ -1523,8 +1582,9 @@ check_bindchroot() {
 }
 # /etc/network/interfaces should be present, we don't manage systemd-network yet
 check_network_interfaces() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_NETWORK_INTERFACES"
@@ -1532,7 +1592,7 @@ check_network_interfaces() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if ! test -f /etc/network/interfaces; then
@@ -1544,8 +1604,9 @@ check_network_interfaces() {
 }
 # Verify if all if are in auto
 check_autoif() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_AUTOIF"
@@ -1553,7 +1614,7 @@ check_autoif() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if test -f /etc/network/interfaces; then
@@ -1570,8 +1631,9 @@ check_autoif() {
 }
 # Network conf verification
 check_interfacesgw() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_INTERFACESGW"
@@ -1579,7 +1641,7 @@ check_interfacesgw() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if test -f /etc/network/interfaces; then
@@ -1593,8 +1655,9 @@ check_interfacesgw() {
     fi
 }
 check_interfacesnetmask() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_INTERFACESNETMASK"
@@ -1602,7 +1665,7 @@ check_interfacesnetmask() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if test -f /etc/network/interfaces; then
@@ -1619,8 +1682,9 @@ check_interfacesnetmask() {
 }
 # Verification de l’état du service networking
 check_networking_service() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=0
     future=0
     label="IS_NETWORKING_SERVICE"
@@ -1628,7 +1692,7 @@ check_networking_service() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if systemctl is-enabled networking.service > /dev/null; then
@@ -1642,8 +1706,9 @@ check_networking_service() {
 }
 # Verification de la mise en place d'evobackup
 check_evobackup() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_EVOBACKUP"
@@ -1651,7 +1716,7 @@ check_evobackup() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         local evobackup_found
@@ -1663,8 +1728,9 @@ check_evobackup() {
 }
 # Vérification de la mise en place d'un cron de purge de la base SQLite de Fail2ban
 check_fail2ban_purge() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_FAIL2BAN_PURGE"
@@ -1672,7 +1738,7 @@ check_fail2ban_purge() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Nécessaire seulement en Debian 9 ou 10
@@ -1687,8 +1753,9 @@ check_fail2ban_purge() {
 }
 # Vérification qu'il ne reste pas des jails nommées ssh non renommées en sshd
 check_ssh_fail2ban_jail_renamed() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SSH_FAIL2BAN_JAIL_RENAMED"
@@ -1696,7 +1763,7 @@ check_ssh_fail2ban_jail_renamed() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed fail2ban && [ -f /etc/fail2ban/jail.local ]; then
@@ -1710,8 +1777,9 @@ check_ssh_fail2ban_jail_renamed() {
 }
 # Vérification de l'exclusion des montages (NFS) dans les sauvegardes
 check_evobackup_exclude_mount() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_EVOBACKUP_EXCLUDE_MOUNT"
@@ -1719,7 +1787,7 @@ check_evobackup_exclude_mount() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         excludes_file=$(mktemp --tmpdir "evocheck.evobackup_exclude_mount.XXXXX")
@@ -1752,8 +1820,9 @@ check_evobackup_exclude_mount() {
 }
 # Verification de la presence du userlogrotate
 check_userlogrotate() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_USERLOGROTATE"
@@ -1761,7 +1830,7 @@ check_userlogrotate() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_pack_web; then
@@ -1773,8 +1842,9 @@ check_userlogrotate() {
 }
 # Verification de la syntaxe de la conf d'Apache
 check_apachectl() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_APACHECTL"
@@ -1782,7 +1852,7 @@ check_apachectl() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apache2; then
@@ -1795,8 +1865,9 @@ check_apachectl() {
 }
 # Check if there is regular files in Apache sites-enabled.
 check_apachesymlink() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_APACHESYMLINK"
@@ -1804,7 +1875,7 @@ check_apachesymlink() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apache2; then
@@ -1823,8 +1894,9 @@ check_apachesymlink() {
 }
 # Check if there is real IP addresses in Allow/Deny directives (no trailing space, inline comments or so).
 check_apacheipinallow() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_APACHEIPINALLOW"
@@ -1832,7 +1904,7 @@ check_apacheipinallow() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Note: Replace "exit 1" by "print" in Perl code to debug it.
@@ -1849,8 +1921,9 @@ check_apacheipinallow() {
 }
 # Check if default Apache configuration file for munin is absent (or empty or commented).
 check_muninapacheconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MUNINAPACHECONF"
@@ -1858,7 +1931,7 @@ check_muninapacheconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         local muninconf
@@ -1873,8 +1946,9 @@ check_muninapacheconf() {
 }
 # Check if default Apache configuration file for phpMyAdmin is absent (or empty or commented).
 check_phpmyadminapacheconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_PHPMYADMINAPACHECONF"
@@ -1882,7 +1956,7 @@ check_phpmyadminapacheconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         local phpmyadminconf0 phpmyadminconf1
@@ -1900,8 +1974,9 @@ check_phpmyadminapacheconf() {
 }
 # Check if default Apache configuration file for phpPgAdmin is absent (or empty or commented).
 check_phppgadminapacheconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_PHPPGADMINAPACHECONF"
@@ -1909,7 +1984,7 @@ check_phppgadminapacheconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         local phppgadminconf0 phppgadminconf1
@@ -1927,8 +2002,9 @@ check_phppgadminapacheconf() {
 }
 # Check if default Apache configuration file for phpMyAdmin is absent (or empty or commented).
 check_phpldapadminapacheconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_PHPLDAPADMINAPACHECONF"
@@ -1936,7 +2012,7 @@ check_phpldapadminapacheconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         local phpldapadminconf0 phpldapadminconf1
@@ -1954,8 +2030,9 @@ check_phpldapadminapacheconf() {
 }
 # Verification si le système doit redémarrer suite màj kernel.
 check_kerneluptodate() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=0
     future=0
     label="IS_KERNELUPTODATE"
@@ -1963,7 +2040,7 @@ check_kerneluptodate() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed linux-image*; then
@@ -1981,8 +2058,9 @@ check_kerneluptodate() {
 }
 # Check if the server is running for more than a year.
 check_uptime() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=0
     future=0
     label="IS_UPTIME"
@@ -1990,7 +2068,7 @@ check_uptime() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed linux-image*; then
@@ -2007,8 +2085,9 @@ check_uptime() {
 }
 # Check if munin-node running and RRD files are up to date.
 check_muninrunning() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MUNINRUNNING"
@@ -2016,7 +2095,7 @@ check_muninrunning() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if ! pgrep munin-node >/dev/null; then
@@ -2046,8 +2125,9 @@ check_muninrunning() {
 }
 # Check if files in /home/backup/ are up-to-date
 check_backupuptodate() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_BACKUPUPTODATE"
@@ -2055,7 +2135,7 @@ check_backupuptodate() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         backup_dir="/home/backup"
@@ -2080,8 +2160,9 @@ check_backupuptodate() {
     fi
 }
 check_etcgit() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_ETCGIT"
@@ -2089,7 +2170,7 @@ check_etcgit() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         export GIT_DIR="/etc/.git" GIT_WORK_TREE="/etc"
@@ -2100,8 +2181,9 @@ check_etcgit() {
     fi
 }
 check_etcgit_lxc() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_ETCGIT_LXC"
@@ -2109,7 +2191,7 @@ check_etcgit_lxc() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
@@ -2131,8 +2213,9 @@ check_etcgit_lxc() {
 }
 # Check if /etc/.git/ has read/write permissions for root only.
 check_gitperms() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_GITPERMS"
@@ -2146,7 +2229,7 @@ check_gitperms() {
 EODOC
 )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         for git_dir in "/etc/.git" "/etc/bind.git" "/usr/share/scripts/.git"; do
@@ -2164,8 +2247,9 @@ EODOC
     fi
 }
 check_gitperms_lxc() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_GITPERMS_LXC"
@@ -2179,7 +2263,7 @@ check_gitperms_lxc() {
 EODOC
 )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
@@ -2205,8 +2289,9 @@ EODOC
 }
 # Check if no package has been upgraded since $limit.
 check_notupgraded() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_NOTUPGRADED"
@@ -2214,7 +2299,7 @@ check_notupgraded() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         last_upgrade=0
@@ -2253,8 +2338,9 @@ check_notupgraded() {
 }
 # Check if reserved blocks for root is at least 5% on every mounted partitions.
 check_tune2fs_m5() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_TUNE2FS_M5"
@@ -2262,7 +2348,7 @@ check_tune2fs_m5() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         min=5
@@ -2293,8 +2379,9 @@ check_tune2fs_m5() {
     fi
 }
 check_evolinuxsudogroup() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_EVOLINUXSUDOGROUP"
@@ -2302,7 +2389,7 @@ check_evolinuxsudogroup() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if grep --quiet "^evolinux-sudo:" /etc/group; then
@@ -2316,8 +2403,9 @@ check_evolinuxsudogroup() {
     fi
 }
 check_userinadmgroup() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_USERINADMGROUP"
@@ -2325,7 +2413,7 @@ check_userinadmgroup() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         users=$(grep "^evolinux-sudo:" /etc/group | awk -F: '{print $4}' | tr ',' ' ')
@@ -2339,8 +2427,9 @@ check_userinadmgroup() {
     fi
 }
 check_apache2evolinuxconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_APACHE2EVOLINUXCONF"
@@ -2348,7 +2437,7 @@ check_apache2evolinuxconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apache2; then
@@ -2362,8 +2451,9 @@ check_apache2evolinuxconf() {
     fi
 }
 check_backportsconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_BACKPORTSCONF"
@@ -2371,7 +2461,7 @@ check_backportsconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         grep --quiet --no-messages --extended-regexp "^[^#].*backports" /etc/apt/sources.list \
@@ -2381,8 +2471,9 @@ check_backportsconf() {
     fi
 }
 check_bind9munin() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_BIND9MUNIN"
@@ -2390,7 +2481,7 @@ check_bind9munin() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed bind9; then
@@ -2403,8 +2494,9 @@ check_bind9munin() {
     fi
 }
 check_bind9logrotate() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_BIND9LOGROTATE"
@@ -2412,7 +2504,7 @@ check_bind9logrotate() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed bind9; then
@@ -2423,8 +2515,9 @@ check_bind9logrotate() {
     fi
 }
 check_drbd_two_primaries() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_DRBDTWOPRIMARIES"
@@ -2432,7 +2525,7 @@ check_drbd_two_primaries() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed drbd-utils; then
@@ -2451,8 +2544,9 @@ check_drbd_two_primaries() {
     fi
 }
 check_broadcomfirmware() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_BROADCOMFIRMWARE"
@@ -2460,7 +2554,7 @@ check_broadcomfirmware() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         lspci_bin=$(command -v lspci)
@@ -2478,8 +2572,9 @@ check_broadcomfirmware() {
     fi
 }
 check_hardwareraidtool() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_HARDWARERAIDTOOL"
@@ -2487,7 +2582,7 @@ check_hardwareraidtool() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         lspci_bin=$(command -v lspci)
@@ -2510,8 +2605,9 @@ check_hardwareraidtool() {
     fi
 }
 check_log2mailsystemdunit() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LOG2MAILSYSTEMDUNIT"
@@ -2519,7 +2615,7 @@ check_log2mailsystemdunit() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         systemctl -q is-active log2mail.service \
@@ -2531,8 +2627,9 @@ check_log2mailsystemdunit() {
     fi
 }
 check_systemduserunit() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=1
     label="IS_SYSTEMDUSERUNIT"
@@ -2540,7 +2637,7 @@ check_systemduserunit() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         awk 'BEGIN { FS = ":" } { print $1, $6 }' /etc/passwd | while read -r user dir; do
@@ -2553,8 +2650,9 @@ check_systemduserunit() {
     fi
 }
 check_listupgrade() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LISTUPGRADE"
@@ -2562,7 +2660,7 @@ check_listupgrade() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         test -f /etc/cron.d/listupgrade \
@@ -2574,8 +2672,9 @@ check_listupgrade() {
     fi
 }
 check_mariadbevolinuxconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=1
     label="IS_MARIADBEVOLINUXCONF"
@@ -2583,7 +2682,7 @@ check_mariadbevolinuxconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed mariadb-server; then
@@ -2596,8 +2695,9 @@ check_mariadbevolinuxconf() {
     fi
 }
 check_sql_backup() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SQL_BACKUP"
@@ -2605,7 +2705,7 @@ check_sql_backup() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if (is_installed "mysql-server" || is_installed "mariadb-server"); then
@@ -2631,8 +2731,9 @@ check_sql_backup() {
     fi
 }
 check_postgres_backup() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_POSTGRES_BACKUP"
@@ -2640,7 +2741,7 @@ check_postgres_backup() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed "postgresql-9*" || is_installed "postgresql-1*"; then
@@ -2663,8 +2764,9 @@ check_postgres_backup() {
     fi
 }
 check_mongo_backup() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MONGO_BACKUP"
@@ -2672,7 +2774,7 @@ check_mongo_backup() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed "mongodb-org-server"; then
@@ -2704,8 +2806,9 @@ check_mongo_backup() {
     fi
 }
 check_ldap_backup() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LDAP_BACKUP"
@@ -2713,7 +2816,7 @@ check_ldap_backup() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed slapd; then
@@ -2738,8 +2841,9 @@ check_ldap_backup() {
     fi
 }
 check_redis_backup() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_REDIS_BACKUP"
@@ -2747,7 +2851,7 @@ check_redis_backup() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed redis-server; then
@@ -2784,8 +2888,9 @@ check_redis_backup() {
     fi
 }
 check_elastic_backup() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_ELASTIC_BACKUP"
@@ -2793,7 +2898,7 @@ check_elastic_backup() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed elasticsearch; then
@@ -2806,8 +2911,9 @@ check_elastic_backup() {
     fi
 }
 check_mariadbsystemdunit() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MARIADBSYSTEMDUNIT"
@@ -2815,7 +2921,7 @@ check_mariadbsystemdunit() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # TODO: check if it is still needed for bullseye
@@ -2832,8 +2938,9 @@ check_mariadbsystemdunit() {
     fi
 }
 check_mysqlmunin() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=3
+    default_exec=1
     cron=0
     future=1
     label="IS_MYSQLMUNIN"
@@ -2841,7 +2948,7 @@ check_mysqlmunin() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed mariadb-server; then
@@ -2864,8 +2971,9 @@ check_mysqlmunin() {
     fi
 }
 check_mysqlnrpe() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MYSQLNRPE"
@@ -2873,7 +2981,7 @@ check_mysqlnrpe() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed mariadb-server; then
@@ -2893,8 +3001,9 @@ check_mysqlnrpe() {
     fi
 }
 check_phpevolinuxconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=1
     label="IS_PHPEVOLINUXCONF"
@@ -2902,7 +3011,7 @@ check_phpevolinuxconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         evo::os-release::is_debian 10 && phpVersion="7.3"
@@ -2920,8 +3029,9 @@ check_phpevolinuxconf() {
     fi
 }
 check_squidlogrotate() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SQUIDLOGROTATE"
@@ -2929,7 +3039,7 @@ check_squidlogrotate() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed squid; then
@@ -2941,8 +3051,9 @@ check_squidlogrotate() {
     fi
 }
 check_squidevolinuxconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SQUIDEVOLINUXCONF"
@@ -2950,7 +3061,7 @@ check_squidevolinuxconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed squid; then
@@ -2968,8 +3079,9 @@ check_squidevolinuxconf() {
     fi
 }
 check_duplicate_fs_label() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_DUPLICATE_FS_LABEL"
@@ -2977,7 +3089,7 @@ check_duplicate_fs_label() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Do it only if thereis blkid binary
@@ -3006,8 +3118,9 @@ check_duplicate_fs_label() {
     fi
 }
 check_evolix_user() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_EVOLIX_USER"
@@ -3015,7 +3128,7 @@ check_evolix_user() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         grep --quiet --extended-regexp "^evolix:" /etc/passwd \
@@ -3025,8 +3138,9 @@ check_evolix_user() {
     fi
 }
 check_evolix_group() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=1
     label="IS_EVOLIX_GROUP"
@@ -3034,7 +3148,7 @@ check_evolix_group() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         users=$(grep ":20..:20..:" /etc/passwd | cut -d ":" -f 1)
@@ -3047,8 +3161,9 @@ check_evolix_group() {
     fi
 }
 check_evoacme_cron() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_EVOACME_CRON"
@@ -3056,7 +3171,7 @@ check_evoacme_cron() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -f "/usr/local/sbin/evoacme" ]; then
@@ -3070,8 +3185,9 @@ check_evoacme_cron() {
     fi
 }
 check_evoacme_livelinks() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_EVOACME_LIVELINKS"
@@ -3079,7 +3195,7 @@ check_evoacme_livelinks() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         evoacme_bin=$(command -v evoacme)
@@ -3108,8 +3224,9 @@ check_evoacme_livelinks() {
     fi
 }
 check_apache_confenabled() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_APACHE_CONFENABLED"
@@ -3117,7 +3234,7 @@ check_apache_confenabled() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Starting from Jessie and Apache 2.4, /etc/apache2/conf.d/
@@ -3134,8 +3251,9 @@ check_apache_confenabled() {
     fi
 }
 check_meltdown_spectre() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=0
     future=0
     label="IS_MELTDOWN_SPECTRE"
@@ -3143,7 +3261,7 @@ check_meltdown_spectre() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # /sys/devices/system/cpu/vulnerabilities/
@@ -3156,8 +3274,9 @@ check_meltdown_spectre() {
     fi
 }
 check_old_home_dir() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=1
     label="IS_OLD_HOME_DIR"
@@ -3165,7 +3284,7 @@ check_old_home_dir() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         homeDir=${homeDir:-/home}
@@ -3183,8 +3302,9 @@ check_old_home_dir() {
     fi
 }
 check_tmp_1777() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_TMP_1777"
@@ -3192,7 +3312,7 @@ check_tmp_1777() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         expected="1777"
@@ -3218,8 +3338,9 @@ check_tmp_1777() {
     fi
 }
 check_root_0700() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_ROOT_0700"
@@ -3227,7 +3348,7 @@ check_root_0700() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         actual=$(stat --format "%a" /root)
@@ -3238,8 +3359,9 @@ check_root_0700() {
     fi
 }
 check_usrsharescripts() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_USRSHARESCRIPTS"
@@ -3247,7 +3369,7 @@ check_usrsharescripts() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         actual=$(stat --format "%a" /usr/share/scripts)
@@ -3258,8 +3380,9 @@ check_usrsharescripts() {
     fi
 }
 check_sshpermitrootno() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_SSHPERMITROOTNO"
@@ -3267,7 +3390,7 @@ check_sshpermitrootno() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # You could change the SSH port in /etc/evocheck.cf
@@ -3284,8 +3407,9 @@ check_sshpermitrootno() {
     fi
 }
 check_evomaintenanceusers() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_EVOMAINTENANCEUSERS"
@@ -3293,7 +3417,7 @@ check_evomaintenanceusers() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         users=$(getent group evolinux-sudo | cut -d':' -f4 | tr ',' ' ')
@@ -3310,8 +3434,9 @@ check_evomaintenanceusers() {
     fi
 }
 check_evomaintenanceconf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_EVOMAINTENANCECONF"
@@ -3319,7 +3444,7 @@ check_evomaintenanceconf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         f=/etc/evomaintenance.cf
@@ -3341,8 +3466,9 @@ check_evomaintenanceconf() {
     fi
 }
 check_privatekeyworldreadable() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_PRIVKEYWOLRDREADABLE"
@@ -3350,7 +3476,7 @@ check_privatekeyworldreadable() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # a simple globbing fails if directory is empty
@@ -3367,8 +3493,9 @@ check_privatekeyworldreadable() {
     fi
 }
 check_evobackup_incs() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_EVOBACKUP_INCS"
@@ -3376,7 +3503,7 @@ check_evobackup_incs() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed bkctld; then
@@ -3394,8 +3521,9 @@ check_evobackup_incs() {
     fi
 }
 check_osprober() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_OSPROBER"
@@ -3403,7 +3531,7 @@ check_osprober() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed os-prober qemu-kvm; then
@@ -3415,8 +3543,9 @@ check_osprober() {
     fi
 }
 check_apt_valid_until() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_APT_VALID_UNTIL"
@@ -3424,7 +3553,7 @@ check_apt_valid_until() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         aptvalidFile="/etc/apt/apt.conf.d/99no-check-valid-until"
@@ -3440,8 +3569,9 @@ check_apt_valid_until() {
     fi
 }
 check_chrooted_binary_uptodate() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_CHROOTED_BINARY_UPTODATE"
@@ -3449,7 +3579,7 @@ check_chrooted_binary_uptodate() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # list of processes to check
@@ -3476,8 +3606,9 @@ check_chrooted_binary_uptodate() {
     fi
 }
 check_nginx_letsencrypt_uptodate() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_NGINX_LETSENCRYPT_UPTODATE"
@@ -3485,7 +3616,7 @@ check_nginx_letsencrypt_uptodate() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if [ -d /etc/nginx ]; then
@@ -3503,8 +3634,9 @@ check_nginx_letsencrypt_uptodate() {
     fi
 }
 check_wkhtmltopdf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_WKHTMLTOPDF"
@@ -3512,7 +3644,7 @@ check_wkhtmltopdf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         is_installed wkhtmltopdf && fail --comment "wkhtmltopdf package should not be installed (cf. https://wiki.evolix.org/HowtoWkhtmltopdf)"  --level "${level}" --label "${label}" --tags "${tags}"
@@ -3521,8 +3653,9 @@ check_wkhtmltopdf() {
     fi
 }
 check_lxc_wkhtmltopdf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LXC_WKHTMLTOPDF"
@@ -3530,7 +3663,7 @@ check_lxc_wkhtmltopdf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
@@ -3548,8 +3681,9 @@ check_lxc_wkhtmltopdf() {
     fi
 }
 check_lxc_container_resolv_conf() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LXC_CONTAINER_RESOLV_CONF"
@@ -3557,7 +3691,7 @@ check_lxc_container_resolv_conf() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
@@ -3587,8 +3721,9 @@ check_lxc_container_resolv_conf() {
 }
 # Check that there are containers if lxc is installed.
 check_no_lxc_container() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_NO_LXC_CONTAINER"
@@ -3596,7 +3731,7 @@ check_no_lxc_container() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
@@ -3611,8 +3746,9 @@ check_no_lxc_container() {
 }
 # Check that in LXC containers, phpXX-fpm services have UMask set to 0007.
 check_lxc_php_fpm_service_umask_set() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LXC_PHP_FPM_SERVICE_UMASK_SET"
@@ -3620,7 +3756,7 @@ check_lxc_php_fpm_service_umask_set() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
@@ -3648,8 +3784,9 @@ check_lxc_php_fpm_service_umask_set() {
 }
 # Check that LXC containers have the proper Debian version.
 check_lxc_php_bad_debian_version() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LXC_PHP_BAD_DEBIAN_VERSION"
@@ -3657,7 +3794,7 @@ check_lxc_php_bad_debian_version() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
@@ -3688,8 +3825,9 @@ check_lxc_php_bad_debian_version() {
     fi
 }
 check_lxc_openssh() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LXC_OPENSSH"
@@ -3697,7 +3835,7 @@ check_lxc_openssh() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
@@ -3715,8 +3853,9 @@ check_lxc_openssh() {
     fi
 }
 check_lxc_opensmtpd() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_LXC_OPENSMTPD"
@@ -3724,7 +3863,7 @@ check_lxc_opensmtpd() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed lxc; then
@@ -3742,8 +3881,9 @@ check_lxc_opensmtpd() {
     fi
 }
 check_monitoringctl() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=0
     label="IS_MONITORINGCTL"
@@ -3751,7 +3891,7 @@ check_monitoringctl() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if ! /usr/local/bin/monitoringctl list >/dev/null 2>&1; then
@@ -3762,8 +3902,9 @@ check_monitoringctl() {
     fi
 }
 check_smartmontools() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=1
     label="IS_SMARTMONTOOLS"
@@ -3771,7 +3912,7 @@ check_smartmontools() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if ( LC_ALL=C lscpu | grep "Hypervisor vendor:" | grep -q -e VMware -e KVM || lscpu | grep -q Oracle ); then
@@ -3874,8 +4015,9 @@ add_to_path() {
     echo "$PATH" | grep --quiet --fixed-strings "${new_path}" || export PATH="${PATH}:${new_path}"
 }
 check_versions() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=1
+    default_exec=1
     cron=0
     future=0
     label="IS_CHECK_VERSIONS"
@@ -3883,7 +4025,7 @@ check_versions() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         versions_file=$(mktemp --tmpdir "evocheck.versions.XXXXX")
@@ -3927,8 +4069,9 @@ check_versions() {
     fi
 }
 check_nrpepressure() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=1
     label="IS_NRPEPRESSURE"
@@ -3936,7 +4079,7 @@ check_nrpepressure() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if evo::os-release::is_debian 12 ge; then
@@ -3951,8 +4094,9 @@ check_nrpepressure() {
     fi
 }
 check_postfix_ipv6_disabled() {
-    local level cron future tags label doc rc
+    local level default_exec cron future tags label doc rc
     level=2
+    default_exec=1
     cron=1
     future=1
     label="IS_POSTFIX_IPV6_DISABLED"
@@ -3960,7 +4104,7 @@ check_postfix_ipv6_disabled() {
 # EODOC
 # )
 
-    if check_can_run --label "${label}" --level "${level}" --cron "${cron}" --future "${future}"; then
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         postconf -n 2>/dev/null | grep --no-messages --extended-regex '^inet_protocols\>' | grep --no-messages --invert-match --fixed-strings ipv6 | grep --no-messages --invert-match --fixed-strings all | grep --no-messages --silent --fixed-strings ipv4
@@ -4103,12 +4247,22 @@ fail() {
     printf "[%s] %s FAILED! %s%s" "${level}" "${label}" "${comment}" "${tags:-}" | log
 }
 check_can_run() {
-    local label level cron future tags all_options
+    local default_exec label level cron future tags all_options
     all_options=$*
     # Parse options
     # based on https://gist.github.com/deshion/10d3cb5f88a21671e17a
     while :; do
         case $1 in
+            --default-exec)
+                    shift
+                    case $1 in
+                        0|1) default_exec=$1 ;;
+                        *)
+                            printf 'ERROR: invalid value for --default-exec option: %s (%s)\n' "$1" "${all_options}" >&2
+                            exit 1
+                            ;;
+                    esac
+                ;;
             --label)
                     shift
                     label=$1
@@ -4153,7 +4307,10 @@ check_can_run() {
         shift
     done
 
-    if [ ${level} -ge ${MIN_LEVEL} ] && [ ${level} -le ${MAX_LEVEL} ] \
+    if [ -n "${default_exec}" ] && [  -n "${label}" ] && [ "${!label:=${default_exec}}" != "1" ]; then
+        # echo "SKIP ${label}"
+        return 1
+    elif [ ${level} -ge ${MIN_LEVEL} ] && [ ${level} -le ${MAX_LEVEL} ] \
         && [ ${future} -le ${FUTURE} ] \
         && [ ${cron} -ge ${CRON} ]; then
         # echo "RUN ${label}"

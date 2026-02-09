@@ -405,25 +405,6 @@ check_vartmpfs() {
         show_doc "${doc:-}"
     fi
 }
-check_serveurbase() {
-    local level default_exec cron future tags label doc rc
-    level=2
-    default_exec=1
-    cron=1
-    future=0
-    label="IS_SERVEURBASE"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
-
-    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
-        rc=0
-        tags=$(format_tags --cron "${cron}" --future "${future}")
-        is_installed serveur-base || fail --comment "serveur-base package is not installed"  --level "${level}" --label "${label}" --tags "${tags}"
-
-        show_doc "${doc:-}"
-    fi
-}
 check_logrotateconf() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -616,6 +597,30 @@ check_newpub() {
         # Look for enabled pub.evolix.org sources
         apt-cache policy | grep "\bl=Evolix\b" | grep --quiet --invert-match php
         test $? -eq 0 || fail --comment "New pub.evolix.org repository is missing"  --level "${level}" --label "${label}" --tags "${tags}"
+
+        show_doc "${doc:-}"
+    fi
+}
+check_serveurbase() {
+    local level default_exec cron future tags label doc rc
+    level=3
+    default_exec=1
+    cron=1
+    future=0
+    label="IS_SERVEURBASE"
+    doc=$(cat <<EODOC
+    Fix with:
+    ~~~
+    apt update
+    apt install serveur-base
+    ~~~
+EODOC
+)
+
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        is_installed serveur-base || fail --comment "serveur-base package is not installed"  --level "${level}" --label "${label}" --tags "${tags}"
 
         show_doc "${doc:-}"
     fi

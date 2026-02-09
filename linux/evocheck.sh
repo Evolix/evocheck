@@ -3172,7 +3172,7 @@ check_evolix_group() {
         tags=$(format_tags --cron "${cron}" --future "${future}")
         users=$(grep ":20..:20..:" /etc/passwd | cut -d ":" -f 1)
         for user in ${users}; do
-            grep -E "^evolix:" /etc/group | grep -q -E "\b${user}\b" \
+            grep --extended-regexp "^evolix:" /etc/group | grep --quiet --extended-regexp "\b${user}\b" \
                 || fail --comment "user \`${user}' should be in \`evolix' group"  --level "${level}" --label "${label}" --tags "${tags}"
         done
 

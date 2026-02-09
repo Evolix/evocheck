@@ -2273,12 +2273,12 @@ check_gitperms_lxc() {
     future=0
     label="IS_GITPERMS_LXC"
     doc=$(cat <<EODOC
-# Git repositories must have "700" permissions.
-# 
-# Fix with:
-# ~~~
-# chmod 700 /path/to/repository/.git
-# ~~~
+    Git repositories must have "700" permissions.
+    
+    Fix with:
+    ~~~
+    chmod 700 /path/to/repository/.git
+    ~~~
 EODOC
 )
 

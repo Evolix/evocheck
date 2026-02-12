@@ -6,9 +6,10 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 ### Added
 
 * Add check levels
-* IS_SMARTMONTOOLS (#198)
 * IS_EVOLIX_GROUP: new check to verify that all Evolix users are in "evolix" group (#161)
 * IS_PHPPGADMINAPACHECONF and IS_PHPLDAPADMINAPACHECONF (#193)
+* IS_SMARTMONTOOLS (#198)
+* IS_SSHALLOWUSERS : look for AllowUsers/AllowGroups in sshd_config.d/000-evolinux-migrated.conf
 * IS_SYSTEMDUSERUNIT in --future (#196)
 
 ### Changed

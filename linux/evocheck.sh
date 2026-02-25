@@ -1912,7 +1912,7 @@ check_userlogrotate() {
 # Verification de la syntaxe de la conf d'Apache
 check_apachectl() {
     local level default_exec cron future tags label doc rc
-    level=2
+    level=4
     default_exec=1
     cron=1
     future=0

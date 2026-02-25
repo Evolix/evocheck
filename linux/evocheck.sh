@@ -78,6 +78,8 @@ exec_checks() {
     check_syslogconf
     check_debiansecurity
     check_debiansecurity_lxc
+    check_debiansecuritymirror
+    check_debiansecuritymirror_lxc
     check_backports_version
     check_oldpub
     check_oldpub_lxc
@@ -495,6 +497,63 @@ check_debiansecurity_lxc() {
                         if [ "${debian_lxc_version}" -ge 9 ]; then
                             lxc-attach --name "${container_name}" apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=main\b"
                             test $? -eq 0 || fail --comment "missing Debian-Security repository in container ${container_name}"  --level "${level}" --label "${label}" --tags "${tags}"
+                        fi
+                    fi
+                fi
+            done
+        fi
+
+        show_doc "${doc:-}"
+    fi
+}
+check_debiansecuritymirror() {
+    local level default_exec cron future tags label doc rc
+    level=2
+    default_exec=1
+    cron=1
+    future=0
+    label="IS_DEBIANSECURITYMIRROR"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
+
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        # Look for enabled "Debian-Security" sources from mirror.evolix.org
+        if evo::os-release::is_debian 11 ge; then
+            apt-cache policy | grep -A1 "\bdebian-security\b" | grep --quiet "\bmirror.evolix.org\b"
+            test $? -eq 0 || fail --comment "Evolix mirror should be used for Debian-Security" --level "${level}" --label "${label}" --tags "${tags}"
+        fi
+
+        show_doc "${doc:-}"
+    fi
+}
+check_debiansecuritymirror_lxc() {
+    local level default_exec cron future tags label doc rc
+    level=2
+    default_exec=1
+    cron=1
+    future=0
+    label="IS_DEBIANSECURITYMIRROR_LXC"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
+
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        if is_installed lxc; then
+            lxc_path=$(lxc-config lxc.lxcpath)
+            containers_list=$(lxc-ls -1 --active)
+            for container_name in ${containers_list}; do
+                if lxc-info --name "${container_name}" > /dev/null; then
+                    rootfs="${lxc_path}/${container_name}/rootfs"
+                    if [ -f "${rootfs}/etc/debian_version" ]; then
+                        debian_lxc_version=$(cut -d "." -f 1 < "${rootfs}/etc/debian_version")
+                        if [ "${debian_lxc_version}" -ge 11 ]; then
+                            lxc-attach --name "${container_name}" apt-cache policy | grep -A1 "\bl=Debian-Security\b" | grep --quiet "\bmirror.evolix.org\b"
+                            test $? -eq 0 || fail --comment "Evolix mirror should be used for Debian-Security in container ${container_name}"  --level "${level}" --label "${label}" --tags "${tags}"
                         fi
                     fi
                 fi

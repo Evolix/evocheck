@@ -770,24 +770,6 @@ check_aptgetbak() {
         show_doc "${doc:-}"
     fi
 }
-partition_has_option() {
-    local findmnt_bin part option
-    findmnt_bin=$(command -v findmnt)
-    part="$1"
-    option="$2"
-    if [ -x "${findmnt_bin}" ]; then
-        if ! findmnt --noheadings ${part} --output OPTIONS --first-only | grep --quiet --extended-regexp "\b${option}\b"; then
-            echo "missing '${option}' directive on fstab for ${part}"
-            return 10
-        fi
-    else
-        if ! grep --fixed-string "${part}" /etc/fstab | grep --quiet --extended-regexp "\b${option}\b"; then
-            echo "missing '${option}' directive on fstab for ${part} (WARNING: findmnt(8) is not found)"
-            return 20
-        fi
-    fi
-
-}
 check_usrro() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -802,11 +784,7 @@ check_usrro() {
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
-        local check_output
-        check_output=$(partition_has_option "/usr" "ro")
-        if [ "$?" != "0" ]; then
-            fail --comment "${check_output}"  --level "${level}" --label "${label}" --tags "${tags}"
-        fi
+        grep /usr /etc/fstab | grep --quiet --extended-regexp "\bro\b" || fail --comment "missing ro directive on fstab for /usr"  --level "${level}" --label "${label}" --tags "${tags}"
 
         show_doc "${doc:-}"
     fi
@@ -825,10 +803,12 @@ check_tmpnoexec() {
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
-        local check_output
-        check_output=$(partition_has_option "/tmp" "noexec")
-        if [ "$?" != "0" ]; then
-            fail --comment "${check_output}"  --level "${level}" --label "${label}" --tags "${tags}"
+        findmnt_bin=$(command -v findmnt)
+        if [ -x "${findmnt_bin}" ]; then
+            options=$(${findmnt_bin} --noheadings --first-only --output OPTIONS /tmp)
+            echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || fail --comment "/tmp is not mounted with 'noexec'"  --level "${level}" --label "${label}" --tags "${tags}"
+        else
+            mount | grep "on /tmp" | grep --quiet --extended-regexp "\bnoexec\b" || fail --comment "/tmp is not mounted with 'noexec' (WARNING: findmnt(8) is not found)"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
 
         show_doc "${doc:-}"
@@ -848,10 +828,16 @@ check_homenoexec() {
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
-        local check_output
-        check_output=$(partition_has_option "/home" "noexec")
-        if [ "$?" != "0" ]; then
-            fail --comment "${check_output}"  --level "${level}" --label "${label}" --tags "${tags}"
+        findmnt_bin=$(command -v findmnt)
+        if [ -x "${findmnt_bin}" ]; then
+            options=$(${findmnt_bin} --noheadings --first-only --output OPTIONS /home)
+            echo "${options}" | grep --quiet --extended-regexp "\bnoexec\b" || \
+            ( grep --quiet --extended-regexp "/home.*noexec" /etc/fstab && \
+            fail --comment "/home is mounted with 'exec' but /etc/fstab document it as 'noexec'"  --level "${level}" --label "${label}" --tags "${tags}" )
+        else
+            mount | grep "on /home" | grep --quiet --extended-regexp "\bnoexec\b" || \
+            ( grep --quiet --extended-regexp "/home.*noexec" /etc/fstab && \
+            fail --comment "/home is mounted with 'exec' but /etc/fstab document it as 'noexec' (WARNING: findmnt(8) is not found)"  --level "${level}" --label "${label}" --tags "${tags}" )
         fi
 
         show_doc "${doc:-}"

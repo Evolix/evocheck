@@ -948,8 +948,10 @@ check_sshallowusers() {
             grep --extended-regexp --quiet --ignore-case "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config \
                 && fail --comment "AllowUsers or AllowGroups directive present in sshd_config"  --level "${level}" --label "${label}" --tags "${tags}"
             # AllowUsers or AllowGroups should not be in /etc/ssh/sshd_config.d/000-evolinux-migrated.conf
-            grep --extended-regexp --quiet --ignore-case "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config.d/000-evolinux-migrated.conf \
-                && fail --comment "AllowUsers or AllowGroups directive present in sshd_config.d/000-evolinux-migrated.conf"  --level "${level}" --label "${label}" --tags "${tags}"
+            if [ -f /etc/ssh/sshd_config.d/000-evolinux-migrated.conf ]; then
+                grep --extended-regexp --quiet --ignore-case "(AllowUsers|AllowGroups)" /etc/ssh/sshd_config.d/000-evolinux-migrated.conf \
+                    && fail --comment "AllowUsers or AllowGroups directive present in sshd_config.d/000-evolinux-migrated.conf"  --level "${level}" --label "${label}" --tags "${tags}"
+            fi
         else
             # AllowUsers or AllowGroups should be in /etc/ssh/sshd_config or /etc/ssh/sshd_config.d/
             if [ -d /etc/ssh/sshd_config.d/ ]; then

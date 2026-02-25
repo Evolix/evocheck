@@ -213,21 +213,21 @@ exec_checks() {
 check_example() {
     local level default_exec cron future tags label doc rc
 # level of the check, see --help for details
-    level=2  
+    level=2
 # default_exec:
 #   1 = runs unless disabled in configuration file
 #   0 = runs only if enabled in configuration file
-    default_exec=1     
+    default_exec=1
 # cron:
 #   1 = runs only with --cron
 #   0 = always runs
-    cron=0      
+    cron=0
 # future:
 #   1 = runs only with --future
 #   0 = never runs
-    future=0    
+    future=0
 # check label, used in the output. It should match the configuration variable
-    label="IS_EXAMPLE"  
+    label="IS_EXAMPLE"
 # If you want to provide an extended documentation, add as many lines as you want between EODOC markers
 # It will be printed when run with --verbose
     doc=$(cat <<EODOC
@@ -1382,7 +1382,7 @@ check_muninlogrotate() {
 
         show_doc "${doc:-}"
     fi
-}    
+}
 # Verification de l'activation de Squid dans le cas d'un pack mail
 check_squid() {
     local level default_exec cron future tags label doc rc
@@ -1889,7 +1889,7 @@ check_apachesymlink() {
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apache2; then
-            local apacheFind nbApacheFind 
+            local apacheFind nbApacheFind
             apacheFind=$(find /etc/apache2/sites-enabled ! -type l -type f -print)
             nbApacheFind=$(wc -m <<< "${apacheFind}")
             if [[ ${nbApacheFind} -gt 1 ]]; then
@@ -2231,7 +2231,7 @@ check_gitperms() {
     label="IS_GITPERMS"
     doc=$(cat <<EODOC
     Git repositories must have "700" permissions.
-    
+
     Fix with:
     ~~~
     chmod 700 /path/to/repository/.git
@@ -2265,7 +2265,7 @@ check_gitperms_lxc() {
     label="IS_GITPERMS_LXC"
     doc=$(cat <<EODOC
     Git repositories must have "700" permissions.
-    
+
     Fix with:
     ~~~
     chmod 700 /path/to/repository/.git
@@ -4174,7 +4174,7 @@ format_tags() {
                             ;;
                     esac
                 ;;
-            
+
             -?*|[[:alnum:]]*)
                 # ignore unknown options
                 if ! is_quiet; then
@@ -4199,7 +4199,7 @@ log() {
     local date msg
     date=$(/bin/date +"${DATE_FORMAT}")
     msg="${1:-$(cat /dev/stdin)}"
-    
+
     printf "[%s] %s: %s\\n" "${date}" "${PROGNAME}" "${msg}" >> "${LOGFILE}"
 }
 
@@ -4301,7 +4301,7 @@ check_can_run() {
                             ;;
                     esac
                 ;;
-            
+
             -?*|[[:alnum:]]*)
                 # ignore unknown options
                 if ! is_quiet; then

@@ -295,9 +295,10 @@ check_dpkgwarning() {
     cron=1
     future=0
     label="IS_DPKGWARNING"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Fix by copying /etc/apt/apt.conf.d/z-evolinux.conf from another server.
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -308,7 +309,6 @@ check_dpkgwarning() {
         show_doc "${doc:-}"
     fi
 }
-# Check if localhost, localhost.localdomain and localhost.$mydomain are set in Postfix mydestination option.
 check_postfix_mydestination() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -316,9 +316,13 @@ check_postfix_mydestination() {
     cron=1
     future=0
     label="IS_POSTFIX_MYDESTINATION"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Ensure that localhost, localhost.localdomain and localhost.\$mydomain
+    are set in Postfix mydestination option.
+
+    Fix with fix-postfix-mydestination.yml internal playbook.
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -337,7 +341,7 @@ check_postfix_mydestination() {
         show_doc "${doc:-}"
     fi
 }
-    # Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
+# Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
 check_nrpepostfix() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -361,7 +365,6 @@ check_nrpepostfix() {
         show_doc "${doc:-}"
     fi
 }
-# Check if mod-security config file is present
 check_customsudoers() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -369,9 +372,13 @@ check_customsudoers() {
     cron=1
     future=0
     label="IS_CUSTOMSUDOERS"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Ensure that /etc/sudoers.d/evolinux starts with:
+    ~~~
+    Defaults        umask=0077
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -388,9 +395,16 @@ check_vartmpfs() {
     cron=1
     future=0
     label="IS_VARTMPFS"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    If a dedicated partition exists, one can add IS_VARTMPFS=0 to /etc/evocheck.cf.
+
+    Otherwise, fix with:
+    ~~~~
+    echo "tmpfs /var/tmp tmpfs defaults,noexec,nosuid,nodev,size=1024m 0 0" >> /etc/fstab
+    mount /var/tmp
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -433,9 +447,10 @@ check_syslogconf() {
     cron=1
     future=0
     label="IS_SYSLOGCONF"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Fix by copying /etc/rsyslog.conf from another server.
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -458,9 +473,11 @@ check_debiansecurity() {
     cron=1
     future=0
     label="IS_DEBIANSECURITY"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Security source should be present for apt.
+    Cf. https://wiki.evolix.org/HowtoDebian/SourcesList
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -479,9 +496,11 @@ check_debiansecurity_lxc() {
     cron=1
     future=0
     label="IS_DEBIANSECURITY_LXC"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Security source should be present for apt in LXC containers.
+    Cf. https://wiki.evolix.org/HowtoDebian/SourcesList
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -513,9 +532,11 @@ check_debiansecuritymirror() {
     cron=1
     future=0
     label="IS_DEBIANSECURITYMIRROR"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Security source for apt should use Evolix mirror.
+    Cf. https://wiki.evolix.org/HowtoDebian/SourcesList
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -536,9 +557,11 @@ check_debiansecuritymirror_lxc() {
     cron=1
     future=0
     label="IS_DEBIANSECURITYMIRROR_LXC"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Security source for apt should use Evolix mirror in LXC containers.
+    Cf. https://wiki.evolix.org/HowtoDebian/SourcesList
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -570,9 +593,11 @@ check_backports_version() {
     cron=1
     future=0
     label="IS_BACKPORTS_VERSION"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Bacports sources use a wrong suite (should be <release>-backport).
+    Cf. https://wiki.evolix.org/HowtoDebian/Backports
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -596,9 +621,11 @@ check_oldpub() {
     cron=1
     future=0
     label="IS_OLDPUB"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Evolix source for apt should use pub.evolix.org.
+    Cf. https://wiki.evolix.org/HowtoDebian/SourcesList
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -617,9 +644,11 @@ check_oldpub_lxc() {
     cron=1
     future=0
     label="IS_OLDPUB_LXC"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Evolix source for apt should use pub.evolix.org in LXC containers.
+    Cf. https://wiki.evolix.org/HowtoDebian/SourcesList
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -646,9 +675,11 @@ check_newpub() {
     cron=1
     future=0
     label="IS_NEWPUB"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Evolix source for apt should enabled.
+    Cf. https://wiki.evolix.org/HowtoDebian/SourcesList
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1887,7 +1918,6 @@ check_evobackup_exclude_mount() {
         show_doc "${doc:-}"
     fi
 }
-# Verification de la presence du userlogrotate
 check_userlogrotate() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1895,9 +1925,13 @@ check_userlogrotate() {
     cron=1
     future=0
     label="IS_USERLOGROTATE"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    The /etc/cron.weekly/userlogrotate script may be missing to compress
+    /home/$USER/log/{php.log,access.log,error.log} log files.
+
+    Ensure that these are not symlink to a path already under logrotate.
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1909,7 +1943,6 @@ check_userlogrotate() {
         show_doc "${doc:-}"
     fi
 }
-# Verification de la syntaxe de la conf d'Apache
 check_apachectl() {
     local level default_exec cron future tags label doc rc
     level=4
@@ -1917,9 +1950,12 @@ check_apachectl() {
     cron=1
     future=0
     label="IS_APACHECTL"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    apache2ctl -t failed.
+
+    Apache configuration must be fixed, otherwise it won’t be able to restart.
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1932,7 +1968,6 @@ check_apachectl() {
         show_doc "${doc:-}"
     fi
 }
-# Check if there is regular files in Apache sites-enabled.
 check_apachesymlink() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1940,9 +1975,14 @@ check_apachesymlink() {
     cron=1
     future=0
     label="IS_APACHESYMLINK"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Some regular files have been detected in /etc/apache2/sites-enabled.
+
+    They should be moved to /etc/apache2/sites-available, enabled (with
+    “a2ensite <vhost>”), and then Apache conf should be reloaded (with
+    “systemctl reload apache2”).
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0

@@ -28,6 +28,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 * find(1): follow symbolic links when searching for backup
 * get_version: avoid stderr if minifirewall version can’t be guessed on wheezy
+* get_version: failsafe when it's impossible to get the version
 * IS_LDAP_BACKUP: check also new backup path
 
 ### Deprecated

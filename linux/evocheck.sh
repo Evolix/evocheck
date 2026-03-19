@@ -4100,20 +4100,36 @@ get_version() {
             ;;
         minifirewall)
             if [ -n "${command}" ]; then
-                ${command} version | head -1 | cut -d ' ' -f 3
+                result=$(${command} version)
+                rc=$?
+                if [ ${rc} -eq 0 ]; then
+                    echo "${result}" | head -1 | cut -d ' ' -f 3
+                else
+                    return 2
+                fi
             fi
             ;;
         ## Let's try the --version flag before falling back to grep for the constant
         kvmstats)
-            if ${command} --version > /dev/null 2> /dev/null; then
-                 ${command} --version 2> /dev/null | head -1 | cut -d ' ' -f 3
+            result=$(${command} --version 2> /dev/null)
+            rc=$?
+            if [ ${rc} -eq 0 ]; then
+                echo "${result}" | head -1 | cut -d ' ' -f 3
             else
                 grep '^VERSION=' "${command}" | head -1 | cut -d '=' -f 2
             fi
             ;;
 
         ## General case to get the version
-        *) ${command} --version 2> /dev/null | head -1 | cut -d ' ' -f 3 ;;
+        *)
+            result=$(${command} --version 2> /dev/null)
+            rc=$?
+            if [ ${rc} -eq 0 ]; then
+                echo "${result}" | head -1 | cut -d ' ' -f 3
+            else
+                return 2
+            fi
+            ;;
     esac
 }
 

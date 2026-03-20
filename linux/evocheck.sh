@@ -722,9 +722,11 @@ check_sury() {
     cron=1
     future=0
     label="IS_SURY"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Evolix source for apt should enabled (the appropriate \$release-phpXY
+    suite). Cf. https://wiki.evolix.org/HowtoPHP#php-avec-deb.sury.org
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -746,9 +748,12 @@ check_sury_lxc() {
     cron=1
     future=0
     label="IS_SURY_LXC"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    noc=$(cat <<EODOC
+    Evolix source for apt should enabled (the appropriate \$release-phpXY
+    suite) in LXC containers.
+    Cf. https://wiki.evolix.org/HowtoPHP#php-avec-deb.sury.org
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -777,9 +782,11 @@ check_not_deb822() {
     cron=1
     future=1
     label="IS_NOT_DEB822"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    sources.list should use deb822 format.
+    Cf. https://wiki.evolix.org/HowtoDebian/SourcesList
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -801,9 +808,15 @@ check_no_signed_by() {
     cron=1
     future=1
     label="IS_NO_SIGNED_BY"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Fix with:
+    ~~~
+    sed --in-place --follow-symlinks s/Source-by/Signed-By/ \
+    /etc/apt/sources.list.d/*.sources
+    ~~~
+    Cf. https://wiki.evolix.org/HowtoDebian/SourcesList
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -829,9 +842,13 @@ check_aptitude() {
     cron=1
     future=0
     label="IS_APTITUDE"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Fix with:
+    ~~~
+    apt purge aptitude
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -848,9 +865,13 @@ check_aptgetbak() {
     cron=1
     future=0
     label="IS_APTGETBAK"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Fix with:
+    ~~~
+    dpkg-divert --remove --rename --divert /usr/bin/apt-get.bak /usr/bin/apt-get
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -867,9 +888,14 @@ check_usrro() {
     cron=1
     future=0
     label="IS_USRRO"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Fix with:
+    ~~~
+    vim /etc/fstab # add the ro directive to /usr
+    mount -o remount,ro /usr
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -886,9 +912,14 @@ check_tmpnoexec() {
     cron=1
     future=0
     label="IS_TMPNOEXEC"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Fix with:
+    ~~~
+    vim /etc/fstab # add the noexec directive to /tmp
+    mount -o remount,noexec /tmp
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -911,9 +942,15 @@ check_homenoexec() {
     cron=1
     future=0
     label="IS_HOMENOEXEC"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Try and find the reason for the discrepancy (was it forgotten to remount
+    /home, or to update /etc/fastab?).
+
+    Either remount /home with the proper (no)exec mode as documented in
+    /etc/fstab, or edit /etc/fstab to use the proper (no)exec option for /home
+    (so /home will be mounted with the proper (no)exec mode after a reboot).
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0

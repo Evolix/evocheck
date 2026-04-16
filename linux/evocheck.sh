@@ -266,9 +266,17 @@ check_lsbrelease() {
     cron=0
     future=0
     label="IS_LSBRELEASE"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    /etc/lsb-release should be updated
+    ~~~
+    version=\$(cat /etc/debian_version)
+    version=\$( echo \${version%.*} )
+    sed 's/DISTRIB_RELEASE=.*/DISTRIB_RELEASE='"\${version}"'/' /etc/lsb-release > /etc/lsb-release.new
+    cp /etc/lsb-release.new /etc/lsb-release
+    rm /etc/lsb-release.new
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -342,7 +350,6 @@ EODOC
         show_doc "${doc:-}"
     fi
 }
-# Verifying check_mailq in Nagios NRPE config file. (Option "-M postfix" need to be set if the MTA is Postfix)
 check_nrpepostfix() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -350,9 +357,11 @@ check_nrpepostfix() {
     cron=1
     future=0
     label="IS_NRPEPOSTFIX"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    check_mailq should be enabled in Nagios NRPE config file.
+    Option "-M postfix" need to be set if the MTA is Postfix
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -429,9 +438,10 @@ check_logrotateconf() {
     cron=1
     future=0
     label="IS_LOGROTATECONF"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    The logs tasks from the evolinux-base role should provide the relevant file.
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1015,9 +1025,10 @@ check_mountfstab() {
     cron=1
     future=0
     label="IS_MOUNT_FSTAB"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    One should set the relevant partition in /etc/fstab (or unmount the temporary partition).
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1041,9 +1052,13 @@ check_listchangesconf() {
     cron=1
     future=0
     label="IS_LISTCHANGESCONF"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Fix with:
+    ~~~
+    apt purge apt-listchanges
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1062,9 +1077,29 @@ check_customcrontab() {
     cron=1
     future=0
     label="IS_CUSTOMCRONTAB"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Ensure cron jobs run when the should. /etc/crontab should contain:
+
+    ~~~
+    SHELL=/bin/sh
+    PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+    # Example of job definition:
+    # .---------------- minute (0 - 59)
+    # |  .------------- hour (0 - 23)
+    # |  |  .---------- day of month (1 - 31)
+    # |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+    # |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+    # |  |  |  |  |
+    # *  *  *  *  * user-name command to be executed
+    16 *	* * *	root	cd / && run-parts --report /etc/cron.hourly
+     8 1	* * *	root	test -x /usr/sbin/anacron || { cd / && run-parts --report /etc/cron.daily; }
+    19 5	* * 7	root	test -x /usr/sbin/anacron || { cd / && run-parts --report /etc/cron.weekly; }
+    26 4	1 * *	root	test -x /usr/sbin/anacron || { cd / && run-parts --report /etc/cron.monthly; }
+    #
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0

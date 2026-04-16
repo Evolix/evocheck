@@ -76,6 +76,7 @@ exec_checks() {
     check_serveurbase
     check_logrotateconf
     check_syslogconf
+    check_nonfree
     check_debiansecurity
     check_debiansecurity_lxc
     check_debiansecuritymirror
@@ -462,6 +463,43 @@ EODOC
                 fail --comment "Evolix syslog config is missing"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi
+
+        show_doc "${doc:-}"
+    fi
+}
+check_nonfree() {
+    local level default_exec cron future tags label doc rc
+    level=2
+    default_exec=1
+    cron=1
+    future=0
+    label="IS_NONFREE"
+    doc=$(cat <<EODOC
+    If the non-free component is enabled, the contrib component should also
+    be enabled, and the non-free-firmware component as well, for both system
+    and security sources list.
+    Cf. https://wiki.evolix.org/HowtoDebian/SourcesList#components
+EODOC
+)
+
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        # Look for enabled "Debian-Security" sources from the "Debian" origin
+        apt-cache policy | grep "\bl=Debian,\b" | grep "\bo=Debian\b" | grep --quiet "\bc=non-free\b"
+        if [ $? -eq 0 ]; then
+            apt-cache policy | grep "\bl=Debian,\b" | grep "\bo=Debian\b" | grep --quiet "\bc=contrib\b"
+            test $? -eq 0 || fail --comment "missing contrib component for Debian repository"  --level "${level}" --label "${label}" --tags "${tags}"
+	    # Debian-Security is rarely updated for contrib and non-free, so we can’t use such a check
+	    # to verify if contrib and non-free are actually present in sources list files (we used to
+	    # parse those file, but it was fragile compared to parsing the apt-cache policy output)
+	    if ( evo::os-release::is_debian 12 ge ); then
+                apt-cache policy | grep "\bl=Debian,\b" | grep "\bo=Debian\b" | grep --quiet "\bc=non-free-firmware\b"
+                test $? -eq 0 || fail --comment "missing non-free-firmware component for Debian repository"  --level "${level}" --label "${label}" --tags "${tags}"
+                apt-cache policy | grep "\bl=Debian-Security\b" | grep "\bo=Debian\b" | grep --quiet "\bc=non-free-firmware\b"
+                test $? -eq 0 || fail --comment "missing non-free-firmware component for Debian-Security repository"  --level "${level}" --label "${label}" --tags "${tags}"
+	    fi
+	fi
 
         show_doc "${doc:-}"
     fi

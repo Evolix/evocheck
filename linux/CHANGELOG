@@ -3,6 +3,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ## [Unreleased]
 
+This is a significant rewrite with new features and changed output.
+
 ### Added
 
 * Add check levels
@@ -12,6 +14,7 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 * IS_PHPPGADMINAPACHECONF and IS_PHPLDAPADMINAPACHECONF (#193)
 * IS_SMARTMONTOOLS (#198)
 * IS_SYSTEMDUSERUNIT in --future (#196)
+* IS_NONFREE (#202)
 
 ### Changed
 

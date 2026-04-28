@@ -1214,9 +1214,14 @@ check_tmoutprofile() {
     cron=1
     future=0
     label="IS_TMOUTPROFILE"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Ensure that the following directive is present in /etc/profile.
+
+    ~~~
+    export TMOUT=36000
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1233,9 +1238,13 @@ check_alert5boot() {
     cron=1
     future=0
     label="IS_ALERT5BOOT"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Ensure that /usr/share/scripts/alert5.sh script and
+    /etc/systemd/system/alert5.service are present.
+
+    Ensure that alert5 systemd unit is active.
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1260,9 +1269,20 @@ check_alert5minifw() {
     cron=1
     future=0
     label="IS_ALERT5MINIFW"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    ~~~
+    mount -o remount,rw /usr
+    vim /usr/share/scripts/alert5.sh
+    ~~~
+
+    Add or uncomment the “/etc/init.d/minifirewall start” line.
+    Remount /usr in read-only mode.
+
+    ~~~
+    mount -o remount,ro /usr
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1282,9 +1302,21 @@ check_minifw() {
     cron=1
     future=0
     label="IS_MINIFW"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    Minifirewall should be running.
+
+    ~~~
+    /etc/init.d/minifirewall restart
+    ~~~
+
+    Maybe Evolix IP is missing in TRUSTEDIPS directive.
+
+    ~~~
+    root@\$server:~## grep 31.170.8.4 /etc/default/ -R
+    /etc/default/minifirewall:TRUSTEDIPS='31.170.8.4 ...
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1336,10 +1368,11 @@ check_minifw_related() {
     cron=1
     future=1
     label="IS_MINIFW_RELATED"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
-
+    doc=$(cat <<EODOC
+    RELATED should be removed from iptables rules for security reasons.
+    https://gist.github.com/azlux/6a70bd38bb7c525ab26efe7e3a7ea8ac
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1360,9 +1393,12 @@ check_nrpeperms() {
     cron=1
     future=0
     label="IS_NRPEPERMS"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    ~~~
+    chmod 750 /etc/nagios
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1384,9 +1420,12 @@ check_minifwperms() {
     cron=1
     future=0
     label="IS_MINIFWPERMS"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    ~~~
+    chmod 600 /etc/default/minifirewall
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
@@ -1407,9 +1446,30 @@ check_nrpepid() {
     cron=1
     future=0
     label="IS_NRPEPID"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    The configuration should contain the following.
+
+    ~~~
+    grep pid /etc/nagios/nrpe.cfg
+    pid_file=/run/nagios/nrpe.pid
+    ~~~
+
+    If nagios fails to restart, check also the systemd service.
+
+    ~~~
+    systemctl cat nagios-nrpe-server.service | grep PIDFile
+    PIDFile=/run/nagios/nrpe.pid
+    ~~~
+
+    If the path is still “/var/run/nagios/nrpe.pid”, then the
+    nagios-nrpe-server package may be outdated.
+
+    ~~~
+    apt update
+    apt upgrade nagios-nrpe-server
+    ~~~
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0

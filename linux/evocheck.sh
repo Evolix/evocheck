@@ -3679,7 +3679,7 @@ check_sshpermitrootno() {
         fi
         # shellcheck disable=SC2086
         if ! (sshd -T ${sshd_args} 2> /dev/null | grep --quiet --ignore-case 'permitrootlogin no'); then
-            fail --comment "PermitRoot should be set to no"  --level "${level}" --label "${label}" --tags "${tags}"
+            fail --comment "PermitRootLogin should be set to no"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
 
         show_doc "${doc:-}"

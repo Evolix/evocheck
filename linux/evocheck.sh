@@ -218,16 +218,16 @@ check_example() {
 # level of the check, see --help for details
     level=2
 # default_exec:
-#   1 = runs unless disabled in configuration file
 #   0 = runs only if enabled in configuration file
+#   1 = runs unless disabled in configuration file
     default_exec=1
 # cron:
-#   1 = runs only with --cron
-#   0 = always runs
+#   0 = runs unless called with --cron
+#   1 = always runs
     cron=0
 # future:
+#   0 = always runs
 #   1 = runs only with --future
-#   0 = never runs
     future=0
 # check label, used in the output. It should match the configuration variable
     label="IS_EXAMPLE"

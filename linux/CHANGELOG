@@ -26,6 +26,7 @@ This is a significant rewrite with new features and changed output.
 * IS_SSHALLOWUSERS: look for AllowUsers/AllowGroups in sshd_config.d/000-evolinux-migrated.conf
 * IS_SSHLASTMATCH enabled in --future
 * IS_APACHECTL and IS_EVOLIX_USER are now mandatory
+* IS_EVOLINUXSUDOGROUP accept alternates config with EXEC: flag
 
 ### Fixed
 

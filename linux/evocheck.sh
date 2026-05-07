@@ -2673,7 +2673,7 @@ check_evolinuxsudogroup() {
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if grep --quiet "^evolinux-sudo:" /etc/group; then
             if [ -f /etc/sudoers.d/evolinux ]; then
-                grep --quiet --extended-regexp '^%evolinux-sudo +ALL ?= ?\(ALL:ALL\) ALL' /etc/sudoers.d/evolinux \
+                grep --quiet --extended-regexp '^%evolinux-sudo +ALL ?= ?\(ALL:ALL\)( EXEC:)? ALL' /etc/sudoers.d/evolinux \
                     || fail --comment "missing evolinux-sudo directive in sudoers file"  --level "${level}" --label "${label}" --tags "${tags}"
             fi
         fi

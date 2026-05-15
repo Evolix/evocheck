@@ -3703,7 +3703,7 @@ check_evomaintenanceusers() {
         for user in $users; do
             user_home=$(getent passwd "$user" | cut -d: -f6)
             if [ -n "$user_home" ] && [ -d "$user_home" ]; then
-                if ! grep --quiet --no-messages "^trap.*sudo.*evomaintenance.sh" "${user_home}"/.*profile; then
+                if ! grep --quiet --no-messages --extended-regexp "^[^#]*trap.*sudo.*evomaintenance.sh" "${user_home}"/.*profile; then
                     fail --comment "${user} doesn't have an evomaintenance trap"  --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             fi

@@ -33,6 +33,7 @@ This is a significant rewrite with new features and changed output.
 * find(1): follow symbolic links when searching for backup
 * get_version: avoid stderr if minifirewall version can’t be guessed on wheezy
 * get_version: failsafe when it's impossible to get the version
+* IS_EVOMAINTENANCEUSERS: better detection of trap
 * IS_LDAP_BACKUP: check also new backup path
 
 ### Deprecated

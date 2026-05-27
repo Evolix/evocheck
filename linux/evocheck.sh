@@ -4436,7 +4436,7 @@ check_efi_part() {
                 # fetch list of EFI boot entries
                 boot_entries=$(efibootmgr --verbose | grep debian)
 
-                while IFS= read -r line; do
+                while IFS= read -r vfat_part; do
                     # split part name and uuid
                     partname=$(echo "${vfat_part}" | cut -d ':' -f1 | sed -e "s|/dev/||")
                     partuuid=$(echo "${vfat_part}" | grep --only-matching --extended-regexp "PARTUUID=\S+" | tr -d '"' | cut -d '=' -f2)

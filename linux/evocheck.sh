@@ -201,6 +201,7 @@ exec_checks() {
     check_nrpepressure
     check_postfix_ipv6_disabled
     check_smartmontools
+    check_efi_part
 }
 
 #####################
@@ -4412,9 +4413,68 @@ check_postfix_ipv6_disabled() {
     fi
 }
 
-### MAIN
+check_efi_part() {
+    local level default_exec cron future tags label doc rc
+    level=4
+    default_exec=1
+    cron=1
+    future=1
+    label="IS_EFI_PART"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
 
-is_quiet() {
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
+        # Check if blkid is present or skip everything
+        if command -v blkid > /dev/null; then
+            # Check if efibootmgr is present or skip everything
+            if command -v efibootmgr > /dev/null; then
+                local vfat_parts boot_entries partname partuuid
+
+                # fetch list of vfat partitions
+                vfat_parts=$(blkid | grep --extended-regexp 'TYPE="?vfat"?')
+                # fetch list of EFI boot entries
+                boot_entries=$(efibootmgr --verbose | grep debian)
+
+                while IFS= read -r line; do
+                    # split part name and uuid
+                    partname=$(echo "${vfat_part}" | cut -d ':' -f1 | sed -e "s|/dev/||")
+                    partuuid=$(echo "${vfat_part}" | grep --only-matching --extended-regexp "PARTUUID=\S+" | tr -d '"' | cut -d '=' -f2)
+                    if [ -n "${partuuid}" ]; then
+                        # search for a boot entry for the current partition
+                        boot_entry=$(echo "${boot_entries}" | grep --ignore-case ",${partuuid},")
+                        if [ -n "${boot_entry}" ]; then
+                            # fetch the EFI path
+                            efi_path=$(echo "${boot_entry}" | grep --only-matching --extended-regexp "File\([^)]+\)")
+                            # … which should be shimx64.efi
+                            if [[ "${efi_path}" =~ "shimx64.efi" ]]; then
+                                # OK
+                                :
+                            else
+                                fail --comment "${boot_entry} has incorrect EFI path : '${efi_path}'" --level "${level}" --label "${label}" --tags "${tags}"
+                            fi
+                        else
+                            fail --comment "${partname} seems to be a EFI partition but has no entry in EFI boot manager" --level "${level}" --label "${label}" --tags "${tags}"
+                        fi
+                    else
+                        fail --comment "Error parsing '${vfat_part}'" --level "${level}" --label "${label}" --tags "${tags}"
+                    fi
+                done <<< "${vfat_parts}"
+            else
+                # efibootmgr not found
+                :
+            fi
+        else
+            # blkid not found
+            :
+        fi
+
+        show_doc "${doc:-}"
+    fi
+}
+
+### MAIN
+() {
     test "${QUIET}" = 1
 }
 is_verbose() {

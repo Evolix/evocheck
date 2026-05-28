@@ -4420,9 +4420,11 @@ check_efi_part() {
     cron=1
     future=1
     label="IS_EFI_PART"
-#     doc=$(cat <<EODOC
-# EODOC
-# )
+    doc=$(cat <<EODOC
+    EPI partitions and EFI boot entries are not synced
+    Read this doc at https://wiki.evolix.org/HowtoRAIDLogiciel#partition-efi
+EODOC
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         # Check if blkid is present or skip everything
@@ -4451,7 +4453,7 @@ check_efi_part() {
                                 # OK
                                 :
                             else
-                                fail --comment "${boot_entry} has incorrect EFI path : '${efi_path}'" --level "${level}" --label "${label}" --tags "${tags}"
+                                fail --comment "${boot_entry} has incorrect EFI path : '${efi_path}' (should be shimx64.efi)" --level "${level}" --label "${label}" --tags "${tags}"
                             fi
                         else
                             fail --comment "${partname} seems to be a EFI partition but has no entry in EFI boot manager" --level "${level}" --label "${label}" --tags "${tags}"

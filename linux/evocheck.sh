@@ -4418,7 +4418,7 @@ check_efi_part() {
     level=4
     default_exec=1
     cron=1
-    future=1
+    future=0
     label="IS_EFI_PART"
     doc=$(cat <<EODOC
     EPI partitions and EFI boot entries are not synced

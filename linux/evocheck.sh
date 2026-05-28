@@ -2607,10 +2607,12 @@ check_notupgraded() {
             install_date=$(stat -c %Z /var/log/installer)
         fi
         # Check install_date if the system never received an upgrade
-        if [ "$last_upgrade" -eq 0 ]; then
-            [ "$install_date" -lt "$limit" ] && fail --comment "The system has never been updated"  --level "${level}" --label "${label}" --tags "${tags}"
-        else
-            [ "$last_upgrade" -lt "$limit" ] && fail --comment "The system hasn't been updated for too long"  --level "${level}" --label "${label}" --tags "${tags}"
+        if [ "${install_date}" -lt "${limit}" ]; then
+            if [ "${last_upgrade}" -eq 0 ]; then
+                fail --comment "The system has never been updated"  --level "${level}" --label "${label}" --tags "${tags}"
+            else
+                fail --comment "The system hasn't been updated for too long"  --level "${level}" --label "${label}" --tags "${tags}"
+            fi
         fi
 
         show_doc "${doc:-}"

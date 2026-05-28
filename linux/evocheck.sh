@@ -4476,7 +4476,8 @@ EODOC
 }
 
 ### MAIN
-() {
+
+is_quiet() {
     test "${QUIET}" = 1
 }
 is_verbose() {

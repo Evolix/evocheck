@@ -497,7 +497,7 @@ EODOC
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         # Look for enabled "Debian-Security" sources from the "Debian" origin
-        apt-cache policy | grep "\bl=Debian,\b" | grep "\bo=Debian\b" | grep --quiet "\bc=non-free\b"
+        apt-cache policy | grep "\bl=Debian,\b" | grep "\bo=Debian\b" | grep --quiet "\bc=non-free,\b"
         if [ $? -eq 0 ]; then
             apt-cache policy | grep "\bl=Debian,\b" | grep "\bo=Debian\b" | grep --quiet "\bc=contrib\b"
             test $? -eq 0 || fail --comment "missing contrib component for Debian repository"  --level "${level}" --label "${label}" --tags "${tags}"

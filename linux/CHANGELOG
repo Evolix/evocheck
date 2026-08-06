@@ -11,6 +11,9 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* IS_NONFREE: Fix false-positive
+* IS_EVOBACKUP: Fix false-negative (#204)
+
 ### Deprecated
 
 ### Removed

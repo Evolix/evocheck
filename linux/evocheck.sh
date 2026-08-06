@@ -4443,7 +4443,7 @@ EODOC
                 while IFS= read -r vfat_part; do
                     # split part name and uuid
                     partname=$(echo "${vfat_part}" | cut -d ':' -f1 | sed -e "s|/dev/||")
-                    partuuid=$(echo "${vfat_part}" | grep --only-matching --extended-regexp "PARTUUID=\S+" | tr -d '"' | cut -d '=' -f2)
+                    partuuid=$(echo "${vfat_part}" | grep --only-matching --extended-regexp "(PART)?UUID=\S+" | tr -d '"' | cut -d '=' -f2)
                     if [ -n "${partuuid}" ]; then
                         # search for a boot entry for the current partition
                         boot_entry=$(echo "${boot_entries}" | grep --ignore-case ",${partuuid},")

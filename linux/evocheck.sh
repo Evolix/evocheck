@@ -4464,6 +4464,8 @@ EODOC
                         fail --comment "Error parsing '${vfat_part}'" --level "${level}" --label "${label}" --tags "${tags}"
                     fi
                 done <<< "${vfat_parts}"
+
+                show_doc "${doc:-}"
             else
                 # efibootmgr not found
                 :
@@ -4472,8 +4474,6 @@ EODOC
             # blkid not found
             :
         fi
-
-        show_doc "${doc:-}"
     fi
 }
 

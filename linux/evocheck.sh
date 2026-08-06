@@ -1993,7 +1993,7 @@ check_evobackup() {
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
         local evobackup_found
-        evobackup_found=$(find /etc/cron* -name '*evobackup*' | wc -l)
+        evobackup_found=$(find /etc/cron* -name '*evobackup*' ! -name '*evobackup-canary*' | wc -l)
         test "$evobackup_found" -gt 0 || fail --comment "missing evobackup cron"  --level "${level}" --label "${label}" --tags "${tags}"
 
         show_doc "${doc:-}"

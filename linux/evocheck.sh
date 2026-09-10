@@ -4437,7 +4437,7 @@ EODOC
                 local vfat_parts boot_entries partname partuuid
 
                 # fetch list of vfat partitions
-                vfat_parts=$(blkid | grep --extended-regexp 'TYPE="?vfat"?')
+                vfat_parts=$(blkid | grep --extended-regexp 'TYPE="?vfat"?' | grep --extended-regexp --invert-match 'SEC_TYPE="?msdos"?')
                 # fetch list of EFI boot entries
                 boot_entries=$(efibootmgr --verbose | grep debian)
 

@@ -9,6 +9,8 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* IS_EFI_PART: exclude partitions with `SEC_TYPE="msdos"`
+
 ### Deprecated
 
 ### Removed

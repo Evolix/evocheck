@@ -9,6 +9,9 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* typo
+* IS_EFI_PART: rc was not initialized (so always in error)
+
 ### Deprecated
 
 ### Removed

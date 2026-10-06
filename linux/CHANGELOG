@@ -9,6 +9,9 @@ and this project **does not adhere to [Semantic Versioning](http://semver.org/sp
 
 ### Fixed
 
+* IS_APACHESYMLINK: Compatibility with Pack Web V2
+* IS_LOG2MAILAPACHE: Compatibility with Pack Web V2
+
 ### Deprecated
 
 ### Removed

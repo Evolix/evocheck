@@ -4488,7 +4488,7 @@ check_networkbonding() {
     Make sure there are 2 interfaces configured as bond-slaves in the
     network configuration, and these 2 interfaces are existing.
 EODOC
-# )
+)
 
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0

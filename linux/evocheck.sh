@@ -1766,7 +1766,7 @@ check_log2mailapache() {
         tags=$(format_tags --cron "${cron}" --future "${future}")
         conf=/etc/log2mail/config/apache
         if is_pack_web && is_installed log2mail; then
-            grep --no-messages --quiet "^file = /var/log/apache2/error.log" $conf \
+            grep --no-messages --quiet "^file = /var/log/apache2.*/error.log" $conf \
                 || fail --comment "missing log2mail directive for apache"  --level "${level}" --label "${label}" --tags "${tags}"
         fi
 

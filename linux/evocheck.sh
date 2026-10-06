@@ -202,6 +202,7 @@ exec_checks() {
     check_postfix_ipv6_disabled
     check_smartmontools
     check_efi_part
+    check_networkbonding
 }
 
 #####################
@@ -4414,7 +4415,6 @@ check_postfix_ipv6_disabled() {
         show_doc "${doc:-}"
     fi
 }
-
 check_efi_part() {
     local level default_exec cron future tags label doc rc
     level=4
@@ -4475,6 +4475,29 @@ EODOC
             # blkid not found
             :
         fi
+    fi
+}
+check_networkbonding() {
+    local level default_exec cron future tags label doc rc
+    level=2
+    default_exec=1
+    cron=1
+    future=0
+    label="IS_NETWORKBONDING"
+    doc=$(cat <<EODOC
+    Make sure there are 2 interfaces configured as bond-slaves in the
+    network configuration, and these 2 interfaces are existing.
+EODOC
+# )
+
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        while read -r line; do
+            test "$(echo $line | cut -d" " -f1)" -ne 2 && fail --comment "interface $(echo $line | cut -d" " -f2) should have 2 members but has $(echo $line | cut -d" " -f1)"  --level "${level}" --label "${label}" --tags "${tags}"
+        done < <(wc -w /sys/class/net/bond*/bonding/slaves 2>/dev/null | grep -v total | awk -F / '{print $1,$5}')
+
+        show_doc "${doc:-}"
     fi
 }
 

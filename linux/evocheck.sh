@@ -2162,7 +2162,7 @@ EODOC
         tags=$(format_tags --cron "${cron}" --future "${future}")
         if is_installed apache2; then
             local apacheFind nbApacheFind
-            apacheFind=$(find /etc/apache2/sites-enabled ! -type l -type f -print)
+            apacheFind=$(for dir in /etc/apache2*/sites-enabled ; do find ${dir} ! -type l -type f -print; done)
             nbApacheFind=$(wc -m <<< "${apacheFind}")
             if [[ ${nbApacheFind} -gt 1 ]]; then
                 while read -r line; do

@@ -140,6 +140,7 @@ exec_checks() {
     check_phpmyadminapacheconf
     check_phppgadminapacheconf
     check_phpldapadminapacheconf
+    check_intelmicrocode
     check_kerneluptodate
     check_uptime
     check_muninrunning
@@ -2305,6 +2306,30 @@ check_phpldapadminapacheconf() {
                 && fail --comment "default phpldapadmin configuration (${phpldapadminconf0}) should be commented or disabled"  --level "${level}" --label "${label}" --tags "${tags}"
             test -e "${phpldapadminconf1}" && grep --quiet --invert-match --extended-regexp "^( |\t)*#" "${phpldapadminconf1}" \
                 && fail --comment "default phpldapadmin configuration (${phpldapadminconf1}) should be commented or disabled"  --level "${level}" --label "${label}" --tags "${tags}"
+        fi
+
+        show_doc "${doc:-}"
+    fi
+}
+# Check if intel-microcode is installed
+check_intelmicrocode() {
+    local level default_exec cron future tags label doc rc
+    level=2
+    default_exec=1
+    cron=0
+    future=0
+    label="IS_INTELMICROCODE"
+#     doc=$(cat <<EODOC
+# EODOC
+# )
+
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+        if is_installed intel-microcode; then
+            ls /boot/*lin* | grep -q cloud && fail --comment "machine is running a cloud kernel, so intel-microcode should probably be removed (as well as non-free sources)" --level "${level}" --label "${label}" --tags "${tags}"
+        else
+		ls /boot/*lin* | grep -q cloud || fail --comment "machine is running a cloud kernel, so intel-microcode should probably be installed, once non-free(-firmware) sources are enabled" --level "${level}" --label "${label}" --tags "${tags}"
         fi
 
         show_doc "${doc:-}"

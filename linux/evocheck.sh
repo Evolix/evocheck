@@ -1538,7 +1538,7 @@ check_apachemunin() {
         show_doc "${doc:-}"
     fi
 }
-# Verification mytop + Munin si MySQL
+# Vérification mytop + Munin si MySQL
 check_mysqlutils() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1575,7 +1575,7 @@ check_mysqlutils() {
         show_doc "${doc:-}"
     fi
 }
-# Verification de la configuration du raid soft (mdadm)
+# Vérification de la configuration du raid soft (mdadm)
 check_raidsoft() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1600,7 +1600,7 @@ check_raidsoft() {
         show_doc "${doc:-}"
     fi
 }
-# Verification du LogFormat de AWStats
+# Vérification du LogFormat de AWStats
 check_awstatslogformat() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1624,7 +1624,7 @@ check_awstatslogformat() {
         show_doc "${doc:-}"
     fi
 }
-# Verification de la présence de la config logrotate pour Munin
+# Vérification de la présence de la config logrotate pour Munin
 check_muninlogrotate() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1646,7 +1646,7 @@ check_muninlogrotate() {
         show_doc "${doc:-}"
     fi
 }
-# Verification de l'activation de Squid dans le cas d'un pack mail
+# Vérification de l'activation de Squid dans le cas d'un pack mail
 check_squid() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1702,7 +1702,7 @@ check_evomaintenance_fw() {
         show_doc "${doc:-}"
     fi
 }
-# Verification de la conf et de l'activation de mod-deflate
+# Vérification de la conf et de l'activation de mod-deflate
 check_moddeflate() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1728,7 +1728,7 @@ check_moddeflate() {
         show_doc "${doc:-}"
     fi
 }
-# Verification de la conf log2mail
+# Vérification de la conf log2mail
 check_log2mailrunning() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1817,7 +1817,7 @@ check_log2mailsquid() {
         show_doc "${doc:-}"
     fi
 }
-# Verification si bind est chroote
+# Vérification si bind est chroote
 check_bindchroot() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1875,7 +1875,7 @@ check_network_interfaces() {
         show_doc "${doc:-}"
     fi
 }
-# Verify if all if are in auto
+# Vérify if all if are in auto
 check_autoif() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1953,7 +1953,7 @@ check_interfacesnetmask() {
         show_doc "${doc:-}"
     fi
 }
-# Verification de l’état du service networking
+# Vérification de l’état du service networking
 check_networking_service() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -1977,7 +1977,7 @@ check_networking_service() {
         show_doc "${doc:-}"
     fi
 }
-# Verification de la mise en place d'evobackup
+# Vérification de la mise en place d'evobackup
 check_evobackup() {
     local level default_exec cron future tags label doc rc
     level=2
@@ -2310,7 +2310,7 @@ check_phpldapadminapacheconf() {
         show_doc "${doc:-}"
     fi
 }
-# Verification si le système doit redémarrer suite màj kernel.
+# Vérification si le système doit redémarrer suite màj kernel.
 check_kerneluptodate() {
     local level default_exec cron future tags label doc rc
     level=2

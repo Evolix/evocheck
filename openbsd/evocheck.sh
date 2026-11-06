@@ -568,6 +568,14 @@ check_restart_needed(){
         failed "IS_RESTART_NEEDED" "checkrestart is not installed! Please add with pkg_add checkrestart."
     fi
 }
+check_pfsync(){
+    if ifconfig carp | grep carp 1> /dev/null 2>&1; then
+        if ! ifconfig pfsync 1> /dev/null 2>&1; then
+            failed "IS_PFSYNC" "There is no pfsync interface. As a carp member, a pfsync interface is needed to synchronise PF states with the other carp member."
+        fi
+    fi
+}
+
 
 main() {
     # Default return code : 0 = no error
@@ -622,6 +630,7 @@ main() {
     test "${IS_MOTD_CARP_CRON:=1}" = 1 && check_motd_carp_cron
     test "${IS_CUSTOM_UNBOUND:=1}" = 1 && check_custom_unbound
     test "${IS_RESTART_NEEDED:=1}" = 1 && check_restart_needed
+    test "${IS_PFSYNC:=1}" = 1 && check_pfsync
 
     exit ${RC}
 }

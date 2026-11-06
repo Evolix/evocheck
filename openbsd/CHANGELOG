@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* IS_PFSYNC : make sure there is a pfsync interface when there is a carp interface
-
 ### Changed
 
 ### Fixed
@@ -18,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Security
+
+## [26.11] - 2026-11-06
+
+### Added
+
+* IS_PFSYNC : make sure there is a pfsync interface when there is a carp interface
 
 ## [25.11] - 2025-11-21
 

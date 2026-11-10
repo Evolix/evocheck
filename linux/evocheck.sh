@@ -4594,7 +4594,6 @@ EODOC
 
 check_cve_2026_31431() {
     local level default_exec cron future tags label doc rc
-    # level is defined per failure
     level=4
     default_exec=1
     cron=1
@@ -4604,13 +4603,6 @@ check_cve_2026_31431() {
     System is vulnerable to CVE-2026-31431
     https://nvd.nist.gov/vuln/detail/cve-2026-31431
     ~~~
-    The best is to boot on a patched kernel :
-      >= 5.10.272-1
-      >= 6.1.190-1
-      >= 6.12.113-1
-      >= 7.0.14-26
-      >= 7.2.12-1
-
     Affected modules:
       - algif_aead
     
@@ -4627,40 +4619,22 @@ EODOC
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
 
-        kernel_version_short=$(uname -v | grep --extended-regexp --only-match '[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?')
-        kernel_version_major=$(echo "${kernel_version_short}" | cut -d'.' -f 1-2)
-        kernel_safe=0
 
-        case "${kernel_version_major}" in
-            5.10) dpkg --compare-versions "${kernel_version_short}" ge "5.10.272-1" && kernel_safe=1 ;;
-            6.1)  dpkg --compare-versions "${kernel_version_short}" ge "6.1.190-1"  && kernel_safe=1 ;;
-            6.12) dpkg --compare-versions "${kernel_version_short}" ge "6.12.113-1" && kernel_safe=1 ;;
-            7.0)  dpkg --compare-versions "${kernel_version_short}" ge "7.0.14-26"  && kernel_safe=1 ;;
-            7.2)  dpkg --compare-versions "${kernel_version_short}" ge "7.2.12-1"   && kernel_safe=1 ;;
-        esac
-
-        if [ "${kernel_safe}" -eq "0" ]; then
-            level=3
-            fail --comment "Kernel ${kernel_version_short} is not safe" --level "${level}" --label "${label}" --tags "${tags}"
-
-            level=4
-            modules="algif_aead"
-            for module in ${modules}; do
-                if ! grep --dereference-recursive --quiet "^install ${module} /bin/sh" /etc/modprobe.d/; then
-                    fail --comment "Mitigation: disable module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
-                fi
-                if lsmod | awk '{print $1}' | grep --line-regexp --fixed-strings --quiet "${module}"; then
-                    fail --comment "Mitigation: unload module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
-                fi
-            done
-        fi
+        modules="algif_aead"
+        for module in ${modules}; do
+            if ! grep --dereference-recursive --quiet "^install ${module} /bin/sh" /etc/modprobe.d/; then
+                fail --comment "Mitigation: disable module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
+            fi
+            if lsmod | awk '{print $1}' | grep --line-regexp --fixed-strings --quiet "${module}"; then
+                fail --comment "Mitigation: unload module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
+            fi
+        done
         show_doc "${doc:-}"
     fi
 }
 
 check_lpe_quartet() {
     local level default_exec cron future tags label doc rc
-    # level is defined per failure
     level=4
     default_exec=1
     cron=1
@@ -4670,13 +4644,6 @@ check_lpe_quartet() {
     System is vulnerable to LPE quartet
     https://heyitsas.im/posts/lpe-quartet/
     ~~~
-    The best is to boot on a patched kernel :
-      >= 5.10.272-1
-      >= 6.1.190-1
-      >= 6.12.113-1
-      >= 7.0.14-26
-      >= 7.2.12-1
-    
     Affected modules:
       - ah6
       - pppoe
@@ -4698,24 +4665,17 @@ EODOC
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
 
-        kernel_version_short=$(uname -v | grep --extended-regexp --only-match '[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?')
-        kernel_version_major=$(echo "${kernel_version_short}" | cut -d'.' -f 1-2)
-        kernel_safe=0
-
-        case "${kernel_version_major}" in
-            5.10) dpkg --compare-versions "${kernel_version_short}" ge "5.10.272-1" && kernel_safe=1 ;;
-            6.1)  dpkg --compare-versions "${kernel_version_short}" ge "6.1.190-1"  && kernel_safe=1 ;;
-            6.12) dpkg --compare-versions "${kernel_version_short}" ge "6.12.113-1" && kernel_safe=1 ;;
-            7.0)  dpkg --compare-versions "${kernel_version_short}" ge "7.0.14-26"  && kernel_safe=1 ;;
-            7.2)  dpkg --compare-versions "${kernel_version_short}" ge "7.2.12-1"   && kernel_safe=1 ;;
-        esac
-
-        if [ "${kernel_safe}" -eq "0" ]; then
-            level=3
-            fail --comment "Kernel ${kernel_version_short} is not safe" --level "${level}" --label "${label}" --tags "${tags}"
-
-            level=4
-            modules="ah6 pppoe sctp sctp_diag xfrm_user"
+        modules="ah6 pppoe sctp sctp_diag xfrm_user"
+        for module in ${modules}; do
+            if ! grep --dereference-recursive --quiet "^install ${module} /bin/sh" /etc/modprobe.d/; then
+                fail --comment "Mitigation: disable module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
+            fi
+            if lsmod | awk '{print $1}' | grep --line-regexp --fixed-strings --quiet "${module}"; then
+                fail --comment "Mitigation: unload module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
+            fi
+        done
+        if ! is_installed openvpn; then
+            modules="tun"
             for module in ${modules}; do
                 if ! grep --dereference-recursive --quiet "^install ${module} /bin/sh" /etc/modprobe.d/; then
                     fail --comment "Mitigation: disable module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
@@ -4724,17 +4684,6 @@ EODOC
                     fail --comment "Mitigation: unload module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
                 fi
             done
-            if ! is_installed openvpn; then
-                modules="tun"
-                for module in ${modules}; do
-                    if ! grep --dereference-recursive --quiet "^install ${module} /bin/sh" /etc/modprobe.d/; then
-                        fail --comment "Mitigation: disable module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
-                    fi
-                    if lsmod | awk '{print $1}' | grep --line-regexp --fixed-strings --quiet "${module}"; then
-                        fail --comment "Mitigation: unload module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
-                    fi
-                done
-            fi
         fi
         show_doc "${doc:-}"
     fi

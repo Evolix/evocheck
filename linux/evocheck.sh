@@ -4700,13 +4700,6 @@ check_sc1077() {
     System is vulnerable to multiple Linux security issues
     https://www.openwall.com/lists/oss-security/2026/09/08/1
     ~~~
-    The best is to boot on a patched kernel :
-      >= 5.10.272-1
-      >= 6.1.190-1
-      >= 6.12.113-1
-      >= 7.0.14-26
-      >= 7.2.12-1
-    
     Affected modules:
       - batman-adv
       - ip6_tunnel

@@ -202,6 +202,7 @@ exec_checks() {
     check_smartmontools
     check_efi_part
     check_networkbonding
+    check_cve_2026_98432
 }
 
 #####################
@@ -4520,6 +4521,80 @@ EODOC
             test "$(echo $line | cut -d" " -f1)" -ne 2 && fail --comment "interface $(echo $line | cut -d" " -f2) should have 2 members but has $(echo $line | cut -d" " -f1)"  --level "${level}" --label "${label}" --tags "${tags}"
         done < <(wc -w /sys/class/net/bond*/bonding/slaves 2>/dev/null | grep -v total | awk -F / '{print $1,$5}')
 
+        show_doc "${doc:-}"
+    fi
+}
+
+# shellcheck disable=SC2329
+check_cve_2026_98432() {
+    local level default_exec cron future tags label doc rc
+    # level is defined per failure
+    #level=4
+    default_exec=1
+    cron=1
+    future=0
+    label="IS_CVE_2026_98432"
+    doc=$(cat <<EODOC
+    System is vulnerable to CVE-2026-98432
+    https://nvd.nist.gov/vuln/detail/cve-2026-98432
+
+    The best is to boot on a patched kernel :
+      >= 5.10.272-1
+      >= 6.1.190-1
+      >= 6.12.113-1
+      >= 7.0.14-26
+      >= 7.2.12-1 
+    
+    Possible mitigations :
+      - For kernel >= 6.0, disable MPTCP:
+        # sysctl -w net.mptcp.enabled=0
+      - For all kernels, drop/log packets:
+        # iptables -t raw -I PREROUTING 1 -p tcp -m u32 --u32 '0&0x0F000000=0x06000000:0x0F000000' -j DROP
+        # iptables -t raw -I PREROUTING 1 -p tcp -m u32 --u32 '0&0x0F000000=0x06000000:0x0F000000' -j LOG --log-prefix '[IPTABLES DROP (CVE-2026-98432)] : '
+EODOC
+)
+
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+
+        kernel_version_short=$(uname -v | grep --extended-regexp --only-match '[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?')
+        kernel_version_major=$(echo "${kernel_version_short}" | cut -d'.' -f 1-2)
+        kernel_safe=0
+
+        case "${kernel_version_major}" in
+            5.10)
+                dpkg --compare-versions "${kernel_version_short}" ge "5.10.272-1" && kernel_safe=1
+                ;;
+            6.1)
+                dpkg --compare-versions "${kernel_version_short}" ge "6.1.190-1" && kernel_safe=1
+                ;;
+            6.12)
+                dpkg --compare-versions "${kernel_version_short}" ge "6.12.113-1" && kernel_safe=1
+                ;;
+            7.0)
+                dpkg --compare-versions "${kernel_version_short}" ge "7.0.14-26" && kernel_safe=1
+                ;;
+            7.2)
+                dpkg --compare-versions "${kernel_version_short}" ge "7.2.12-1" && kernel_safe=1
+                ;;
+        esac
+
+        if [ "${kernel_safe}" -eq "0" ]; then
+            level=3
+            fail --comment "Kernel ${kernel_version_short} is not safe" --level "${level}" --label "${label}" --tags "${tags}"
+
+            level=4
+            if dpkg --compare-versions "${kernel_version_major}" ge "6.0"; then
+                if [ "$(sysctl -n net.mptcp.enabled)" -ne 0 ]; then
+                    fail --comment "Mitigation: disable MPTCP" --level "${level}" --label "${label}" --tags "${tags}"
+                fi
+            fi
+            rules_found=$(iptables -t raw -L -n | grep --extended-regexp "DROP\s+tcp" | grep --extended-regexp --ignore-case '0(&|x)0(&|x)0?F000000=0x0?6000000:0x0?F000000')
+            if [ -z "${rules_found}" ]; then
+                fail --comment "Mitigation: add iptables rules to drop (and log) packets" --level "${level}" --label "${label}" --tags "${tags}"
+            fi
+        fi
         show_doc "${doc:-}"
     fi
 }

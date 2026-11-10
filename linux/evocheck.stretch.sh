@@ -4,8 +4,6 @@
 # Script to verify compliance of a Linux (Debian 9 only) server
 # powered by Evolix
 
-#set -x
-
 VERSION="26.09.2"
 readonly VERSION
 
@@ -13,7 +11,7 @@ readonly VERSION
 
 show_version() {
     cat <<END
-evocheck version ${VERSION}
+evocheck version ${VERSION} (Stretch)
 
 Copyright 2009-2025 Evolix <info@evolix.fr>,
                     Romain Dessort <rdessort@evolix.fr>,

@@ -4,8 +4,6 @@
 # Script to verify compliance of a Linux (Debian 10+) server
 # powered by Evolix
 
-#set -x
-
 VERSION="26.09.2"
 readonly VERSION
 
@@ -42,14 +40,14 @@ Usage: evocheck
   or   evocheck --min-level 2 --max-level 3
 
 Options
-     --cron                  disable a few checks
-     --future                enable checks that will be enabled later
- -v, --verbose               display full documentation for fail checks
- -q, --quiet                 nothing is printed on stdout
-     --min-level X           executes only checkwith level >= X
-     --max-level Y           executes only checkwith level <= Y
- -h, --help                  print this message and exit
-     --version               print version and exit
+     --cron         disable a few checks
+     --future       enable checks that will be enabled later
+ -v, --verbose      display full documentation for fail checks
+ -q, --quiet        nothing is printed on stdout
+     --min-level X  executes only checks with level >= X
+     --max-level Y  executes only checks with level <= Y
+ -h, --help         print this message and exit
+     --version      print version and exit
 
 Check levels :
  1 : optional

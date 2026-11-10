@@ -203,6 +203,7 @@ exec_checks() {
     check_efi_part
     check_networkbonding
     check_cve_2026_98432
+    check_cve_2026_31431
 }
 
 #####################
@@ -4525,7 +4526,6 @@ EODOC
     fi
 }
 
-# shellcheck disable=SC2329
 check_cve_2026_98432() {
     local level default_exec cron future tags label doc rc
     # level is defined per failure
@@ -4537,7 +4537,7 @@ check_cve_2026_98432() {
     doc=$(cat <<EODOC
     System is vulnerable to CVE-2026-98432
     https://nvd.nist.gov/vuln/detail/cve-2026-98432
-
+    ~~~
     The best is to boot on a patched kernel :
       >= 5.10.272-1
       >= 6.1.190-1
@@ -4551,6 +4551,7 @@ check_cve_2026_98432() {
       - For all kernels, drop/log packets:
         # iptables -t raw -I PREROUTING 1 -p tcp -m u32 --u32 '0&0x0F000000=0x06000000:0x0F000000' -j DROP
         # iptables -t raw -I PREROUTING 1 -p tcp -m u32 --u32 '0&0x0F000000=0x06000000:0x0F000000' -j LOG --log-prefix '[IPTABLES DROP (CVE-2026-98432)] : '
+    ~~~
 EODOC
 )
 
@@ -4563,21 +4564,11 @@ EODOC
         kernel_safe=0
 
         case "${kernel_version_major}" in
-            5.10)
-                dpkg --compare-versions "${kernel_version_short}" ge "5.10.272-1" && kernel_safe=1
-                ;;
-            6.1)
-                dpkg --compare-versions "${kernel_version_short}" ge "6.1.190-1" && kernel_safe=1
-                ;;
-            6.12)
-                dpkg --compare-versions "${kernel_version_short}" ge "6.12.113-1" && kernel_safe=1
-                ;;
-            7.0)
-                dpkg --compare-versions "${kernel_version_short}" ge "7.0.14-26" && kernel_safe=1
-                ;;
-            7.2)
-                dpkg --compare-versions "${kernel_version_short}" ge "7.2.12-1" && kernel_safe=1
-                ;;
+            5.10) dpkg --compare-versions "${kernel_version_short}" ge "5.10.272-1" && kernel_safe=1 ;;
+            6.1)  dpkg --compare-versions "${kernel_version_short}" ge "6.1.190-1"  && kernel_safe=1 ;;
+            6.12) dpkg --compare-versions "${kernel_version_short}" ge "6.12.113-1" && kernel_safe=1 ;;
+            7.0)  dpkg --compare-versions "${kernel_version_short}" ge "7.0.14-26"  && kernel_safe=1 ;;
+            7.2)  dpkg --compare-versions "${kernel_version_short}" ge "7.2.12-1"   && kernel_safe=1 ;;
         esac
 
         if [ "${kernel_safe}" -eq "0" ]; then
@@ -4594,6 +4585,69 @@ EODOC
             if [ -z "${rules_found}" ]; then
                 fail --comment "Mitigation: add iptables rules to drop (and log) packets" --level "${level}" --label "${label}" --tags "${tags}"
             fi
+        fi
+        show_doc "${doc:-}"
+    fi
+}
+
+check_cve_2026_31431() {
+    local level default_exec cron future tags label doc rc
+    # level is defined per failure
+    level=4
+    default_exec=1
+    cron=1
+    future=0
+    label="IS_CVE_2026_31431"
+    doc=$(cat <<EODOC
+    System is vulnerable to CVE-2026-31431
+    https://nvd.nist.gov/vuln/detail/cve-2026-31431
+    ~~~
+    The best is to boot on a patched kernel :
+      >= 5.10.272-1
+      >= 6.1.190-1
+      >= 6.12.113-1
+      >= 7.0.14-26
+      >= 7.2.12-1 
+    
+    Possible mitigations :
+      1. disable module
+        # echo "install {{ item }} /bin/sh -c '/usr/bin/logger -t evolinux \"blocked: {{ item }}\" 2>/dev/null; exit 0'" >> /etc/modprobe.d/disable-algif.conf
+      2. unload module
+        # rmmod {{ item }} 2>/dev/null || true
+    ~~~
+EODOC
+)
+
+    if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
+        rc=0
+        tags=$(format_tags --cron "${cron}" --future "${future}")
+
+        kernel_version_short=$(uname -v | grep --extended-regexp --only-match '[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?')
+        kernel_version_major=$(echo "${kernel_version_short}" | cut -d'.' -f 1-2)
+        kernel_safe=0
+
+        case "${kernel_version_major}" in
+            5.10) dpkg --compare-versions "${kernel_version_short}" ge "5.10.272-1" && kernel_safe=1 ;;
+            6.1)  dpkg --compare-versions "${kernel_version_short}" ge "6.1.190-1"  && kernel_safe=1 ;;
+            6.12) dpkg --compare-versions "${kernel_version_short}" ge "6.12.113-1" && kernel_safe=1 ;;
+            7.0)  dpkg --compare-versions "${kernel_version_short}" ge "7.0.14-26"  && kernel_safe=1 ;;
+            7.2)  dpkg --compare-versions "${kernel_version_short}" ge "7.2.12-1"   && kernel_safe=1 ;;
+        esac
+
+        if [ "${kernel_safe}" -eq "0" ]; then
+            level=3
+            fail --comment "Kernel ${kernel_version_short} is not safe" --level "${level}" --label "${label}" --tags "${tags}"
+
+            level=4
+            modules="algif_aead"
+            for module in ${modules}; do
+                if ! grep --dereference-recursive --quiet "^install ${module} /bin/sh" /etc/modprobe.d/; then
+                    fail --comment "Mitigation: disable module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
+                fi
+                if lsmod | awk '{print $1}' | grep --line-regexp --fixed-strings --quiet "${module}"; then
+                    fail --comment "Mitigation: unload module ${module}" --level "${level}" --label "${label}" --tags "${tags}"
+                fi
+            done
         fi
         show_doc "${doc:-}"
     fi

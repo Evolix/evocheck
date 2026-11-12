@@ -5085,7 +5085,6 @@ readonly MIN_LEVEL MAX_LEVEL CRON FUTURE VERBOSE QUIET
 # Keep this after "show_version(); exit 0" which is called by check_versions
 # to avoid logging exit twice.
 declare -a files_to_cleanup
-files_to_cleanup=""
 # shellcheck disable=SC2064
 trap cleanup EXIT INT TERM
 

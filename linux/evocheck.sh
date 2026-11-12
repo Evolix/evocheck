@@ -731,7 +731,7 @@ check_newpub() {
     future=0
     label="IS_NEWPUB"
     doc=$(cat <<EODOC
-    Evolix source for apt should enabled.
+    Evolix source for apt should be enabled.
     Cf. https://wiki.evolix.org/HowtoDebian/SourcesList
 EODOC
 )
@@ -778,7 +778,7 @@ check_sury() {
     future=0
     label="IS_SURY"
     doc=$(cat <<EODOC
-    Evolix source for apt should enabled (the appropriate \$release-phpXY
+    Evolix source for apt should be enabled (the appropriate \$release-phpXY
     suite). Cf. https://wiki.evolix.org/HowtoPHP#php-avec-deb.sury.org
 EODOC
 )
@@ -804,7 +804,7 @@ check_sury_lxc() {
     future=0
     label="IS_SURY_LXC"
     noc=$(cat <<EODOC
-    Evolix source for apt should enabled (the appropriate \$release-phpXY
+    Evolix source for apt should be enabled (the appropriate \$release-phpXY
     suite) in LXC containers.
     Cf. https://wiki.evolix.org/HowtoPHP#php-avec-deb.sury.org
 EODOC

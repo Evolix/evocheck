@@ -1282,7 +1282,7 @@ check_alert5minifw() {
     vim /usr/share/scripts/alert5.sh
     ~~~
 
-    Add or uncomment the “/etc/init.d/minifirewall start” line.
+    Add or uncomment the "/etc/init.d/minifirewall start" line.
     Remount /usr in read-only mode.
 
     ~~~
@@ -1468,7 +1468,7 @@ check_nrpepid() {
     PIDFile=/run/nagios/nrpe.pid
     ~~~
 
-    If the path is still “/var/run/nagios/nrpe.pid”, then the
+    If the path is still "/var/run/nagios/nrpe.pid", then the
     nagios-nrpe-server package may be outdated.
 
     ~~~
@@ -2156,8 +2156,8 @@ check_apachesymlink() {
     Some regular files have been detected in /etc/apache2/sites-enabled.
 
     They should be moved to /etc/apache2/sites-available, enabled (with
-    “a2ensite <vhost>”), and then Apache conf should be reloaded (with
-    “systemctl reload apache2”).
+    "a2ensite <vhost>"), and then Apache conf should be reloaded (with
+    "systemctl reload apache2").
 EODOC
 )
 
@@ -4479,6 +4479,7 @@ EODOC
                             # fetch the EFI path
                             efi_path=$(echo "${boot_entry}" | grep --only-matching --extended-regexp "File\([^)]+\)")
                             # … which should be shimx64.efi
+                            # shellcheck disable=SC2076
                             if [[ "${efi_path}" =~ "shimx64.efi" ]]; then
                                 # OK
                                 :
@@ -4520,8 +4521,12 @@ EODOC
     if check_can_run --label "${label}" --level "${level}" --default-exec "${default_exec}" --cron "${cron}" --future "${future}"; then
         rc=0
         tags=$(format_tags --cron "${cron}" --future "${future}")
+        expected_members=2
         while read -r line; do
-            test "$(echo $line | cut -d" " -f1)" -ne 2 && fail --comment "interface $(echo $line | cut -d" " -f2) should have 2 members but has $(echo $line | cut -d" " -f1)"  --level "${level}" --label "${label}" --tags "${tags}"
+            actual_members=$(echo "${line}" | cut -d" " -f1)
+            if [ "${expected_members}" -ne "${actual_members}" ]; then    
+                fail --comment "interface $(echo "${line}" | cut -d" " -f2) should have ${expected_members} members but has ${actual_members}"  --level "${level}" --label "${label}" --tags "${tags}"
+            fi
         done < <(wc -w /sys/class/net/bond*/bonding/slaves 2>/dev/null | grep -v total | awk -F / '{print $1,$5}')
 
         show_doc "${doc:-}"
@@ -4979,9 +4984,9 @@ PROGNAME=$(basename "$0")
 # shellcheck disable=SC2034
 readonly PROGNAME
 
-# shellcheck disable=SC2124
-ARGS=$@
-readonly ARGS
+## shellcheck disable=SC2124
+#ARGS=$@
+#readonly ARGS
 
 LOGFILE="/var/log/evocheck.log"
 readonly LOGFILE
